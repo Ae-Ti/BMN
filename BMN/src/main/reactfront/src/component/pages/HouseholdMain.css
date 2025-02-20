@@ -1,0 +1,105 @@
+.ledger-container {
+    width: 100%;
+    padding: 20px;
+  }
+  
+  .ledger-tabs {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+  
+  .tab {
+    padding: 10px 20px;
+    background-color: #f8f9fa;
+    border: none;
+    cursor: pointer;
+    font-size: 16px;
+  }
+  
+  .tab.active {
+    background-color: #eed173;
+    color: white;
+    font-weight: bold;
+  }
+  
+  .ledger-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+  }
+  
+  .calendar-container {
+    flex: 1;
+    max-width: 500px;
+  }
+  
+  .empty-space {
+    flex: 1;
+    height: 300px; /* 일단 비워둔 상태 */
+  }
+  
+  /* 달력 전체 크기 조정 */
+
+  
+  /* 날짜 글씨 검은색으로 */
+  .custom-calendar .react-calendar__tile {
+    color: black;
+    font-size: 1.2rem;
+  }
+  
+  /* 현재 선택된 날짜 강조 */
+  .custom-calendar .react-calendar__tile--active {
+    background-color: #f0d775;
+    color: white;
+    border-radius: 10px;
+  }
+  /* 연도와 월 선택 드롭다운 스타일 */
+.date-selector {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+  
+  
+  /* 달력 크기 조정 */
+  .custom-calendar {
+    width: 100%;
+    max-width: 700px; /* 크기 더 키움 */
+    font-size: 1.3rem; /* 글자 크기 키움 */
+    color: black;
+  }
+  
+ 
+  
+  /* 토요일 파란색 */
+  .custom-calendar .saturday {
+    color: blue !important;
+  }
+  
+  /* 일요일 빨간색 */
+  .custom-calendar .sunday {
+    color: red !important;
+  }
+  
+  /* 이번 달이 아닌 날짜는 투명도 조절 */
+  .custom-calendar .dimmed {
+    opacity: 0.5;
+    color: black;
+  }
+
+  .react-calendar__navigation {
+    height: 30px; /* 높이 줄이기 */
+  }
+  
+  .react-calendar__navigation button {
+    color: black !important; /* 네비게이션(연도, 월) 글자 검은색 */
+    font-weight: bold; /* 글자 굵게 (선택 사항) */
+  }
+
+  .react-calendar {
+    width: 100%; /* 가로 최대 */
+    height: 400px; /* 달력 세로 더 늘리기 */
+  }
+  
