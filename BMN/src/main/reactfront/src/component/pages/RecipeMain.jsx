@@ -72,7 +72,8 @@ const RecipeMain = () => {
           backgroundColor: "#e7c555",
           color: "black",
           border: "none",
-          padding: "12px 24px", // 가로로 긴 버튼
+          height: "40px",
+          width: "80px",// 가로로 긴 버튼
           fontSize: "16px",
           borderRadius: "25px", // 타원형 버튼
           boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",

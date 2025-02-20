@@ -17,8 +17,8 @@ const Layout = ({ children }) => {
           {/* 버튼 그룹 */}
           <div className="button-group">
             {/* ✅ "요리" 버튼 클릭 시 RecipeMain ("/") 페이지 이동 */}
-            <button className="button" onClick={() => navigate("/")}>🍽 요리</button>
-            <button className="button">💰 가계부</button>
+            <button className="button" onClick={() => navigate("/")}>🍽요리</button>
+            <button className="button">💰가계부</button>
           </div>
           
           {/* My Page 버튼 */}
