@@ -21,14 +21,10 @@ public class SecurityConfig {
                 .headers((headers) -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(
                                 XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)))
-        ;
-        return http.build();
-    }
-    @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
-        http
                 .csrf(csrf -> csrf.disable()) // CSRF 보안 정책 비활성화
                 .authorizeHttpRequests(auth -> auth.anyRequest().permitAll());
+
+
         return http.build();
     }
 }
