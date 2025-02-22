@@ -1,7 +1,7 @@
 package com.example.BMN.Recipe;
 
 import com.example.BMN.Review.Review;
-import com.example.BMN.SiteUser.SiteUser;
+import com.example.BMN.User.SiteUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -31,12 +31,6 @@ public class Recipe {
 
     @ManyToOne
     private SiteUser author;
-
-    @ManyToMany(mappedBy = "favorite")
-    Set<SiteUser> favorite;
-
-    @ManyToMany(mappedBy = "like")
-    Set<SiteUser> like;
 
     private Integer view;
 

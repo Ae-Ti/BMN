@@ -1,9 +1,7 @@
 package com.example.BMN.Recipe;
 
 import com.example.BMN.DataNotFoundException;
-import com.example.BMN.SiteUser.SiteUser;
 import lombok.RequiredArgsConstructor;
-import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
