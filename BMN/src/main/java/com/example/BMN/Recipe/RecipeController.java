@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
+@CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/recipe")
 @RequiredArgsConstructor
 @Controller
@@ -24,6 +25,7 @@ public class RecipeController {
         model.addAttribute("paging", paging);
         return "recipe_list";
     }
+
 
     @GetMapping(value="/detail/{id}")
     public String detail(Model model, @PathVariable("id") Integer id, ReviewForm reviewForm){
@@ -45,4 +47,6 @@ public class RecipeController {
         this.recipeService.create(recipeForm.getSubject(), recipeForm.getContent());
         return "redirect:/recipe/list";//레시피 저장 후 레시피 목록으로 이동
     }
+
+
 }
