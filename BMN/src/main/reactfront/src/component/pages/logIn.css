@@ -54,3 +54,13 @@
     text-decoration: underline;
   }
   
+  .signup-link {
+    color: blue;
+    font-size: 12px;
+    cursor: pointer;
+    text-decoration: underline;
+    margin-top: 10px;
+  }
+  .signup-link:hover {
+    color: darkblue;
+  }

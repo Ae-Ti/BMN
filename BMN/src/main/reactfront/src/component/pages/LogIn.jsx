@@ -5,9 +5,7 @@ import "./logIn.css";
 const LogIn = () => {
   const navigate = useNavigate();
 
-  const handleSignUp = () => {
-    navigate("/signup");
-  };
+  
 
   return (
     <div className="login-container">
@@ -16,7 +14,7 @@ const LogIn = () => {
         <input type="text" placeholder="아이디" className="login-input" />
         <input type="password" placeholder="비밀번호" className="login-input" />
         <button className="login-button">로그인</button>
-        <p className="signup-link" onClick={handleSignUp}>회원가입</p>
+        <p className="signup-link" onClick={() => navigate("/signup")}>회원가입</p>
       </div>
     </div>
   );

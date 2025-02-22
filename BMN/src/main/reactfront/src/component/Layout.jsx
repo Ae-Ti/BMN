@@ -2,6 +2,10 @@ import React from "react";
 import "./Layout.css"; // 스타일 파일을 임포트합니다.
 import { Outlet, useNavigate } from "react-router-dom";
 import RecipeCategoryTabs from "./pages/RecipeCategoryTabs";
+import { Link } from 'react-router-dom';
+
+
+
 
 const Layout = ({ children }) => {
   const navigate = useNavigate(); //✅ 페이지 이동을 위한 useNavigate()
@@ -17,8 +21,9 @@ const Layout = ({ children }) => {
           {/* 버튼 그룹 */}
           <div className="button-group">
             {/* ✅ "요리" 버튼 클릭 시 RecipeMain ("/") 페이지 이동 */}
-            <button className="button" onClick={() => navigate("/")}>🍽 요리</button>
-            <button className="button">💰 가계부</button>
+            <button className="button" onClick={() => navigate("/")}>🍽요리</button>
+            <button className="button" onClick={() => navigate("/household-ledger")}>💰가계부</button>
+            
           </div>
           
           {/* My Page 버튼 */}

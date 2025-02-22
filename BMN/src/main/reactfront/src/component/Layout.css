@@ -8,7 +8,7 @@
   
   /* 헤더 스타일 */
   .header {
-    background-color: #e7dbb4; /* 헤더 배경 색 (핑크색) */
+    background-color: #e7dbb4; 
     color: white;
     padding: 16px;
     display: flex;
@@ -32,28 +32,24 @@
   /* 버튼 그룹 */
   .button-group {
     display: flex;
-    gap: 8px;
+    gap: 10px;
   }
   
   .button {
-    background-color: white;
-    color: #c7a124; /* 핑크색 텍스트 */
+    background-color: transparent;
+    white-space: nowrap;
+    color: #0c0901; 
     font-weight: bold;
-    padding: 12px 20px;
+    padding: 8px 15px;
     border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-    font-size: 18px;
+    text-align: center;
+    font-size: 17px;
     cursor: pointer;
     transition: all 0.3s ease;
   }
-  
+
   .button:hover {
-    background-color: #e2d455; /* 핑크색 강조 */
-    color: white;
-  }
-  
-  .button:active {
-    background-color: #d3ba30; /* 클릭 시 어두운 핑크 */
+    background-color: transparent;
   }
   
   /* My Page 버튼 */
@@ -62,10 +58,10 @@
   }
   
   .my-page-button {
-    background: linear-gradient(to right, #c2a31c, #ac8314); /* 핑크색에서 빨간색으로 그라디언트 */
+    background: linear-gradient(to right, #c2a31c, #cea842); /* 핑크색에서 빨간색으로 그라디언트 */
     color: white;
     font-weight: bold;
-    padding: 12px 24px;
+    padding: 10px 20px;
     border-radius: 9999px;
     box-shadow: 0 8px 12px rgba(0, 0, 0, 0.1);
     font-size: 18px;
@@ -79,7 +75,7 @@
   }
   
   .my-page-button:active {
-    background: linear-gradient(to right, #d1ba37, #ce2828);
+    background: linear-gradient(to right, #d1ba37, #e4cc8a);
   }
   
   /* 검색 및 회원가입/로그인 */
@@ -98,6 +94,7 @@
   
   .auth-button {
     background: transparent;
+    white-space: nowrap;
     color: rgb(0, 0, 0);
     font-size: 14px;
     padding: 8px 16px;
@@ -107,8 +104,7 @@
   }
   
   .auth-button:hover {
-    background-color: #dbbe6d;
-    color: #3a3611;
+    background-color: transparent;
   }
   
   /* 본문 컨텐츠 */
@@ -130,6 +126,7 @@
     padding: 10px 15px;
     border: none;
     background-color: white;
+    color: black;
     cursor: pointer;
     font-size: 16px;
   }
