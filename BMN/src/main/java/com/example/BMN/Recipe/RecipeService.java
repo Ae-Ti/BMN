@@ -1,6 +1,7 @@
 package com.example.BMN.Recipe;
 
 import com.example.BMN.DataNotFoundException;
+import com.example.BMN.SiteUser.SiteUser;
 import lombok.RequiredArgsConstructor;
 import org.springframework.boot.context.config.ConfigDataLocationNotFoundException;
 import org.springframework.data.domain.Page;
@@ -35,6 +36,8 @@ public class RecipeService {
             throw new DataNotFoundException("recipe not found");
         }
     }
+
+
 
     public void create(String subject, String content){
         Recipe r = new Recipe();
