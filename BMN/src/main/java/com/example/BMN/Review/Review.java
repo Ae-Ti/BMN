@@ -1,7 +1,7 @@
 package com.example.BMN.Review;
 
 import com.example.BMN.Recipe.Recipe;
-import com.example.BMN.SiteUser.SiteUser;
+import com.example.BMN.User.SiteUser;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
