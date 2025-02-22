@@ -37,14 +37,16 @@ public class RecipeService {
         }
     }
 
-
-
     public void create(String subject, String content){
         Recipe r = new Recipe();
         r.setSubject(subject);
         r.setContent(content);
         r.setCreateDate(LocalDateTime.now());
         this.recipeRepository.save(r);
+    }
+
+    public List<Recipe> findAll() {
+        return recipeRepository.findAll();
     }
 
 

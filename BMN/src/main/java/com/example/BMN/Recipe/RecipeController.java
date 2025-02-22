@@ -9,8 +9,6 @@ import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
-
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/recipe")
 @RequiredArgsConstructor
@@ -23,7 +21,7 @@ public class RecipeController {
     public String list(Model model, @RequestParam(value="page", defaultValue="0") int page){
         Page<Recipe> paging = this.recipeService.getList(page);
         model.addAttribute("paging", paging);
-        return "recipe_list";
+        return "testt";
     }
 
 
