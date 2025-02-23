@@ -36,4 +36,33 @@ public class SiteUser {
     @Column
     private String sex;
 
+    @ManyToMany
+    @JoinTable(
+            name = "user_follow",
+            joinColumns = @JoinColumn(name = "follower_id"),
+            inverseJoinColumns = @JoinColumn(name = "follow_id")
+    )
+    private Set<SiteUser> follow;
+
+    @ManyToMany(mappedBy = "follow")
+    Set<SiteUser> follower;
+
+    @ManyToMany @JoinTable(
+            name = "user_like_recipe",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "recipe_id")
+    )
+    Set<Recipe> like;
+
+    @ManyToMany
+    @JoinTable(
+            name = "user_favorite_recipe",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "recipe_id")
+    )
+    List<Recipe> favorite;
+
+    @OneToMany(mappedBy = "author")
+    List<Recipe> post;
+
 }

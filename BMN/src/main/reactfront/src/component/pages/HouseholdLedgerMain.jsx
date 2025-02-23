@@ -37,7 +37,7 @@ const HouseholdLedgerMain = () => {
           value={selectedDate}
           locale="en-US"
           tileContent={({ date }) => {
-            
+
             const dateKey = date.toDateString();
             const dailyTransactions = transactions[dateKey] || [];
             const totalIncome = dailyTransactions
@@ -53,7 +53,7 @@ const HouseholdLedgerMain = () => {
               </div>
             );
           }}
-          
+
         />
       </div>
       

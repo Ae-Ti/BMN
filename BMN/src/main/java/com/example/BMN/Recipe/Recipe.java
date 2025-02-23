@@ -32,7 +32,4 @@ public class Recipe {
 
     @ManyToOne
     private SiteUser author;
-
-    private Integer view;
-
 }
