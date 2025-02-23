@@ -34,4 +34,7 @@ public class Recipe {
 
     private Integer view;
 
+    @ManyToMany
+    List<SiteUser> favorite;
+
 }
