@@ -1,0 +1,113 @@
+.recipe-detail {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.1);
+    background-color: #fff;
+  }
+  
+  .recipe-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  
+  .recipe-header h1 {
+    font-size: 24px;
+    font-weight: bold;
+  }
+  
+  .author, .date {
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .image-container {
+    text-align: center;
+    margin-top: 10px;
+  }
+  
+  .recipe-image {
+    width: 100%;
+    max-height: 400px;
+    object-fit: cover;
+    border-radius: 8px;
+  }
+  
+  .stats {
+    display: flex;
+    justify-content: space-around;
+    margin: 10px 0;
+    font-size: 14px;
+    color: #666;
+  }
+  
+  .recipe-section {
+    margin-top: 20px;
+  }
+  
+  .recipe-section h2 {
+    font-size: 18px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+  }
+  
+  .cooking-steps {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .step {
+    width: 18%;
+    padding: 10px;
+    background: #f4f4f4;
+    border-radius: 5px;
+    text-align: center;
+  }
+  
+  .step-number {
+    font-size: 20px;
+    font-weight: bold;
+    color: #ff5722;
+  }
+  
+  .recipe-comments {
+    margin-top: 20px;
+  }
+  
+  .recipe-comments h2 {
+    font-size: 18px;
+    border-bottom: 2px solid #ddd;
+    padding-bottom: 5px;
+  }
+  
+  .comment {
+    padding: 10px;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .cook-button {
+    display: block;
+    width: 100%;
+    background-color: #ff9800;
+    color: white;
+    padding: 10px;
+    font-size: 16px;
+    border: none;
+    border-radius: 5px;
+    margin-top: 20px;
+    cursor: pointer;
+  }
+  
+  .cook-button:hover {
+    background-color: #e68900;
+  }
+  
+  .loading-text {
+    text-align: center;
+    font-size: 18px;
+    color: #666;
+  }
+  

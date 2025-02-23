@@ -1,31 +1,48 @@
-import React from "react";
+import React, {useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./recipeMain.css"; // 스타일 파일 추가
+import axios from "axios";
+
+axios.defaults.baseURL = "http://localhost:8080";
 
 
 const RecipeMain = () => {
 
   const navigate = useNavigate();
+  const [bestRecipes, setBestRecipes] = useState([]); // 베스트 레시피 리스트
+  const [favoriteRecipes, setFavoriteRecipes] = useState([]); // 즐겨찾기 레시피 리스트
+
+  // 백엔드에서 데이터 가져오기 (GET 요청)
+  useEffect(() => {
+    axios.get("/recipe/data")
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          setBestRecipes(response.data.slice(0, 4)); // 상위 4개만 사용
+        } else {
+          console.error("잘못된 베스트 레시피 데이터 형식:", response.data);
+        }
+      })
+      .catch((error) => console.error("베스트 레시피 가져오기 오류:", error));
+  }, []);
+
+   // 즐겨찾기 레시피 데이터 가져오기
+   useEffect(() => {
+    axios.get("/user/data")
+      .then((response) => {
+        if (Array.isArray(response.data)) {
+          setFavoriteRecipes(response.data.slice(0, 4)); // 상위 4개만 사용
+        } else {
+          console.error("잘못된 즐겨찾기 데이터 형식:", response.data);
+        }
+      })
+      .catch((error) => console.error("즐겨찾기 가져오기 오류:", error));
+  }, []);
 
   const handleUploadClick = () => {
     navigate("/post-create");
   };
 
   // 예제 게시물 데이터 (베스트 레시피)
-  const bestRecipes = [
-    { id: 1, title: "김치찌개", image: "/images/kimchi.jpg" },
-    { id: 2, title: "된장찌개", image: "/images/soybean.jpg" },
-    { id: 3, title: "불고기", image: "/images/bulgogi.jpg" },
-    { id: 4, title: "비빔밥", image: "/images/bibimbap.jpg" },
-  ];
-
-  // 예제 게시물 데이터 (즐겨찾기)
-  const favoriteRecipes = [
-    { id: 1, title: "갈비찜", image: "/images/galbijjim.jpg" },
-    { id: 2, title: "떡볶이", image: "/images/tteokbokki.jpg" },
-    { id: 3, title: "라면", image: "/images/ramen.jpg" },
-    { id: 4, title: "전복죽", image: "/images/jeonbokjuk.jpg" },
-  ];
 
   return (
     <div className="recipe-main">
@@ -33,34 +50,35 @@ const RecipeMain = () => {
       {/* 베스트 레시피 섹션 */}
       <h2 className="title">베스트 레시피</h2>
       <div className="recipe-list">
-        {bestRecipes.map((recipe) => (
-          <div key={recipe.id} className="recipe-card">
-            <img src={recipe.image} alt={recipe.title} className="recipe-image" />
-            <p className="recipe-title">{recipe.title}</p>
-          </div>
-        ))}
+        {bestRecipes.length > 0 ? (
+          bestRecipes.map((recipe) => (
+            <div key={recipe.id} className="recipe-card">
+              <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject} className="recipe-image" />
+              <p className="recipe-title">{recipe.subject}</p>
+            </div>
+          ))
+        ) : (
+          <p>등록된 베스트 레시피가 없습니다.</p>
+        )}
       </div>
 
       {/* 즐겨찾기 섹션 */}
       <h2 className="title">즐겨찾기</h2>
       <div className="recipe-list">
-        {favoriteRecipes.map((recipe) => (
-          <div key={recipe.id} className="recipe-card">
-            <img src={recipe.image} alt={recipe.title} className="recipe-image" />
-            <p className="recipe-title">{recipe.title}</p>
-          </div>
-        ))}
+        {favoriteRecipes.length > 0 ? (
+          favoriteRecipes.map((recipe) => (
+            <div key={recipe.id} className="recipe-card">
+              <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject} className="recipe-image" />
+              <p className="recipe-title">{recipe.subject}</p>
+            </div>
+          ))
+        ) : (
+          <p>즐겨찾기한 레시피가 없습니다.</p>
+        )}
       </div>
 
-      <h2 className="title">즐겨찾기</h2>
-      <div className="recipe-list">
-        {favoriteRecipes.map((recipe) => (
-          <div key={recipe.id} className="recipe-card">
-            <img src={recipe.image} alt={recipe.title} className="recipe-image" />
-            <p className="recipe-title">{recipe.title}</p>
-          </div>
-        ))}
-      </div>
+
+      
 
       {/* ✅ 가로로 긴 타원형 '업로드' 버튼 */}
       <button
