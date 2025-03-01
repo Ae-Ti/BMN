@@ -26,7 +26,7 @@ public class RecipeController {
 
 
     @GetMapping(value="/detail/{id}")
-    public String detail(Model model, @PathVariable("id") Integer id, ReviewForm reviewForm){
+    public String detail(Model model, @PathVariable("id") Long id, ReviewForm reviewForm){
         Recipe recipe = this.recipeService.getRecipe(id);
         model.addAttribute("recipe", recipe);
         return "recipe_detail";

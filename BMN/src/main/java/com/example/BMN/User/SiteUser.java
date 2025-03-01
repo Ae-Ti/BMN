@@ -1,6 +1,9 @@
 package com.example.BMN.User;
 
 import com.example.BMN.Recipe.Recipe;
+import com.fasterxml.jackson.annotation.JsonBackReference;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -17,7 +20,7 @@ public class SiteUser {
     private Long id;
 
     @Column(unique = true)
-    private String username;
+    private String userName;
 
     @Column(unique = true)
     private String nickname;
@@ -60,7 +63,7 @@ public class SiteUser {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "recipe_id")
     )
-    List<Recipe> favorite;
+    Set<Recipe> favorite;
 
     @OneToMany(mappedBy = "author")
     List<Recipe> post;

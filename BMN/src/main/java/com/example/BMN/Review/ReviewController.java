@@ -20,7 +20,7 @@ public class ReviewController {
     private final ReviewService reviewService;
 
     @PostMapping("/create/{id}")
-    public String createReview(Model model, @PathVariable("id") Integer id, @Valid ReviewForm reviewForm, BindingResult bindingresult){
+    public String createReview(Model model, @PathVariable("id") Long id, @Valid ReviewForm reviewForm, BindingResult bindingresult){
         Recipe recipe = this.recipeService.getRecipe(id);
         if(bindingresult.hasErrors()){
             model.addAttribute("recipe", recipe);

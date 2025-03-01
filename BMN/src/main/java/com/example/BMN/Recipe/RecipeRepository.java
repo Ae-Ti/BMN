@@ -6,9 +6,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.List;
 
-public interface RecipeRepository extends JpaRepository<Recipe, Integer> {
+public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Recipe findBySubject(String subject);
     Recipe findBySubjectAndContent(String subject, String content);
     List<Recipe> findBySubjectLike(String subject);
     Page<Recipe> findAll(Pageable pageable);
+
+    List<Recipe> findByIdIn(List<Long> ids);
 }

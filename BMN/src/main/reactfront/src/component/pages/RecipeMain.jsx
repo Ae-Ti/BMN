@@ -11,8 +11,22 @@ const RecipeMain = () => {
   const navigate = useNavigate();
   const [bestRecipes, setBestRecipes] = useState([]); // 베스트 레시피 리스트
   const [favoriteRecipes, setFavoriteRecipes] = useState([]); // 즐겨찾기 레시피 리스트
+    const [userName, setUserName] = useState(""); // 사용자 이름 상태 추가
 
-  // 백엔드에서 데이터 가져오기 (GET 요청)
+    // 로그인한 사용자 정보 가져오기
+    useEffect(() => {
+        axios.get("/user/info")
+            .then((response) => {
+                if (response.data && response.data.userName) {
+                    setUserName(response.data.userName);
+                } else {
+                    console.error("잘못된 사용자 정보 데이터 형식:", response.data);
+                }
+            })
+            .catch((error) => console.error("사용자 정보 가져오기 오류:", error));
+    }, []);
+
+    // 백엔드에서 데이터 가져오기 (GET 요청)
   useEffect(() => {
     axios.get("/recipe/data")
       .then((response) => {
@@ -25,22 +39,28 @@ const RecipeMain = () => {
       .catch((error) => console.error("베스트 레시피 가져오기 오류:", error));
   }, []);
 
-   // 즐겨찾기 레시피 데이터 가져오기
-   useEffect(() => {
-    axios.get("/user/data")
-      .then((response) => {
-        if (Array.isArray(response.data)) {
-          setFavoriteRecipes(response.data.slice(0, 4)); // 상위 4개만 사용
-        } else {
-          console.error("잘못된 즐겨찾기 데이터 형식:", response.data);
+
+    // 즐겨찾기 레시피 데이터 가져오기 (userName이 설정된 후 실행)
+    useEffect(() => {
+        if (userName) {
+            axios.get(`/favorite/data/${userName}`)
+                .then((response) => {
+                    if (Array.isArray(response.data)) {
+                        setFavoriteRecipes(response.data.slice(0, 4));
+                    } else {
+                        console.error("잘못된 즐겨찾기 데이터 형식:", response.data);
+                    }
+                })
+                .catch((error) => console.error("즐겨찾기 가져오기 오류:", error));
         }
-      })
-      .catch((error) => console.error("즐겨찾기 가져오기 오류:", error));
-  }, []);
+    }, [userName]); // userName이 설정될 때만 실행
+
 
   const handleUploadClick = () => {
     navigate("/post-create");
   };
+
+    console.log("즐겨찾기 레시피 데이터:", favoriteRecipes);
 
   // 예제 게시물 데이터 (베스트 레시피)
 
