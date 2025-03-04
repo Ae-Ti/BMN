@@ -18,7 +18,7 @@ const App = () => {
           <Route path="/" element={<Layout />}>
           <Route index element={<RecipeMain />} />
           <Route path="post-create" element={<PostCreate />} /> {/* 게시글 작성 페이지 */}
-          <Route path="/login" element={<LogIn />} /> {/* 로그인 페이지 추가 */}
+          <Route path="user/login" element={<LogIn />} /> {/* 로그인 페이지 추가 */}
           <Route path="/signup" element={<SignUp />} />
           <Route path="/household-ledger" element={<HouseholdLedgerMain />} /> {/* App.js 내부에서 라우팅 추가*/}
         </Route>

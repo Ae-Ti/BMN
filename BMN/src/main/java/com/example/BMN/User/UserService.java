@@ -3,8 +3,10 @@ package com.example.BMN.User;
 import com.example.BMN.DataNotFoundException;
 import com.example.BMN.Recipe.Recipe;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -30,9 +32,9 @@ public class UserService {
     }
 
     // 유저 조회 (엔티티 반환)
-    public SiteUser getUser(String username) {
-        return userRepository.findByUserName(username)
-                .orElseThrow(() -> new DataNotFoundException("사용자를 찾을 수 없습니다."));
+    public SiteUser getUser(String userName) {
+        return userRepository.findByUserName(userName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
     }
 
     // 유저 조회 (DTO 반환)

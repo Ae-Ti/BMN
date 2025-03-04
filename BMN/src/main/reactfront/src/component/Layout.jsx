@@ -43,7 +43,7 @@ const Layout = ({ children }) => {
           </button>
           <button 
             className="auth-button"
-            onClick={() => navigate("/LogIn")} // 로그인 버튼 클릭 시 이동
+            onClick={() => navigate("user/login")} // 로그인 버튼 클릭 시 이동
           >
             로그인
           </button>

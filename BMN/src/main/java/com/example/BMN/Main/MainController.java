@@ -3,7 +3,6 @@ package com.example.BMN.Main;
 import com.example.BMN.Recipe.Recipe;
 import com.example.BMN.Recipe.RecipeDTO;
 import com.example.BMN.Recipe.RecipeService;
-import com.example.BMN.User.SiteUser;
 import com.example.BMN.User.UserDTO;
 import com.example.BMN.User.UserService;
 import lombok.RequiredArgsConstructor;
@@ -16,12 +15,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 
 import java.security.Principal;
-import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-
-import org.springframework.ui.Model;
 import org.springframework.web.server.ResponseStatusException;
 
 @RequiredArgsConstructor
@@ -33,10 +27,8 @@ public class MainController {
     private final UserService userService;
 
     @GetMapping("/recipe/data")
-    public ResponseEntity<List<RecipeDTO>> getAllRecipes(Model model) {
+    public ResponseEntity<List<RecipeDTO>> getAllRecipes() {
         List<Recipe> recipeList = this.recipeService.findAll();
-        //model.addAttribute("recipeList", recipeList);
-        //return "test";
         List<RecipeDTO> recipeDTOList = recipeList.stream()
                 .map(RecipeDTO::new)
                 .toList();
@@ -47,6 +39,10 @@ public class MainController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/favorite/data/{userName}")
     public ResponseEntity<List<RecipeDTO>> getFavorite(@PathVariable String userName, Principal principal) {
+        if (principal == null) {
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.");
+        }
+
         if (!principal.getName().equals(userName)) {
             return ResponseEntity.status(HttpStatus.FORBIDDEN).build();
         }
@@ -63,14 +59,13 @@ public class MainController {
     @PreAuthorize("isAuthenticated()")
     @GetMapping("/user/info")
     public ResponseEntity<UserDTO> getUserInfo(Principal principal) {
+        if (principal == null) {
+            System.out.println("🚨 Principal이 NULL입니다. 토큰을 확인하세요.");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "인증되지 않은 사용자입니다.");
+        }
+        System.out.println("✅ 현재 로그인한 사용자: " + principal.getName());
+
         UserDTO userDTO = userService.getUserDTO(principal.getName());
         return ResponseEntity.ok(userDTO);
     }
-/* 로그인 thymeleaf 임시페이지용
-
-    @GetMapping("/user/login")
-    public String login() {
-        return "login_form";
-    }
- */
 }
