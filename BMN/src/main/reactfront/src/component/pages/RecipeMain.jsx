@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import React, {useState, useEffect} from "react";
+import {useNavigate} from "react-router-dom";
 import "./recipeMain.css"; // 스타일 파일 추가
 import axios from "axios";
 
@@ -20,7 +20,7 @@ const RecipeMain = () => {
         }
 
         axios.get("/user/info", {
-            headers: { Authorization: `Bearer ${token}` },
+            headers: {Authorization: `Bearer ${token}`},
             withCredentials: true
         })
             .then((response) => {
@@ -37,7 +37,7 @@ const RecipeMain = () => {
     useEffect(() => {
         const token = localStorage.getItem("token");
         axios.get("/recipe/data", {
-            headers: token ? { Authorization: `Bearer ${token}` } : {}
+            headers: token ? {Authorization: `Bearer ${token}`} : {}
         })
             .then((response) => {
                 if (Array.isArray(response.data)) {
@@ -54,7 +54,7 @@ const RecipeMain = () => {
         if (userName) {
             const token = localStorage.getItem("token");
             axios.get(`/favorite/data/${userName}`, {
-                headers: token ? { Authorization: `Bearer ${token}` } : {}
+                headers: token ? {Authorization: `Bearer ${token}`} : {}
             })
                 .then((response) => {
                     if (Array.isArray(response.data)) {
@@ -78,7 +78,8 @@ const RecipeMain = () => {
                 {bestRecipes.length > 0 ? (
                     bestRecipes.map((recipe) => (
                         <div key={recipe.id} className="recipe-card">
-                            <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject} className="recipe-image" />
+                            <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject}
+                                 className="recipe-image"/>
                             <p className="recipe-title">{recipe.subject}</p>
                         </div>
                     ))
@@ -92,7 +93,8 @@ const RecipeMain = () => {
                 {favoriteRecipes.length > 0 ? (
                     favoriteRecipes.map((recipe) => (
                         <div key={recipe.id} className="recipe-card">
-                            <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject} className="recipe-image" />
+                            <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject}
+                                 className="recipe-image"/>
                             <p className="recipe-title">{recipe.subject}</p>
                         </div>
                     ))
