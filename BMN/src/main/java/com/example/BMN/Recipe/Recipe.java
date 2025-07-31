@@ -22,12 +22,12 @@ public class Recipe {
     private Long id;
 
     @Column(length = 200)
-    private String subject;
+    private String subject; //요리이름
 
     @Column(columnDefinition = "TEXT")
-    private String content;
+    private String content;//추가설명
 
-    private LocalDateTime createDate;
+    private LocalDateTime createDate;//게시글 작성 날짜
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.REMOVE)
     private List<Review> reviewList;
