@@ -22,7 +22,8 @@ public class Review {
 
     private LocalDateTime createDate;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "recipe")
     private Recipe recipe;
 
     @ManyToOne
