@@ -28,6 +28,20 @@
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
+    <!-- 🔔 로그인 요구 플래시 메시지: 리액트 마운트 전 보장 실행 -->
+    <script>
+      (function () {
+        try {
+          var msg = sessionStorage.getItem('flashMessage');
+          if (msg && typeof window !== 'undefined') {
+            alert(msg); // ✅ 진짜 브라우저 alert (팝업차단 영향 없음)
+            sessionStorage.removeItem('flashMessage'); // 한 번만 노출
+          }
+        } catch (e) {
+          // 무시
+        }
+      })();
+    </script>
     <div id="root"></div>
     <!--
       This HTML file is a template.
