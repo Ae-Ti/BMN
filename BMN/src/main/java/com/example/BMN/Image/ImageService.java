@@ -11,21 +11,22 @@ public class ImageService {
     private final ImageRepository imageRepository;
 
     public ImageService(ImageRepository imageRepository) {
+
         this.imageRepository = imageRepository;
     }
 
     // 이미지 저장
     public Image saveImage(MultipartFile file) throws IOException {
-        byte[] imageData = file.getBytes();
-        Image image = new Image();
-        image.setName(file.getOriginalFilename());
-        image.setImageData(imageData);
+        Image image = Image.builder()
+                .filename(file.getOriginalFilename())
+                .contentType(file.getContentType())
+                .data(file.getBytes())
+                .build();
         return imageRepository.save(image);
     }
 
     // 이미지 가져오기
-    public byte[] getImage(Long id) {
-        Optional<Image> image = imageRepository.findById(id);
-        return image.map(Image::getImageData).orElse(null);
-    }
+   public Optional<Image> getImage(Long id){
+        return imageRepository.findById(id);
+   }
 }
