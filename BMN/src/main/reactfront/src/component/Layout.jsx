@@ -1,9 +1,9 @@
-// src/component/Layout.jsx  (교체용)
+// src/component/Layout.jsx
 import React, { useEffect, useState, useCallback } from "react";
 import "./Layout.css";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import RecipeCategoryTabs from "./pages/RecipeCategoryTabs";
-import LogoutButton from "./LogoutButton"; // 파일 만든 상태라면 유지
+import LogoutButton from "./LogoutButton";
 
 const TOKEN_KEY = "token";
 const isTokenValid = (raw) => {
@@ -26,12 +26,10 @@ const Layout = () => {
     const readAuthed = () => isTokenValid(localStorage.getItem(TOKEN_KEY));
     const [authed, setAuthed] = useState(readAuthed());
 
-    // 1) 라우트가 바뀔 때마다 재평가 (로그인 후 이동 시 반영)
     useEffect(() => {
         setAuthed(readAuthed());
-    }, [location.pathname]); // 경로 바뀌면 재평가
+    }, [location.pathname]);
 
-    // 2) 커스텀 이벤트로 즉시 반영 (로그인/로그아웃 시 직접 쏘게)
     useEffect(() => {
         const onAuthChanged = () => setAuthed(readAuthed());
         window.addEventListener("auth-changed", onAuthChanged);
@@ -45,12 +43,20 @@ const Layout = () => {
             <header className="header">
                 <div className="logo-group">
                     <div className="logo">My Logo</div>
+
                     <div className="button-group">
                         <button className="button" onClick={() => navigate("/")}>🍽요리</button>
                         <button className="button" onClick={() => navigate("/household-ledger")}>💰가계부</button>
                     </div>
+
                     <div className="my-page">
-                        <button className="my-page-button">My Page</button>
+                        {/* ✅ onClick 추가! */}
+                        <button
+                            className="my-page-button"
+                            onClick={() => navigate("/mypage")}
+                        >
+                            My Page
+                        </button>
                     </div>
                 </div>
 
