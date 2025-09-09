@@ -1,224 +1,297 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import "./postCreate.css"; // 스타일 파일 추가
 
 const PostCreate = () => {
-    const [content, setcontent] = useState("");
-    const navigate = useNavigate();
-
-    const [subject, setsubject] = useState("");
-    const [thumbnail, setthumbnail] = useState(null);
-    const [GetIngredients, setGetIngredients] = useState([]); // ✅ 수정됨
-    const [ingredients, setIngredients] = useState(""); // ✅ 수정됨
-    const [purchaseLink, setPurchaseLink] = useState("");
+    // 텍스트 필드
+    const [subject, setSubject] = useState("");
+    const [content, setContent] = useState("");
+    const [ingredientsName, setIngredientsName] = useState("");
+    const [ingredientsLink, setIngredientsLink] = useState("");
+    const [ingredientsList, setIngredientsList] = useState([]); // [{name, link}]
     const [cookingTimeMinutes, setCookingTimeMinutes] = useState("");
-    const [description, setdescription] = useState("");
-    const [tools, settools] = useState("");
-    const [cookingSteps, setCookingSteps] = useState([]);
+    const [description, setDescription] = useState("");
+    const [tools, setTools] = useState("");
     const [estimatedPrice, setEstimatedPrice] = useState("");
 
-    const cookingMethods = ["굽기", "삶기", "튀기기", "찌기", "볶기", "조리기"];
-    const cookingTimes = ["10분", "20분", "30분", "40분", "50분", "60분"];
+    // 이미지 미리보기/캡션
+    const [thumbnailPreview, setThumbnailPreview] = useState(null);
+    const [stepPreviews, setStepPreviews] = useState([]); // blob urls
+    const [stepCaptions, setStepCaptions] = useState([]); // 캡션 배열
 
-    const handlePhotoUpload = (e) => {
-        setthumbnail(URL.createObjectURL(e.target.files[0]));
-    };
+    // 파일 input은 ref로 안전하게 접근
+    const thumbRef = useRef(null);
+    const stepsRef = useRef(null);
 
+    const navigate = useNavigate();
+
+    // 재료 추가/삭제
     const addIngredient = () => {
-        if (ingredients.trim()) { // ✅ 수정됨
-            setGetIngredients([...GetIngredients, { name: ingredients, link: purchaseLink }]); // ✅ 수정됨
-            setIngredients(""); // ✅ 수정됨
-            setPurchaseLink("");
-        }
+        const name = ingredientsName.trim();
+        const link = ingredientsLink.trim();
+        if (!name) return;
+        setIngredientsList((prev) => [...prev, { name, link }]);
+        setIngredientsName("");
+        setIngredientsLink("");
+    };
+    const removeIngredient = (i) => {
+        setIngredientsList((prev) => prev.filter((_, idx) => idx !== i));
     };
 
-    const addCookingStep = (e) => {
-        setCookingSteps([...cookingSteps, URL.createObjectURL(e.target.files[0])]);
+    // 썸네일 미리보기
+    const handlePhotoUpload = (e) => {
+        const f = e.target.files?.[0];
+        if (f) setThumbnailPreview(URL.createObjectURL(f));
+        else setThumbnailPreview(null);
     };
 
-    // ✅ 등록하기 버튼 클릭 시 유효성 검사
-    const handleSubmit = async () => {
-        if (!subject) return alert("요리 이름을 입력하세요.");
-        if (!thumbnail) return alert("대표 사진을 업로드하세요.");
-        if (GetIngredients.length === 0) return alert("최소 하나 이상의 재료를 추가하세요.");
+    // 스텝 이미지 선택
+    const handleStepsChange = (e) => {
+        const files = Array.from(e.target.files || []);
+        // 미리보기 생성
+        const urls = files.map((f) => URL.createObjectURL(f));
+        setStepPreviews(urls);
+        // 캡션 배열 길이를 파일 수에 맞춤
+        setStepCaptions((prev) => {
+            const copy = [...prev];
+            copy.length = files.length;
+            return copy.map((v) => v ?? "");
+        });
+    };
+
+    const updateCaption = (i, v) => {
+        setStepCaptions((prev) => {
+            const copy = [...prev];
+            copy[i] = v;
+            return copy;
+        });
+    };
+
+    // 전송
+    const handleSubmit = async (e) => {
+        e?.preventDefault?.();
+
+        if (!subject.trim()) return alert("요리 이름(제목)을 입력하세요.");
         if (!cookingTimeMinutes) return alert("소요 시간을 입력하세요.");
-        if (!description) return alert("조리 방법을 선택하세요.");
-        if (!tools) return alert("조리 도구를 입력하세요.");
-        if (cookingSteps.length === 0) return alert("조리 순서를 최소 하나 이상 추가하세요.");
+        if (!description.trim()) return alert("조리 설명을 입력하세요.");
+        if (!tools.trim()) return alert("조리 도구를 입력하세요.");
         if (!estimatedPrice) return alert("총 예상 가격을 입력하세요.");
+        if (ingredientsList.length === 0) return alert("재료를 1개 이상 추가하세요.");
+        if (!thumbRef.current?.files?.length) return alert("대표 사진(썸네일)을 선택하세요.");
+        if (!stepsRef.current?.files?.length) return alert("스텝 이미지를 1개 이상 선택하세요.");
 
-        // ✅ FormData 객체 생성
-        const formData = new FormData();
-        formData.append("subject", subject);
-        formData.append("thumbnail", document.querySelector('input[type="file"]').files[0]); // 대표 사진
-        formData.append("cookingTimeMinutes", Number(cookingTimeMinutes)); // 숫자형으로 변환
-        formData.append("description", description);
-        formData.append("tools", tools);
-        formData.append("estimatedPrice", Number(estimatedPrice));
-        formData.append("content", content);
+        const fd = new FormData();
+        // 텍스트 필드
+        fd.append("subject", subject);
+        fd.append("ingredients", JSON.stringify(ingredientsList)); // 서버는 문자열로 받음
+        fd.append("cookingTimeMinutes", String(cookingTimeMinutes));
+        fd.append("description", description);
+        fd.append("tools", tools);
+        fd.append("estimatedPrice", String(estimatedPrice));
+        fd.append("content", content);
 
-        // ✅ 재료 리스트 JSON으로 변환 후 추가
-        formData.append("ingredients", JSON.stringify(GetIngredients));
+        // ✅ 썸네일: 키 이름 정확히 'thumbnail'
+        const thumb = thumbRef.current.files[0];
+        fd.append("thumbnail", thumb);
 
-        // ✅ 조리 순서 파일 여러 개 추가
-        const cookingStepFiles = document.querySelector('input[accept="image/*,video/*"]').files;
-        for (let i = 0; i < cookingStepFiles.length; i++) {
-            formData.append("cookingSteps", cookingStepFiles[i]);
-        }
+        // ✅ 스텝 이미지: 키 이름 정확히 'stepImages'
+        const files = Array.from(stepsRef.current.files);
+        files.forEach((f) => fd.append("stepImages", f));
+
+        // (선택) 캡션: 파일 순서와 동일하게 여러 번 append
+        stepCaptions.forEach((c) => {
+            if (typeof c === "string") fd.append("captions", c);
+            else fd.append("captions", "");
+        });
+
+        // 디버그: 전송 키/값 확인
+        // console.log([...fd.entries()].map(([k, v]) => [k, v?.name ?? v]));
 
         try {
-            const response = await fetch("http://localhost:8080/recipe/create", {
+            const res = await fetch("/recipe/create", {
                 method: "POST",
-                headers: {
-                    Authorization: `Bearer ${localStorage.getItem("token")}`, // 저장된 토큰 사용
-                },
-                body: formData,
+                // Content-Type은 설정하지 말 것 (브라우저가 boundary 포함 자동 세팅)
+                headers: (() => {
+                    const token = localStorage.getItem("token");
+                    return token ? { Authorization: `Bearer ${token}` } : undefined;
+                })(),
+                body: fd,
             });
-
-            if (!response.ok) throw new Error("업로드 실패");
-
+            if (!res.ok) throw new Error(`업로드 실패: ${res.status}`);
             alert("등록 완료!");
             navigate("/");
-        } catch (error) {
-            console.error(error);
+        } catch (err) {
+            console.error(err);
             alert("등록 중 오류가 발생했습니다.");
         }
     };
 
-
     return (
-        <div style={{ padding: "20px", maxWidth: "600px", margin: "0 auto" }}>
-            <h2>게시글 작성</h2>
+        <div style={{ maxWidth: 720, margin: "0 auto", padding: 16 }}>
+            <h2 style={{ marginBottom: 12 }}>레시피 등록</h2>
 
-            {/* 요리 이름 */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>요리 이름:</label>
-                <input
-                    type="text"
-                    value={subject}
-                    onChange={(e) => setsubject(e.target.value)}
-                    placeholder="요리 이름을 입력하세요"
-                    required
-                    style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-                />
-            </div>
-
-            {/* 대표 사진 */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>대표 사진:</label>
-                <input type="file" accept="image/*" onChange={handlePhotoUpload} style={{ marginTop: "5px" }} />
-                {thumbnail && <img src={thumbnail} alt="대표 사진" style={{ width: "100%", marginTop: "10px" }} />}
-            </div>
-
-            {/* 들어가는 재료 */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>들어가는 재료:</label>
-                <input
-                    type="text"
-                    value={ingredients} // ✅ 수정됨
-                    onChange={(e) => setIngredients(e.target.value)} // ✅ 수정됨
-                    placeholder="재료 이름"
-                    style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-                />
-                <input
-                    type="url"
-                    value={purchaseLink}
-                    onChange={(e) => setPurchaseLink(e.target.value)}
-                    placeholder="구매 링크 (선택)"
-                    style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-                />
-                <button onClick={addIngredient} style={{ marginTop: "5px", padding: "5px" }}>추가</button>
-                <ul>
-                    {GetIngredients.map((ingredient, index) => ( // ✅ 수정됨
-                        <li key={index}>{ingredient.name} {ingredient.link && `(${ingredient.link})`}</li>
-                    ))}
-                </ul>
-            </div>
-
-            {/* 소요 시간 (숫자 입력 + '분' 표시) */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>소요 시간:</label>
-                <div style={{ display: "flex", alignItems: "center", marginTop: "5px" }}>
+            <div style={{ display: "grid", gap: 12 }}>
+                {/* 제목 */}
+                <div>
+                    <label>요리 이름</label>
                     <input
-                        type="number"
-                        value={cookingTimeMinutes}
-                        onChange={(e) => setCookingTimeMinutes(e.target.value)}
-                        placeholder="시간 (숫자만)"
-                        style={{ width: "100%", padding: "8px" }}
+                        type="text"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        placeholder="예) 김치볶음밥"
+                        style={{ width: "100%", padding: 8 }}
                     />
-                    <span style={{ marginLeft: "8px" }}>분</span>
                 </div>
-            </div>
 
-            {/* 조리 방법 (드롭다운) */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>조리 방법:</label>
-                <select value={description} onChange={(e) => setdescription(e.target.value)} style={{ width: "100%", padding: "8px", marginTop: "5px" }}>
-                    <option value="">방법 선택</option>
-                    {cookingMethods.map((method, index) => (
-                        <option key={index} value={method}>{method}</option>
-                    ))}
-                </select>
-            </div>
+                {/* 대표 사진 */}
+                <div>
+                    <label>대표 사진(썸네일)</label>
+                    <input
+                        id="thumbnail"
+                        ref={thumbRef}
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhotoUpload}
+                    />
+                    {thumbnailPreview && (
+                        <div style={{ marginTop: 8 }}>
+                            <img src={thumbnailPreview} alt="thumbnail" style={{ maxWidth: "100%" }} />
+                        </div>
+                    )}
+                </div>
 
-            {/* 조리 도구 */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>조리 도구:</label>
-                <input
-                    type="text"
-                    value={tools}
-                    onChange={(e) => settools(e.target.value)}
-                    placeholder="조리 도구 입력"
-                    style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-                />
-            </div>
+                {/* 재료 */}
+                <div>
+                    <label>재료 추가</label>
+                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
+                        <input
+                            type="text"
+                            value={ingredientsName}
+                            onChange={(e) => setIngredientsName(e.target.value)}
+                            placeholder="재료명"
+                            style={{ flex: 1, padding: 8 }}
+                        />
+                        <input
+                            type="text"
+                            value={ingredientsLink}
+                            onChange={(e) => setIngredientsLink(e.target.value)}
+                            placeholder="구매 링크(선택)"
+                            style={{ flex: 2, padding: 8 }}
+                        />
+                        <button type="button" onClick={addIngredient}>
+                            추가
+                        </button>
+                    </div>
+                    {ingredientsList.length > 0 && (
+                        <ul style={{ marginTop: 8 }}>
+                            {ingredientsList.map((it, i) => (
+                                <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                  <span>
+                    {it.name} {it.link ? `— ${it.link}` : ""}
+                  </span>
+                                    <button type="button" onClick={() => removeIngredient(i)}>
+                                        삭제
+                                    </button>
+                                </li>
+                            ))}
+                        </ul>
+                    )}
+                </div>
 
-            {/* 조리 순서 (사진/영상 업로드) */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>조리 순서:</label>
-                <input type="file" accept="image/*,video/*" onChange={addCookingStep} style={{ marginTop: "5px" }} multiple />
-                <ul>
-                    {cookingSteps.map((step, index) => (
-                        <li key={index}>
-                            <img src={step} alt={`조리 과정 ${index + 1}`} style={{ width: "100px", marginTop: "5px" }} />
-                        </li>
-                    ))}
-                </ul>
-            </div>
+                {/* 시간/도구/가격 */}
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <div>
+                        <label>소요 시간(분)</label>
+                        <input
+                            type="number"
+                            value={cookingTimeMinutes}
+                            onChange={(e) => setCookingTimeMinutes(e.target.value)}
+                            style={{ width: "100%", padding: 8 }}
+                            min={0}
+                        />
+                    </div>
+                    <div>
+                        <label>조리 도구</label>
+                        <input
+                            type="text"
+                            value={tools}
+                            onChange={(e) => setTools(e.target.value)}
+                            style={{ width: "100%", padding: 8 }}
+                            placeholder="예) 국자, 후라이팬"
+                        />
+                    </div>
+                </div>
 
-            {/* 총 예상 가격 */}
-            <div style={{ marginBottom: "15px" }}>
-                <label>총 예상 가격:</label>
-                <input
-                    type="number"
-                    value={estimatedPrice}
-                    onChange={(e) => setEstimatedPrice(e.target.value)}
-                    placeholder="총 예상 가격 입력"
-                    style={{ width: "100%", padding: "8px", marginTop: "5px" }}
-                />
-            </div>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                    <div>
+                        <label>총 예상 가격(원)</label>
+                        <input
+                            type="number"
+                            value={estimatedPrice}
+                            onChange={(e) => setEstimatedPrice(e.target.value)}
+                            style={{ width: "100%", padding: 8 }}
+                            min={0}
+                        />
+                    </div>
+                    <div>
+                        <label>조리 설명(한 줄)</label>
+                        <input
+                            type="text"
+                            value={description}
+                            onChange={(e) => setDescription(e.target.value)}
+                            style={{ width: "100%", padding: 8 }}
+                            placeholder="예) 센 불에서 3분간 볶기"
+                        />
+                    </div>
+                </div>
 
-            <div className="post-create-container">
-                <h2>게시글 작성</h2>
-
-                {/* ✅ 추가 설명 입력 칸 */}
-                <div className="form-group">
-                    <label htmlFor="content">추가 설명</label>
+                {/* 본문(추가 설명) */}
+                <div>
+                    <label>추가 설명</label>
                     <textarea
-                        id="content"
-                        name="content"
-                        rows="4"
-                        placeholder="레시피에 대한 추가적인 설명을 입력하세요."
                         value={content}
-                        onChange={(e) => setcontent(e.target.value)}
-                    ></textarea>
+                        onChange={(e) => setContent(e.target.value)}
+                        rows={5}
+                        style={{ width: "100%", padding: 8 }}
+                        placeholder="레시피 팁, 주의사항 등을 적어주세요."
+                    />
+                </div>
+
+                {/* 스텝 이미지 + 캡션 */}
+                <div>
+                    <label>스텝 이미지 (여러 장 선택 가능)</label>
+                    <input
+                        id="cookingSteps"
+                        ref={stepsRef}
+                        type="file"
+                        accept="image/*"
+                        multiple
+                        onChange={handleStepsChange}
+                    />
+                    {stepPreviews.length > 0 && (
+                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))", gap: 8, marginTop: 8 }}>
+                            {stepPreviews.map((url, i) => (
+                                <div key={i} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 8 }}>
+                                    <img src={url} alt={`step-${i + 1}`} style={{ width: "100%", height: 100, objectFit: "cover" }} />
+                                    <input
+                                        type="text"
+                                        value={stepCaptions[i] ?? ""}
+                                        onChange={(e) => updateCaption(i, e.target.value)}
+                                        placeholder={`스텝 ${i + 1} 캡션(선택)`}
+                                        style={{ width: "100%", padding: 6, marginTop: 6 }}
+                                    />
+                                </div>
+                            ))}
+                        </div>
+                    )}
+                </div>
+
+                {/* 제출 */}
+                <div style={{ marginTop: 12 }}>
+                    <button type="button" onClick={handleSubmit} style={{ width: "100%", padding: 12, fontWeight: 600 }}>
+                        등록하기
+                    </button>
                 </div>
             </div>
-
-            {/* 등록하기 버튼 */}
-            <button onClick={handleSubmit} style={{ width: "100%", padding: "10px", backgroundColor: "#eed3a2", color: "black", fontSize: "16px" }}>
-                등록하기
-            </button>
         </div>
     );
 };
