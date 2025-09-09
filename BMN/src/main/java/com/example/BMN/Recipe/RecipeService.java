@@ -29,36 +29,52 @@ public class RecipeService {
     private final UserService userService;
 
     @Transactional
-    public Recipe createRecipe(RecipeForm form,
-                               String authorUserName) throws IOException {
-        SiteUser author = userService.getUser(authorUserName);
+    public Long createRecipe(
+            String subject,
+            String ingredients,
+            Integer cookingTimeMinutes,
+            String description,
+            String tools,
+            Integer estimatedPrice,
+            String content,
+            MultipartFile thumbnail,
+            List<MultipartFile> stepImages,     // 파일 배열
+            List<String> captions,              // 각 스텝 캡션(선택)
+            SiteUser author                     // 로그인 유저(없으면 null 허용)
+    ) throws IOException {
 
         Recipe recipe = new Recipe();
-        recipe.setSubject(form.getSubject());
-        recipe.setThumbnail(form.getThumbnail() != null ? form.getThumbnail().getBytes() : null);
-        recipe.setIngredients(form.getIngredients());
-        recipe.setCookingTimeMinutes(form.getCookingTimeMinutes());
-        recipe.setDescription(form.getDescription());
-        recipe.setTools(form.getTools());
-        recipe.setEstimatedPrice(form.getEstimatedPrice());
-        recipe.setContent(form.getContent());
+        recipe.setSubject(subject);
+        recipe.setIngredients(ingredients);
+        recipe.setCookingTimeMinutes(cookingTimeMinutes);
+        recipe.setDescription(description);
+        recipe.setTools(tools);
+        recipe.setEstimatedPrice(estimatedPrice);
+        recipe.setContent(content);
         recipe.setCreateDate(LocalDateTime.now());
         recipe.setAuthor(author);
 
-        // 스텝 이미지 추가 (편의 메서드 사용)
-        List<MultipartFile> stepFiles = form.getStepImages();
-        if (stepFiles != null && !stepFiles.isEmpty()) {
-            int idx = 1; // 1-based 인덱스
-            for (MultipartFile file : stepFiles) {
-                if (file == null || file.isEmpty()) continue;
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            recipe.setThumbnail(thumbnail.getBytes());
+        }
 
-                RecipeStepImage step = new RecipeStepImage();
-                step.setStepIndex(idx++);
-                step.setImage(file.getBytes());
-                recipe.addStepImage(step); // ✅ NPE 없음
+        if (stepImages != null) {
+            for (int i = 0; i < stepImages.size(); i++) {
+                MultipartFile f = stepImages.get(i);
+                if (f != null && !f.isEmpty()) {
+                    RecipeStepImage step = new RecipeStepImage();
+                    step.setStepIndex(i + 1); // 1부터
+                    step.setImage(f.getBytes());
+
+                    String cap = (captions != null && captions.size() > i) ? captions.get(i) : null;
+                    step.setCaption(cap);
+
+                    recipe.addStepImage(step); // FK 세팅 + 리스트 추가 (핵심)
+                }
             }
         }
-        return recipeRepository.save(recipe);
+
+        return recipeRepository.save(recipe).getId(); // cascade 로 자식도 저장
     }
 
 
@@ -116,4 +132,80 @@ public class RecipeService {
         return recipeRepository.findByIdIn(recipeIds);
     }
 
+    // === [ADD] RecipeService.java : 레시피 메타 부분 수정(JSON) ===
+    @Transactional
+    public Recipe updateRecipeMeta(Long recipeId, RecipeUpdateRequest req) {
+        Recipe recipe = getRecipe(recipeId);
+
+        if (req.getTitle() != null) recipe.setSubject(req.getTitle());
+        if (req.getDescription() != null) recipe.setDescription(req.getDescription());
+        if (req.getTools() != null) recipe.setTools(req.getTools());
+        if (req.getEstimatedPrice() != null) recipe.setEstimatedPrice(req.getEstimatedPrice());
+        if (req.getContent() != null) recipe.setContent(req.getContent());
+
+        return recipeRepository.save(recipe);
+    }
+
+    // === [ADD] RecipeService.java : 레시피 삭제 ===
+    @Transactional
+    public void deleteRecipe(Long recipeId) {
+        Recipe recipe = getRecipe(recipeId);
+        recipeRepository.delete(recipe);
+    }
+
+    // === [ADD] RecipeService.java : 단계 이미지 추가 (multipart) ===
+    @Transactional
+    public RecipeStepImage addStepImage(Long recipeId, Integer stepIndex, String caption, MultipartFile imageFile)
+            throws IOException {
+        Recipe recipe = getRecipe(recipeId);
+
+        RecipeStepImage step = new RecipeStepImage();
+        step.setRecipe(recipe);
+        step.setStepIndex(stepIndex != null ? stepIndex : 0);
+        step.setCaption(caption);
+
+        if (imageFile != null && !imageFile.isEmpty()) {
+            step.setImage(imageFile.getBytes());
+        }
+
+        return recipeStepImageRepository.save(step);
+    }
+
+    // === [ADD] RecipeService.java : 단계 이미지 수정 (multipart) ===
+    @Transactional
+    public RecipeStepImage updateStepImage(Long recipeId, Long stepId, Integer stepIndex, String caption,
+                                           MultipartFile imageFile, boolean removeImage) throws IOException {
+        Recipe recipe = getRecipe(recipeId);
+        RecipeStepImage step = recipeStepImageRepository.findById(stepId)
+                .orElseThrow(() -> new DataNotFoundException("step not found"));
+
+        if (!step.getRecipe().getId().equals(recipe.getId())) {
+            throw new IllegalArgumentException("해당 단계가 레시피에 속하지 않습니다.");
+        }
+
+        if (stepIndex != null) step.setStepIndex(stepIndex);
+        if (caption != null) step.setCaption(caption);
+
+        if (removeImage) {
+            step.setImage(null);
+        } else if (imageFile != null && !imageFile.isEmpty()) {
+            step.setImage(imageFile.getBytes());
+        }
+
+        return recipeStepImageRepository.save(step);
+    }
+
+    // === [ADD] RecipeService.java : 단계 이미지 삭제 ===
+    @Transactional
+    public void deleteStepImage(Long recipeId, Long stepId) {
+        Recipe recipe = getRecipe(recipeId);
+        RecipeStepImage step = recipeStepImageRepository.findById(stepId)
+                .orElseThrow(() -> new DataNotFoundException("step not found"));
+
+        if (!step.getRecipe().getId().equals(recipe.getId())) {
+            throw new IllegalArgumentException("해당 단계가 레시피에 속하지 않습니다.");
+        }
+
+        recipeStepImageRepository.delete(step);
+    }
 }
