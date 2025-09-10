@@ -20,6 +20,9 @@ import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
+
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
@@ -47,6 +50,13 @@ public class RecipeController {
         Recipe recipe = this.recipeService.getRecipe(id);
         model.addAttribute("recipe", recipe);
         return "recipe_detail";
+    }
+
+    @GetMapping(value = "/api/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
+    @ResponseBody
+    public ResponseEntity<RecipeDTO> getRecipeJson(@PathVariable("id") Long id) {
+        Recipe recipe = this.recipeService.getRecipe(id);
+        return ResponseEntity.ok(new RecipeDTO(recipe));
     }
 
     @GetMapping("/create")

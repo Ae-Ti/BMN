@@ -63,4 +63,60 @@
   .floating-button:hover {
     background-color: #e64a19;
   }
+
+/* 섹션 헤더 레이아웃 */
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 8px;
+}
+
+/* 더보기 버튼 - 선명한 컬러+입체감 */
+.more-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  border: 1px solid #d2a900;
+  background: linear-gradient(180deg, #ffe37a 0%, #e7c555 100%);
+  color: #111;
+  font-weight: 700;
+  font-size: 14px;
+  cursor: pointer;
+  box-shadow: 0 2px 0 #c59d00, 0 6px 14px rgba(0, 0, 0, 0.08);
+  transition:
+          transform 0.05s ease,
+          box-shadow 0.2s ease,
+          filter 0.2s ease;
+}
+
+/* 호버(살짝 밝아지고 그림자 강조), 액티브(눌리는 느낌) */
+.more-btn:hover {
+  filter: brightness(1.03);
+  box-shadow: 0 3px 0 #c59d00, 0 10px 20px rgba(0, 0, 0, 0.12);
+}
+.more-btn:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 0 #c59d00, 0 6px 12px rgba(0, 0, 0, 0.10);
+}
+
+/* 포커스 접근성 */
+.more-btn:focus-visible {
+  outline: 3px solid #1a73e8;
+  outline-offset: 2px;
+}
+
+/* 아이콘 살짝 움직이는 마이크로 인터랙션 */
+.more-btn .icon {
+  width: 16px;
+  height: 16px;
+  fill: currentColor;
+  transition: transform 0.2s ease;
+}
+.more-btn:hover .icon {
+  transform: translateX(2px);
+}
   

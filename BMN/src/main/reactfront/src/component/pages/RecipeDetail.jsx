@@ -1,102 +1,126 @@
-import React, { useState, useEffect } from "react";
-import { useParams } from "react-router-dom";
+import React, { useEffect, useMemo, useState } from "react";
+import { Link, useParams } from "react-router-dom";
 import axios from "axios";
-import "./recipeDetail.css"; // 스타일 파일 추가
+import { onImgError } from "../lib/placeholder";
 
-axios.defaults.baseURL = "http://localhost:8080";
+// axios.defaults.baseURL = "http://localhost:8080";
 
-const RecipeDetail = () => {
-  const { id } = useParams(); // URL에서 레시피 ID 가져오기
-  const [recipe, setRecipe] = useState(null);
+export default function RecipeDetail() {
+    const { id } = useParams();
+    const [recipe, setRecipe] = useState(null);
+    const [err, setErr] = useState(null);
+    const [loading, setLoading] = useState(true);
 
-  // 레시피 데이터 가져오기
-  useEffect(() => {
-    axios
-      .get(`/recipe/data/${id}`)
-      .then((response) => {
-        setRecipe(response.data);
-      })
-      .catch((error) => console.error("레시피 상세 정보 가져오기 오류:", error));
-  }, [id]);
+    useEffect(() => {
+        let alive = true;
+        const token = localStorage.getItem("token");
 
-  if (!recipe) {
-    return <p className="loading-text">레시피 정보를 불러오는 중...</p>;
-  }
+        setLoading(true);
+        axios
+            .get(`/recipe/api/${id}`, {
+                headers: token ? { Authorization: `Bearer ${token}` } : {},
+                withCredentials: true,
+            })
+            .then((res) => {
+                if (!alive) return;
+                setRecipe(res.data);
+            })
+            .catch((e) => {
+                if (!alive) return;
+                setErr(e.response?.data?.message || e.message);
+            })
+            .finally(() => {
+                if (!alive) return;
+                setLoading(false);
+            });
 
-  return (
-    <div className="recipe-detail">
-      {/* 제목, 작성자, 생성 날짜 */}
-      <div className="recipe-header">
-        <h1>{recipe.subject}</h1>
-        <p className="author">작성자: {recipe.author}</p>
-        <p className="date">생성 날짜: {recipe.createDate}</p>
-      </div>
+        return () => {
+            alive = false;
+        };
+    }, [id]);
 
-      {/* 대표 사진 */}
-      <div className="image-container">
-        <img src={recipe.image || "/images/default.jpg"} alt={recipe.subject} className="recipe-image" />
-      </div>
+    const steps = useMemo(() => {
+        const arr = recipe?.stepImages ?? [];
+        return [...arr].sort((a, b) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0));
+    }, [recipe]);
 
-      {/* 좋아요, 즐겨찾기 수, 사용 수 (현재는 제외) */}
-      <div className="stats">
-        <p>좋아요: {recipe.likes || 0}</p>
-        <p>즐겨찾기 수: {recipe.favorites || 0}</p>
-      </div>
+    if (loading) return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
+    if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
+    if (!recipe) return null;
 
-      {/* 요리 재료 */}
-      <div className="recipe-section">
-        <h2>요리 재료</h2>
-        <p>{recipe.ingredients}</p>
-      </div>
+    const thumbSrc =
+        recipe.thumbnailUrl || (recipe.id ? `http://localhost:8080/recipe/thumbnail/${recipe.id}` : undefined);
 
-      {/* 추가 설명 */}
-      <div className="recipe-section">
-        <h2>추가 설명</h2>
-        <p>{recipe.content}</p>
-      </div>
+    return (
+        <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
+            <Link to="/recipes" style={{ textDecoration: "none" }}>
+                ← 목록으로
+            </Link>
 
-      {/* 소요 시간, 조리 방법, 총 예상 가격 */}
-      <div className="recipe-section">
-        <h2>소요 시간, 조리 방법, 총 예상 가격</h2>
-        <p>{recipe.time}분 | {recipe.method} | {recipe.price}원</p>
-      </div>
+            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
 
-      {/* 조리 도구 */}
-      <div className="recipe-section">
-        <h2>조리 도구</h2>
-        <p>{recipe.tools}</p>
-      </div>
-
-      {/* 조리 순서 */}
-      <div className="recipe-section">
-        <h2>조리 순서</h2>
-        <div className="cooking-steps">
-          {recipe.steps.map((step, index) => (
-            <div key={index} className="step">
-              <span className="step-number">{index + 1}</span>
-              <p>{step}</p>
+            <div style={{ color: "#666", marginBottom: 16 }}>
+                {recipe.cookingTimeMinutes ? <>조리시간 {recipe.cookingTimeMinutes}분</> : null}
+                {recipe.cookingTimeMinutes && recipe.estimatedPrice ? " · " : null}
+                {recipe.estimatedPrice ? <>예상비용 {recipe.estimatedPrice}원</> : null}
             </div>
-          ))}
+
+            {thumbSrc && (
+                <img
+                    src={thumbSrc}
+                    alt="thumbnail"
+                    style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block", marginBottom: 16 }}
+                    loading="lazy"
+                    onError={onImgError}
+                />
+            )}
+
+            {recipe.description && (
+                <>
+                    <h3 style={{ marginTop: 16 }}>설명</h3>
+                    <p style={{ lineHeight: 1.7 }}>{recipe.description}</p>
+                </>
+            )}
+
+            {recipe.ingredients && recipe.ingredients.trim() && (
+                <>
+                    <h3>재료</h3>
+                    <p style={{ whiteSpace: "pre-line", lineHeight: 1.7 }}>{recipe.ingredients}</p>
+                </>
+            )}
+
+            {recipe.tools && recipe.tools.trim() && (
+                <>
+                    <h3>도구</h3>
+                    <p style={{ whiteSpace: "pre-line" }}>{recipe.tools}</p>
+                </>
+            )}
+
+            {steps.length > 0 && (
+                <>
+                    <h3>조리 단계</h3>
+                    <ol style={{ paddingLeft: 20 }}>
+                        {steps.map((s, idx) => {
+                            const src = s.imageUrl || (s.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
+                            return (
+                                <li key={`${s.stepOrder}-${idx}`} style={{ marginBottom: 24 }}>
+                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Step {s.stepOrder ?? idx + 1}</div>
+                                    {s.description && <div style={{ marginBottom: 8 }}>{s.description}</div>}
+                                    {src && (
+                                        <img
+                                            src={src}
+                                            alt={`step-${s.stepOrder ?? idx + 1}`}
+                                            style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block" }}
+                                            loading="lazy"
+                                            onError={onImgError}
+                                        />
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ol>
+                </>
+            )}
         </div>
-      </div>
-
-      {/* 댓글 입력 및 리스트 */}
-      <div className="recipe-comments">
-        <h2>댓글</h2>
-        <ul>
-          {recipe.reviewList.map((review, index) => (
-            <li key={index} className="comment">
-              <p><strong>{review.author}</strong>: {review.content}</p>
-              <span>좋아요 {review.likes}</span>
-            </li>
-          ))}
-        </ul>
-      </div>
-
-      {/* 해먹기 버튼 */}
-      <button className="cook-button">이걸로 해먹기</button>
-    </div>
-  );
-};
-
-export default RecipeDetail;
+    );
+}
