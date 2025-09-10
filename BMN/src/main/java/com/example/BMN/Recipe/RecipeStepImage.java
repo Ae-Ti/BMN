@@ -21,10 +21,10 @@ public class RecipeStepImage {
 
     @Lob
     @Basic(fetch = FetchType.LAZY)
+    @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "recipe_id", nullable = false, foreignKey = @ForeignKey(name = "fk_step_recipe"))
     private Recipe recipe;
-
-
 }

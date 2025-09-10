@@ -34,19 +34,20 @@ public class Recipe {
     private Integer cookingTimeMinutes;//소요시간(분 단위)
 
     @Lob
-    private String description;
+    private String description;//조리 설명
+
+    //+++구매링크추가할 엔티티 추가
 
     private String tools;
 
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("stepIndex ASC")
     private List<RecipeStepImage> stepImages = new ArrayList<>();
 
-    // 양방향 편의 메서드(권장), 테스트를 위한 임시 코드
     public void addStepImage(RecipeStepImage step) {
-        step.setRecipe(this);
+        step.setRecipe(this);      // FK 세팅 (핵심)
         this.stepImages.add(step);
     }
-
     public void removeStepImage(RecipeStepImage step) {
         step.setRecipe(null);
         this.stepImages.remove(step);

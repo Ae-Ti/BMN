@@ -31,6 +31,7 @@ public class RecipeForm {
     @Size(max = 1000, message = "조리도구는 최대 1000자입니다.")
     private String tools;
 
+    //파일 배열
     private List<MultipartFile> stepImages;
 
     @NotNull(message ="총예상가격은 필수입니다.")
