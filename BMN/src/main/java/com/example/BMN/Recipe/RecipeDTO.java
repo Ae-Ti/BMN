@@ -25,6 +25,10 @@ public class RecipeDTO {
     private LocalDateTime createDate;
     private Long authorId;
     private String thumbnailBase64;
+
+    private String thumbnailUrl;
+
+    private String imageUrl;
     private List<StepImageDTO> stepImages;
 
     public RecipeDTO(Recipe r) {
@@ -41,6 +45,9 @@ public class RecipeDTO {
         this.thumbnailBase64 = (r.getThumbnail()!=null && r.getThumbnail().length>0)
                 ? Base64.getEncoder().encodeToString(r.getThumbnail())
                 : null;
+        // [추가] 썸네일 URL 생성
+        this.thumbnailUrl = "/recipe/thumbnail/" + r.getId();
+
         this.stepImages = r.getStepImages()==null? List.of()
                 : r.getStepImages().stream().map(StepImageDTO::new).toList();
     }
@@ -52,6 +59,7 @@ public class RecipeDTO {
         private Integer stepOrder;
         private String description;
         private String imageBase64;
+        private String imageUrl;
 
         public StepImageDTO(RecipeStepImage s) {
             this.stepOrder = s.getStepIndex();
@@ -59,6 +67,9 @@ public class RecipeDTO {
             this.imageBase64 = (s.getImage()!=null && s.getImage().length>0)
                     ? Base64.getEncoder().encodeToString(s.getImage())
                     : null;
+
+            this.imageUrl = "/recipe/steps/" + s.getId() + "/image";
+
         }
     }
 }

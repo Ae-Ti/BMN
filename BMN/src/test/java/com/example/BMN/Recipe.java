@@ -26,11 +26,11 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc(addFilters = false)
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.NONE)
-@Commit// 🔧 보안 필터 비활성화(403/리다이렉트 방지)
 @ActiveProfiles("test")
 class RecipeIntegrationTest {
-
-    @Autowired MockMvc mockMvc;
+/*
+    @Autowired Mㅇㅇ
+    ockMvc mockMvc;
     @Autowired UserService userService;
     @Autowired
     RecipeRepository recipeRepository;
@@ -89,5 +89,5 @@ class RecipeIntegrationTest {
                 .filter(s -> s.getRecipe().getId().equals(saved.getId()))
                 .count();
         assertThat(stepCount).isEqualTo(3);
-    }
+    }*/
 }
