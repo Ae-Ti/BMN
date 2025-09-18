@@ -1,94 +1,93 @@
-import React, { useState } from 'react';
-import './Ingredient.css';
+.ingredient-page {
+    width: 80%;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
 
-const Ingredient = () => {
-    // 예상비용 state
-    const [cost, setCost] = useState(0);
+/* 상단 박스 */
+.ingredient-top-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background-color: #fafafa;
+}
 
-    // 재료 리스트 (예: {name, link})
-    const ingredients = [
-        { name: '토마토', link: 'https://example.com/tomato' },
-        { name: '양파', link: 'https://example.com/onion' },
-        { name: '올리브 오일', link: 'https://example.com/olive-oil' },
-    ];
+.thumbnail img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+}
 
-    // 현재 선택된 재료
-    const [selectedIngredient, setSelectedIngredient] = useState(null);
+.cost-section {
+    flex: 1;
+    text-align: center;
+}
 
-    const handleReflectBudget = () => {
-        alert(`가계부에 ${cost}원을 반영했습니다.`);
-    };
+.cost-section input {
+    width: 100px;
+    margin-left: 10px;
+}
 
-    return (
-        <div className="ingredient-page">
-            {/* 상단 박스 */}
-            <div className="ingredient-top-box">
-                {/* 썸네일 */}
-                <div className="thumbnail">
-                    <img
-                        src="https://via.placeholder.com/150"
-                        alt="썸네일"
-                    />
-                </div>
+.reflect-button button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
 
-                {/* 예상비용 */}
-                <div className="cost-section">
-                    <label htmlFor="cost-input">예상비용:</label>
-                    <input
-                        id="cost-input"
-                        type="number"
-                        value={cost}
-                        onChange={(e) => setCost(e.target.value)}
-                    />
-                    <span>원</span>
-                </div>
+.reflect-button button:hover {
+    background-color: #45a049;
+}
 
-                {/* 가계부 반영 버튼 */}
-                <div className="reflect-button">
-                    <button onClick={handleReflectBudget}>가계부 반영</button>
-                </div>
-            </div>
+/* 하단 박스 */
+.ingredient-bottom-box {
+    display: flex;
+    gap: 20px;
+}
 
-            {/* 하단 박스 */}
-            <div className="ingredient-bottom-box">
-                {/* 재료 리스트 */}
-                <div className="ingredient-list">
-                    <h3>재료 목록</h3>
-                    <ul>
-                        {ingredients.map((item, index) => (
-                            <li
-                                key={index}
-                                onClick={() => setSelectedIngredient(item)}
-                                className={
-                                    selectedIngredient?.name === item.name ? 'selected' : ''
-                                }
-                            >
-                                {item.name}
-                            </li>
-                        ))}
-                    </ul>
-                </div>
+/* 재료 리스트 */
+.ingredient-list {
+    width: 40%;
+    border-right: 1px solid #ddd;
+    padding-right: 10px;
+}
 
-                {/* 구매처 링크 */}
-                <div className="ingredient-link">
-                    {selectedIngredient ? (
-                        <div>
-                            <h3>{selectedIngredient.name} 구매처</h3>
-                            <a
-                                href={selectedIngredient.link}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                {selectedIngredient.link}
-                            </a>
-                        </div>
-                    ) : (
-                        <p>재료를 클릭하면 구매처 링크가 여기에 표시됩니다.</p>
-                    )}
-                </div>
-            </div>
-        </div>
-    );
-};
+.ingredient-list ul {
+    list-style: none;
+    padding: 0;
+}
 
-export default Ingredient;
+.ingredient-list li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.ingredient-list li:hover {
+    background-color: #f1f1f1;
+}
+
+.ingredient-list li.selected {
+    background-color: #e0ffe0;
+}
+
+/* 구매처 링크 */
+.ingredient-link {
+    width: 60%;
+    padding-left: 10px;
+}
+
+.ingredient-link a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.ingredient-link a:hover {
+    text-decoration: underline;
+}

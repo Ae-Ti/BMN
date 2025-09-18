@@ -1,126 +1,112 @@
-import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
-import axios from "axios";
-import { onImgError } from "../lib/placeholder";
+import React, { useState } from 'react';
+import { useLocation } from 'react-router-dom';
+import './Ingredient.css';
 
-// axios.defaults.baseURL = "http://localhost:8080";
+const Ingredient = () => {
+    // 2. useLocation을 호출해 location 객체를 가져옵니다.
+    const location = useLocation();
 
-export default function RecipeDetail() {
-    const { id } = useParams();
-    const [recipe, setRecipe] = useState(null);
-    const [err, setErr] = useState(null);
-    const [loading, setLoading] = useState(true);
+    // 3. location.state에서 cost와 ingredients 데이터를 추출합니다.
+    // 데이터가 없는 경우를 대비해 기본값을 설정합니다. (Optional Chaining과 Nullish Coalescing 사용)
+    const initialCost = location.state?.cost ?? 0;
+    const ingredients = location.state?.ingredients ?? [];
 
-    useEffect(() => {
-        let alive = true;
-        const token = localStorage.getItem("token");
+    // 예상비용 state를 전달받은 값으로 초기화합니다.
+    const [cost, setCost] = useState(initialCost);
 
-        setLoading(true);
-        axios
-            .get(`/recipe/api/${id}`, {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-                withCredentials: true,
-            })
-            .then((res) => {
-                if (!alive) return;
-                setRecipe(res.data);
-            })
-            .catch((e) => {
-                if (!alive) return;
-                setErr(e.response?.data?.message || e.message);
-            })
-            .finally(() => {
-                if (!alive) return;
-                setLoading(false);
-            });
+    // 현재 선택된 재료 state
+    const [selectedIngredient, setSelectedIngredient] = useState(null);
 
-        return () => {
-            alive = false;
-        };
-    }, [id]);
+    const handleReflectBudget = () => {
+        alert(`가계부에 ${cost}원을 반영했습니다.`);
+    };
 
-    const steps = useMemo(() => {
-        const arr = recipe?.stepImages ?? [];
-        return [...arr].sort((a, b) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0));
-    }, [recipe]);
-
-    if (loading) return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
-    if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
-    if (!recipe) return null;
-
-    const thumbSrc =
-        recipe.thumbnailUrl || (recipe.id ? `http://localhost:8080/recipe/thumbnail/${recipe.id}` : undefined);
+    // 4. 표시할 재료가 없는 경우를 위한 UI 처리
+    if (ingredients.length === 0) {
+        return (
+            <div className="ingredient-page" style={{ textAlign: 'center', paddingTop: '50px' }}>
+                <h2>표시할 재료 정보가 없습니다.</h2>
+                <p>레시피 상세 페이지에서 '담기'를 눌러주세요.</p>
+            </div>
+        );
+    }
 
     return (
-        <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
-            <Link to="/recipes" style={{ textDecoration: "none" }}>
-                ← 목록으로
-            </Link>
+        <div className="ingredient-page">
+            {/* 상단 박스 */}
+            <div className="ingredient-top-box">
+                {/* 썸네일 (썸네일 정보는 전달되지 않았으므로 일단 placeholder 유지) */}
+                <div className="thumbnail">
+                    <img
+                        src="https://via.placeholder.com/150"
+                        alt="썸네일"
+                    />
+                </div>
 
-            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
+                {/* 예상비용 */}
+                <div className="cost-section">
+                    <label htmlFor="cost-input">예상비용:</label>
+                    <input
+                        id="cost-input"
+                        type="number"
+                        value={cost}
+                        onChange={(e) => setCost(e.target.value)}
+                    />
+                    <span>원</span>
+                </div>
 
-            <div style={{ color: "#666", marginBottom: 16 }}>
-                {recipe.cookingTimeMinutes ? <>조리시간 {recipe.cookingTimeMinutes}분</> : null}
-                {recipe.cookingTimeMinutes && recipe.estimatedPrice ? " · " : null}
-                {recipe.estimatedPrice ? <>예상비용 {recipe.estimatedPrice}원</> : null}
+                {/* 가계부 반영 버튼 */}
+                <div className="reflect-button">
+                    <button onClick={handleReflectBudget}>가계부 반영</button>
+                </div>
             </div>
 
-            {thumbSrc && (
-                <img
-                    src={thumbSrc}
-                    alt="thumbnail"
-                    style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block", marginBottom: 16 }}
-                    loading="lazy"
-                    onError={onImgError}
-                />
-            )}x
+            {/* 하단 박스 */}
+            <div className="ingredient-bottom-box">
+                {/* 재료 리스트 */}
+                <div className="ingredient-list">
+                    <h3>재료 목록</h3>
+                    <ul>
+                        {/* 5. 하드코딩된 배열 대신 전달받은 ingredients 배열을 사용해 목록을 만듭니다. */}
+                        {ingredients.map((item, index) => (
+                            <li
+                                key={index}
+                                onClick={() => setSelectedIngredient(item)}
+                                className={
+                                    selectedIngredient?.name === item.name ? 'selected' : ''
+                                }
+                            >
+                                {item.name}
+                            </li>
+                        ))}
+                    </ul>
+                </div>
 
-            {recipe.description && (
-                <>
-                    <h3 style={{ marginTop: 16 }}>설명</h3>
-                    <p style={{ lineHeight: 1.7 }}>{recipe.description}</p>
-                </>
-            )}
-
-            {recipe.ingredients && recipe.ingredients.trim() && (
-                <>
-                    <h3>재료</h3>
-                    <p style={{ whiteSpace: "pre-line", lineHeight: 1.7 }}>{recipe.ingredients}</p>
-                </>
-            )}
-
-            {recipe.tools && recipe.tools.trim() && (
-                <>
-                    <h3>도구</h3>
-                    <p style={{ whiteSpace: "pre-line" }}>{recipe.tools}</p>
-                </>
-            )}
-
-            {steps.length > 0 && (
-                <>
-                    <h3>조리 단계</h3>
-                    <ol style={{ paddingLeft: 20 }}>
-                        {steps.map((s, idx) => {
-                            const src = s.imageUrl || (s.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
-                            return (
-                                <li key={`${s.stepOrder}-${idx}`} style={{ marginBottom: 24 }}>
-                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Step {s.stepOrder ?? idx + 1}</div>
-                                    {s.description && <div style={{ marginBottom: 8 }}>{s.description}</div>}
-                                    {src && (
-                                        <img
-                                            src={src}
-                                            alt={`step-${s.stepOrder ?? idx + 1}`}
-                                            style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block" }}
-                                            loading="lazy"
-                                            onError={onImgError}
-                                        />
-                                    )}
-                                </li>
-                            );
-                        })}
-                    </ol>
-                </>
-            )}
+                {/* 구매처 링크 */}
+                <div className="ingredient-link">
+                    {selectedIngredient ? (
+                        <div>
+                            <h3>{selectedIngredient.name} 구매처</h3>
+                            {selectedIngredient.link ? (
+                                <a
+                                    href={selectedIngredient.link}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                >
+                                    {selectedIngredient.link}
+                                </a>
+                            ) : (
+                                <p>등록된 구매 링크가 없습니다.</p>
+                            )}
+                        </div>
+                    ) : (
+                        <p>재료를 클릭하면 구매처 링크가 여기에 표시됩니다.</p>
+                    )}
+                </div>
+            </div>
         </div>
     );
-}
+};
+
+export default Ingredient;
+

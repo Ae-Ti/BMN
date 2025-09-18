@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 
@@ -7,6 +7,7 @@ import { onImgError } from "../lib/placeholder";
 
 export default function RecipeDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
     const [recipe, setRecipe] = useState(null);
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -57,6 +58,26 @@ export default function RecipeDetail() {
                 ← 목록으로
             </Link>
 
+            <Link
+                to="/ingredient"
+                state={{
+                    cost: recipe.estimatedPrice,         // 예상비용 전달
+                    ingredients: recipe.ingredientList,  // 재료 리스트 (API에서 받아온 배열)
+                }}
+                style={{
+                    position: "fixed",
+                    bottom: "20px",
+                    right: "20px",
+                    background: "#007bff",
+                    color: "#fff",
+                    padding: "10px 20px",
+                    borderRadius: "50px",
+                    textDecoration: "none"
+                }}
+            >
+                담기
+            </Link>
+
             <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
 
             <div style={{ color: "#666", marginBottom: 16 }}>
@@ -73,7 +94,7 @@ export default function RecipeDetail() {
                     loading="lazy"
                     onError={onImgError}
                 />
-            )}
+            )}x
 
             {recipe.description && (
                 <>

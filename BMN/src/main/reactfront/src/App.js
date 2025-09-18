@@ -10,6 +10,7 @@ import SignUp from "./component/pages/SignUp";
 import HouseholdLedgerMain from "./component/pages/HouseholdLedgerMain";
 import ProtectedRoute from "./component/ProtectedRoute";
 import RecipesList from "./component/pages/RecipeList";
+import Ingredient from "./component/pages/Ingredient";
 
 // ✅ 새 페이지
 import MyPage from "./component/pages/MyPage";
@@ -25,6 +26,8 @@ const App = () => {
                     <Route path="recipes" element={<RecipesList />} />
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
+                    <Route path="/recipe/:id" element={<RecipeDetail />} />
+                    <Route path="/ingredient" element={<Ingredient />} /> {/* ✅ 추가 */}
 
                     {/* ✅ 상세 & 업로드 보호 */}
                     <Route
