@@ -62,7 +62,7 @@ export default function RecipeDetail() {
                 to="/ingredient"
                 state={{
                     cost: recipe.estimatedPrice,         // 예상비용 전달
-                    ingredients: recipe.ingredientList,  // 재료 리스트 (API에서 받아온 배열)
+                    ingredients: recipe.ingredients,  // 재료 리스트 (API에서 받아온 배열)
                 }}
                 style={{
                     position: "fixed",

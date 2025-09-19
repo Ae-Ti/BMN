@@ -1,27 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import './Ingredient.css';
 
 const Ingredient = () => {
-    // 2. useLocation을 호출해 location 객체를 가져옵니다.
     const location = useLocation();
 
-    // 3. location.state에서 cost와 ingredients 데이터를 추출합니다.
-    // 데이터가 없는 경우를 대비해 기본값을 설정합니다. (Optional Chaining과 Nullish Coalescing 사용)
+    // 1. location.state에서 cost와 ingredients 데이터를 추출합니다.
     const initialCost = location.state?.cost ?? 0;
-    const ingredients = location.state?.ingredients ?? [];
+    const rawIngredientsData = location.state?.ingredients;
 
-    // 예상비용 state를 전달받은 값으로 초기화합니다.
+    // 2. 전달받은 ingredients 데이터(문자열)를 자바스크립트 배열로 파싱합니다.
+    const ingredients = useMemo(() => {
+        if (typeof rawIngredientsData === 'string') {
+            try {
+                // JSON 문자열을 배열로 변환
+                const parsedData = JSON.parse(rawIngredientsData);
+                // 만약을 위해 배열이 맞는지 한 번 더 확인
+                return Array.isArray(parsedData) ? parsedData : [];
+            } catch (e) {
+                console.error("재료 데이터를 파싱하는 데 실패했습니다.", e);
+                return []; // 파싱 실패 시 빈 배열 반환
+            }
+        }
+        // 이미 배열 형태라면 그대로 사용
+        return Array.isArray(rawIngredientsData) ? rawIngredientsData : [];
+    }, [rawIngredientsData]);
+
+
     const [cost, setCost] = useState(initialCost);
-
-    // 현재 선택된 재료 state
     const [selectedIngredient, setSelectedIngredient] = useState(null);
 
     const handleReflectBudget = () => {
         alert(`가계부에 ${cost}원을 반영했습니다.`);
     };
 
-    // 4. 표시할 재료가 없는 경우를 위한 UI 처리
     if (ingredients.length === 0) {
         return (
             <div className="ingredient-page" style={{ textAlign: 'center', paddingTop: '50px' }}>
@@ -33,17 +45,10 @@ const Ingredient = () => {
 
     return (
         <div className="ingredient-page">
-            {/* 상단 박스 */}
             <div className="ingredient-top-box">
-                {/* 썸네일 (썸네일 정보는 전달되지 않았으므로 일단 placeholder 유지) */}
                 <div className="thumbnail">
-                    <img
-                        src="https://via.placeholder.com/150"
-                        alt="썸네일"
-                    />
+                    <img src="https://via.placeholder.com/150" alt="썸네일" />
                 </div>
-
-                {/* 예상비용 */}
                 <div className="cost-section">
                     <label htmlFor="cost-input">예상비용:</label>
                     <input
@@ -54,45 +59,33 @@ const Ingredient = () => {
                     />
                     <span>원</span>
                 </div>
-
-                {/* 가계부 반영 버튼 */}
                 <div className="reflect-button">
                     <button onClick={handleReflectBudget}>가계부 반영</button>
                 </div>
             </div>
 
-            {/* 하단 박스 */}
             <div className="ingredient-bottom-box">
-                {/* 재료 리스트 */}
                 <div className="ingredient-list">
                     <h3>재료 목록</h3>
                     <ul>
-                        {/* 5. 하드코딩된 배열 대신 전달받은 ingredients 배열을 사용해 목록을 만듭니다. */}
+                        {/* 3. 이제 'ingredients'는 항상 배열이므로 .map()을 안전하게 사용할 수 있습니다. */}
                         {ingredients.map((item, index) => (
                             <li
                                 key={index}
                                 onClick={() => setSelectedIngredient(item)}
-                                className={
-                                    selectedIngredient?.name === item.name ? 'selected' : ''
-                                }
+                                className={selectedIngredient?.name === item.name ? 'selected' : ''}
                             >
                                 {item.name}
                             </li>
                         ))}
                     </ul>
                 </div>
-
-                {/* 구매처 링크 */}
                 <div className="ingredient-link">
                     {selectedIngredient ? (
                         <div>
                             <h3>{selectedIngredient.name} 구매처</h3>
                             {selectedIngredient.link ? (
-                                <a
-                                    href={selectedIngredient.link}
-                                    target="_blank"
-                                    rel="noopener noreferrer"
-                                >
+                                <a href={selectedIngredient.link} target="_blank" rel="noopener noreferrer">
                                     {selectedIngredient.link}
                                 </a>
                             ) : (
@@ -109,4 +102,3 @@ const Ingredient = () => {
 };
 
 export default Ingredient;
-
