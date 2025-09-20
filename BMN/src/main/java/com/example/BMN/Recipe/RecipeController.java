@@ -1,31 +1,26 @@
 package com.example.BMN.Recipe;
 
-import com.example.BMN.Review.ReviewForm;
 import com.example.BMN.User.SiteUser;
-import com.example.BMN.User.UserService;
-import jakarta.persistence.Lob;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.Part;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
 import org.springframework.data.domain.Page;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
-import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
-import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-
-import java.io.IOException;
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Map;
 
 @CrossOrigin(origins = "http://localhost:3000")
 @RequestMapping("/recipe")
@@ -34,23 +29,26 @@ import java.util.Map;
 public class RecipeController {
 
     private final RecipeService recipeService;
-    private final UserService userService;
     private final RecipeStepImageRepository recipeStepImageRepository;
+    private final ObjectMapper objectMapper = new ObjectMapper();
+
+    /* ===================== View pages (optional) ===================== */
 
     @GetMapping("/list")
-    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page){
+    public String list(Model model, @RequestParam(value="page", defaultValue="0") int page) {
         Page<Recipe> paging = this.recipeService.getList(page);
         model.addAttribute("paging", paging);
         return "test";
     }
 
-
-    @GetMapping(value="/detail/{id}")
-    public String detail(Model model, @PathVariable("id") Long id, ReviewForm reviewForm){
+    @GetMapping("/detail/{id}")
+    public String detail(Model model, @PathVariable("id") Long id) {
         Recipe recipe = this.recipeService.getRecipe(id);
         model.addAttribute("recipe", recipe);
         return "recipe_detail";
     }
+
+    /* ===================== JSON APIs ===================== */
 
     @GetMapping(value = "/api/{id}", produces = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
@@ -59,101 +57,88 @@ public class RecipeController {
         return ResponseEntity.ok(new RecipeDTO(recipe));
     }
 
-    @GetMapping("/create")
-    public String recipeCreate(RecipeForm recipeform){
-        return "recipe_form";
-    }
-
-    /*@PostMapping("/create")
-    public String recipeCreate(@Valid RecipeForm recipeForm, BindingResult bindingResult){
-        if(bindingResult.hasErrors()){
-            return "recipe_form";
-        }
-        this.recipeService.create(recipeForm.getSubject(), recipeForm.getContent());
-        return "redirect:/recipe/list";//레시피 저장 후 레시피 목록으로 이동
-    }
-*/
-    @PostMapping(
-            value = "/create",
-            consumes = MediaType.MULTIPART_FORM_DATA_VALUE
-    )
+    /**
+     * 레시피 생성 (multipart/form-data)
+     * - text 필드: subject, cookingTimeMinutes, description, tools, estimatedPrice, content  → request 파트에서 직접 추출
+     * - ingredients: JSON 배열 → @RequestPart 로 List<RecipeIngredientDTO> 바인딩
+     * - thumbnail, stepImages[], captions[]: @RequestPart 로 바인딩
+     * 작성자는 서비스에서 SecurityContext로 해석함.
+     */
+    @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
     public ResponseEntity<Long> create(
-            @RequestParam String subject,
-            @RequestParam(required = false) String ingredients,
-            @RequestParam(required = false) Integer cookingTimeMinutes,
-            @RequestParam(required = false) String description,
-            @RequestParam(required = false) String tools,
-            @RequestParam(required = false) Integer estimatedPrice,
-            @RequestParam(required = false) String content,
+            HttpServletRequest request,
+            @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,
+            @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
+            @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages,
+            @RequestPart(value = "captions", required = false) List<String> captions
+    ) throws Exception {
 
-            // 여기: @RequestParam 으로 변경
-            @RequestParam(value = "thumbnail", required = false) MultipartFile thumbnail,
-
-            @RequestParam(value = "stepImages", required = false) List<MultipartFile> stepImages,
-            @RequestParam(value = "stepImages[]", required = false) List<MultipartFile> stepImagesAlt,
-
-            @RequestParam(value = "captions", required = false) List<String> captions,
-            @RequestParam(value = "captions[]", required = false) List<String> captionsAlt,
-            // 시큐리티를 쓰고 있으면 현재 사용자 주입(없으면 null)
-            @AuthenticationPrincipal SiteUser author
-    ) throws IOException {
-
-        // 어떤 키로 왔든 합치기
-        List<MultipartFile> steps = (stepImages != null && !stepImages.isEmpty()) ? stepImages : stepImagesAlt;
-        List<String> caps = (captions != null && !captions.isEmpty()) ? captions : captionsAlt;
+        String subject             = extractStringPart(request, "subject");
+        String description         = extractStringPart(request, "description");
+        String tools               = extractStringPart(request, "tools");
+        String content             = extractStringPart(request, "content");
+        Integer cookingTimeMinutes = parseIntOrNull(extractStringPart(request, "cookingTimeMinutes"));
+        Integer estimatedPrice     = parseIntOrNull(extractStringPart(request, "estimatedPrice"));
 
         Long id = recipeService.createRecipe(
-                subject, ingredients, cookingTimeMinutes, description, tools,
-                estimatedPrice, content, thumbnail, steps, caps, author
+                subject,
+                ingredients,
+                cookingTimeMinutes,
+                description,
+                tools,
+                estimatedPrice,
+                content,
+                thumbnail,
+                stepImages,
+                captions,
+                null  // authorFromController: 서비스가 SecurityContext로 해석
         );
         return ResponseEntity.ok(id);
     }
 
-    @GetMapping("/thumbnail/{id}")//썸네일 이미지 내려주기
+    /* ===================== Media endpoints ===================== */
+
+    @GetMapping("/thumbnail/{id}")
+    @ResponseBody
     public ResponseEntity<byte[]> getThumbnail(@PathVariable Long id) {
-        Recipe recipe = recipeService.getRecipe(id);
+        Recipe recipe = this.recipeService.getRecipe(id);
         byte[] imageBytes = recipe.getThumbnail();
-
-        if (imageBytes == null) {
-            return ResponseEntity.notFound().build();
-        }
-
+        if (imageBytes == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok()
-                .contentType(MediaType.IMAGE_JPEG) // PNG면 IMAGE_PNG
+                .contentType(MediaType.IMAGE_JPEG)
                 .body(imageBytes);
     }
 
-    // === [OPTIONAL ADD] 단계 이미지 조회 ===
     @GetMapping(value = "/steps/{stepId}/image", produces = MediaType.IMAGE_JPEG_VALUE)
+    @ResponseBody
     public ResponseEntity<byte[]> getStepImage(@PathVariable("stepId") Long stepId) {
-        var step = recipeStepImageRepository.findById(stepId)
-                .orElse(null);
-        if (step == null || step.getImage() == null) {
-            return ResponseEntity.notFound().build();
-        }
+        var step = recipeStepImageRepository.findById(stepId).orElse(null);
+        if (step == null || step.getImage() == null) return ResponseEntity.notFound().build();
         return ResponseEntity.ok(step.getImage());
     }
 
+    /* ===================== Meta update / delete ===================== */
 
-    // 레시피 메타(제목/설명/도구/가격/추가설명) 부분 수정 (JSON)
-    // null 필드는 변경하지 않음
-    //나중에 경로 수정
     @PatchMapping("/{id}")
+    @ResponseBody
     public ResponseEntity<Long> patchRecipeMeta(@PathVariable("id") Long id,
                                                 @RequestBody @Valid RecipeUpdateRequest req) {
         Recipe updated = recipeService.updateRecipeMeta(id, req);
         return ResponseEntity.ok(updated.getId());
     }
 
-    // 레시피 삭제
     @DeleteMapping("/{id}/delete")
+    @ResponseBody
     public ResponseEntity<Void> deleteRecipe(@PathVariable("id") Long id) {
         recipeService.deleteRecipe(id);
         return ResponseEntity.noContent().build();
     }
 
-    // 단계 이미지 추가
+    /* ===================== Step image CRUD (multipart) ===================== */
+
     @PostMapping(value = "/{id}/steps", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
     public ResponseEntity<Long> addStep(@PathVariable Long id,
                                         @RequestParam(value="stepIndex", required=false) Integer stepIndex,
                                         @RequestParam(value="caption", required=false) String caption,
@@ -162,8 +147,8 @@ public class RecipeController {
         return ResponseEntity.ok(saved.getId());
     }
 
-    // 단계 이미지 수정
     @PutMapping(value = "/{id}/steps/{stepId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @ResponseBody
     public ResponseEntity<Long> updateStep(@PathVariable Long id,
                                            @PathVariable Long stepId,
                                            @RequestParam(value="stepIndex", required=false) Integer stepIndex,
@@ -174,13 +159,31 @@ public class RecipeController {
         return ResponseEntity.ok(saved.getId());
     }
 
-
-    // 단계 이미지 삭제
     @DeleteMapping("/{id}/steps/{stepId}")
+    @ResponseBody
     public ResponseEntity<Void> deleteStep(@PathVariable("id") Long id,
                                            @PathVariable("stepId") Long stepId) {
         recipeService.deleteStepImage(id, stepId);
         return ResponseEntity.noContent().build();
     }
 
+    /* ===================== Helpers ===================== */
+
+    private String extractStringPart(HttpServletRequest request, String name) throws Exception {
+        Part p = null;
+        try { p = request.getPart(name); } catch (Exception ignored) {}
+        if (p == null) return null;
+        try (InputStream is = p.getInputStream()) {
+            byte[] bytes = is.readAllBytes();
+            if (bytes.length == 0) return null;
+            return new String(bytes, StandardCharsets.UTF_8);
+        }
+    }
+
+    private Integer parseIntOrNull(String s) {
+        if (s == null) return null;
+        String t = s.trim();
+        if (t.isEmpty()) return null;
+        try { return Integer.valueOf(t); } catch (NumberFormatException e) { return null; }
+    }
 }

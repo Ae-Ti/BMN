@@ -18,17 +18,22 @@ const PostCreate = () => {
     const [stepPreviews, setStepPreviews] = useState([]); // blob urls
     const [stepCaptions, setStepCaptions] = useState([]); // 캡션 배열
 
-    // 파일 input은 ref로 안전하게 접근
+    // 파일 input ref
     const thumbRef = useRef(null);
     const stepsRef = useRef(null);
 
     const navigate = useNavigate();
 
-    // 재료 추가/삭제
+    // 재료 추가/삭제 (링크 http/https 자동 보정)
     const addIngredient = () => {
         const name = ingredientsName.trim();
-        const link = ingredientsLink.trim();
+        let link = ingredientsLink.trim();
         if (!name) return;
+
+        if (link && !/^https?:\/\//i.test(link)) {
+            link = "http://" + link;
+        }
+
         setIngredientsList((prev) => [...prev, { name, link }]);
         setIngredientsName("");
         setIngredientsLink("");
@@ -47,10 +52,8 @@ const PostCreate = () => {
     // 스텝 이미지 선택
     const handleStepsChange = (e) => {
         const files = Array.from(e.target.files || []);
-        // 미리보기 생성
         const urls = files.map((f) => URL.createObjectURL(f));
         setStepPreviews(urls);
-        // 캡션 배열 길이를 파일 수에 맞춤
         setStepCaptions((prev) => {
             const copy = [...prev];
             copy.length = files.length;
@@ -80,41 +83,37 @@ const PostCreate = () => {
         if (!stepsRef.current?.files?.length) return alert("스텝 이미지를 1개 이상 선택하세요.");
 
         const fd = new FormData();
-        // 텍스트 필드
         fd.append("subject", subject);
-        fd.append("ingredients", JSON.stringify(ingredientsList)); // 서버는 문자열로 받음
+
+        // ✅ JSON Blob으로 변환
+        const ingredientsBlob = new Blob([JSON.stringify(ingredientsList)], { type: "application/json" });
+        fd.append("ingredients", ingredientsBlob);
+
+        // 숫자 필드는 비어있으면 안 보내는 것도 방법이지만, 여기선 문자열로 보냅니다
         fd.append("cookingTimeMinutes", String(cookingTimeMinutes));
         fd.append("description", description);
         fd.append("tools", tools);
         fd.append("estimatedPrice", String(estimatedPrice));
         fd.append("content", content);
 
-        // ✅ 썸네일: 키 이름 정확히 'thumbnail'
         const thumb = thumbRef.current.files[0];
         fd.append("thumbnail", thumb);
 
-        // ✅ 스텝 이미지: 키 이름 정확히 'stepImages'
         const files = Array.from(stepsRef.current.files);
         files.forEach((f) => fd.append("stepImages", f));
 
-        // (선택) 캡션: 파일 순서와 동일하게 여러 번 append
         stepCaptions.forEach((c) => {
-            if (typeof c === "string") fd.append("captions", c);
-            else fd.append("captions", "");
+            fd.append("captions", typeof c === "string" ? c : "");
         });
-
-        // 디버그: 전송 키/값 확인
-        // console.log([...fd.entries()].map(([k, v]) => [k, v?.name ?? v]));
 
         try {
             const res = await fetch("/recipe/create", {
                 method: "POST",
-                // Content-Type은 설정하지 말 것 (브라우저가 boundary 포함 자동 세팅)
                 headers: (() => {
                     const token = localStorage.getItem("token");
                     return token ? { Authorization: `Bearer ${token}` } : undefined;
                 })(),
-                body: fd,
+                body: fd, // Content-Type은 브라우저가 자동 세팅
             });
             if (!res.ok) throw new Error(`업로드 실패: ${res.status}`);
             alert("등록 완료!");
@@ -268,10 +267,21 @@ const PostCreate = () => {
                         onChange={handleStepsChange}
                     />
                     {stepPreviews.length > 0 && (
-                        <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))", gap: 8, marginTop: 8 }}>
+                        <div
+                            style={{
+                                display: "grid",
+                                gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))",
+                                gap: 8,
+                                marginTop: 8,
+                            }}
+                        >
                             {stepPreviews.map((url, i) => (
                                 <div key={i} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 8 }}>
-                                    <img src={url} alt={`step-${i + 1}`} style={{ width: "100%", height: 100, objectFit: "cover" }} />
+                                    <img
+                                        src={url}
+                                        alt={`step-${i + 1}`}
+                                        style={{ width: "100%", height: 100, objectFit: "cover" }}
+                                    />
                                     <input
                                         type="text"
                                         value={stepCaptions[i] ?? ""}
@@ -287,7 +297,11 @@ const PostCreate = () => {
 
                 {/* 제출 */}
                 <div style={{ marginTop: 12 }}>
-                    <button type="button" onClick={handleSubmit} style={{ width: "100%", padding: 12, fontWeight: 600 }}>
+                    <button
+                        type="button"
+                        onClick={handleSubmit}
+                        style={{ width: "100%", padding: 12, fontWeight: 600 }}
+                    >
                         등록하기
                     </button>
                 </div>

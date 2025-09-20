@@ -3,8 +3,6 @@ import { Link, useParams } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 
-// axios.defaults.baseURL = "http://localhost:8080";
-
 export default function RecipeDetail() {
     const { id } = useParams();
     const [recipe, setRecipe] = useState(null);
@@ -63,6 +61,12 @@ export default function RecipeDetail() {
                 {recipe.cookingTimeMinutes ? <>조리시간 {recipe.cookingTimeMinutes}분</> : null}
                 {recipe.cookingTimeMinutes && recipe.estimatedPrice ? " · " : null}
                 {recipe.estimatedPrice ? <>예상비용 {recipe.estimatedPrice}원</> : null}
+                {(recipe.authorDisplayName || recipe.authorUsername) ? (
+                    <>
+                        {(recipe.cookingTimeMinutes || recipe.estimatedPrice) ? " · " : null}
+                        작성자 {recipe.authorDisplayName || recipe.authorUsername}
+                    </>
+                ) : null}
             </div>
 
             {thumbSrc && (
