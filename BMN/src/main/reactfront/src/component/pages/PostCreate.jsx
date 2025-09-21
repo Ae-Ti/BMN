@@ -16,7 +16,7 @@ const PostCreate = () => {
     // 이미지 미리보기/캡션
     const [thumbnailPreview, setThumbnailPreview] = useState(null);
     const [stepPreviews, setStepPreviews] = useState([]); // blob urls
-    const [stepCaptions, setStepCaptions] = useState([]); // 캡션 배열
+    const [stepCaptions, setStepCaptions] = useState([]); // 문자열 배열
 
     // 파일 input ref
     const thumbRef = useRef(null);
@@ -30,9 +30,7 @@ const PostCreate = () => {
         let link = ingredientsLink.trim();
         if (!name) return;
 
-        if (link && !/^https?:\/\//i.test(link)) {
-            link = "http://" + link;
-        }
+        if (link && !/^https?:\/\//i.test(link)) link = "http://" + link;
 
         setIngredientsList((prev) => [...prev, { name, link }]);
         setIngredientsName("");
@@ -45,19 +43,18 @@ const PostCreate = () => {
     // 썸네일 미리보기
     const handlePhotoUpload = (e) => {
         const f = e.target.files?.[0];
-        if (f) setThumbnailPreview(URL.createObjectURL(f));
-        else setThumbnailPreview(null);
+        setThumbnailPreview(f ? URL.createObjectURL(f) : null);
     };
 
-    // 스텝 이미지 선택
+    // 스텝 이미지 선택 (캡션 배열을 항상 "문자열"로 정규화)
     const handleStepsChange = (e) => {
         const files = Array.from(e.target.files || []);
-        const urls = files.map((f) => URL.createObjectURL(f));
-        setStepPreviews(urls);
+        setStepPreviews(files.map((f) => URL.createObjectURL(f)));
+
         setStepCaptions((prev) => {
-            const copy = [...prev];
-            copy.length = files.length;
-            return copy.map((v) => v ?? "");
+            const next = Array(files.length).fill("");
+            for (let i = 0; i < files.length; i++) next[i] = (prev?.[i] ?? "").toString();
+            return next;
         });
     };
 
@@ -85,26 +82,29 @@ const PostCreate = () => {
         const fd = new FormData();
         fd.append("subject", subject);
 
-        // ✅ JSON Blob으로 변환
-        const ingredientsBlob = new Blob([JSON.stringify(ingredientsList)], { type: "application/json" });
+        // ingredients: JSON 배열로
+        const ingredientsBlob = new Blob([JSON.stringify(ingredientsList)], {
+            type: "application/json",
+        });
         fd.append("ingredients", ingredientsBlob);
 
-        // 숫자 필드는 비어있으면 안 보내는 것도 방법이지만, 여기선 문자열로 보냅니다
+        // 숫자/텍스트 필드
         fd.append("cookingTimeMinutes", String(cookingTimeMinutes));
         fd.append("description", description);
         fd.append("tools", tools);
         fd.append("estimatedPrice", String(estimatedPrice));
         fd.append("content", content);
 
-        const thumb = thumbRef.current.files[0];
-        fd.append("thumbnail", thumb);
+        // 파일들
+        fd.append("thumbnail", thumbRef.current.files[0]);
+        Array.from(stepsRef.current.files).forEach((f) => fd.append("stepImages", f));
 
-        const files = Array.from(stepsRef.current.files);
-        files.forEach((f) => fd.append("stepImages", f));
-
-        stepCaptions.forEach((c) => {
-            fd.append("captions", typeof c === "string" ? c : "");
+        // ✅ captions: JSON 배열을 "하나의 파트"로 전송 (application/json)
+        const captionsArray = (stepCaptions ?? []).map((c) => (c ?? "").toString());
+        const captionsBlob = new Blob([JSON.stringify(captionsArray)], {
+            type: "application/json",
         });
+        fd.append("captions", captionsBlob);
 
         try {
             const res = await fetch("/recipe/create", {
@@ -113,7 +113,7 @@ const PostCreate = () => {
                     const token = localStorage.getItem("token");
                     return token ? { Authorization: `Bearer ${token}` } : undefined;
                 })(),
-                body: fd, // Content-Type은 브라우저가 자동 세팅
+                body: fd, // 멀티파트 바운더리는 브라우저가 자동 설정
             });
             if (!res.ok) throw new Error(`업로드 실패: ${res.status}`);
             alert("등록 완료!");
