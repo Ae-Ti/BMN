@@ -1,3 +1,4 @@
+// src/main/java/com/example/BMN/Recipe/RecipeController.java
 package com.example.BMN.Recipe;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -47,19 +48,21 @@ public class RecipeController {
         return ResponseEntity.ok(new RecipeDTO(this.recipeService.getRecipe(id)));
     }
 
+    /* ❌ (삭제) 냉장고 기반 추천 엔드포인트는 FridgeController 로 통합했습니다. */
+
     /* ===================== 생성 ===================== */
 
     @PostMapping(value = "/create", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<Long> create(
             HttpServletRequest request,
-            @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,         // Blob(application/json)
+            @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages,
-            @RequestParam(value = "captions", required = false) List<String> captions  // text/plain 다중 필드
+            @RequestParam(value = "captions", required = false) List<String> captions
     ) throws Exception {
 
-        if (captions == null) captions = List.of(); // 안정 처리
+        if (captions == null) captions = List.of();
 
         String subject             = extractStringPart(request, "subject");
         String description         = extractStringPart(request, "description");
@@ -79,26 +82,26 @@ public class RecipeController {
                 thumbnail,
                 stepImages,
                 captions,
-                null  // authorFromController (서비스에서 SecurityContext로 해석)
+                null
         );
         return ResponseEntity.ok(id);
     }
 
-    /* ===================== 수정 (기존 유지 + 선택 삭제 + 신규 추가) ===================== */
+    /* ===================== 수정 ===================== */
 
     @PutMapping(value = "/{id}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
     public ResponseEntity<Long> updateRecipe(
             @PathVariable("id") Long id,
             HttpServletRequest request,
-            @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,         // Blob(application/json)
+            @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
-            @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages, // 새로 추가할 스텝들
-            @RequestParam(value = "captions", required = false) List<String> captions,           // 새 스텝 캡션
-            @RequestParam(value = "removeStepIds", required = false) List<Long> removeStepIds    // 삭제할 기존 step id
+            @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages,
+            @RequestParam(value = "captions", required = false) List<String> captions,
+            @RequestParam(value = "removeStepIds", required = false) List<Long> removeStepIds
     ) throws Exception {
 
-        if (captions == null) captions = List.of(); // 안정 처리
+        if (captions == null) captions = List.of();
 
         String subject             = extractStringPart(request, "subject");
         String description         = extractStringPart(request, "description");
@@ -167,7 +170,7 @@ public class RecipeController {
     private Integer parseIntOrNull(String s) {
         if (s == null) return null;
         String t = s.trim();
-        if (t.isEmpty()) return null;
+        if (t.isEmpty() || "null".equalsIgnoreCase(t) || "undefined".equalsIgnoreCase(t)) return null;
         try { return Integer.valueOf(t); } catch (NumberFormatException e) { return null; }
     }
 }
