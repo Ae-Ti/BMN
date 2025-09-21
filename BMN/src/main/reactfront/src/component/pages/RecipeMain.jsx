@@ -65,9 +65,9 @@ const RecipeMain = () => {
             .catch(() => {});
     }, [userName]);
 
-    // 카드 클릭 시: 로컬에서 토큰 검사 → 비로그인이면 SPA 로그인으로
+    // 카드 클릭 시: 비로그인이면 SPA 로그인으로
     const handleCardClick = (id, e) => {
-        e?.preventDefault(); // Link의 기본 내비게이션 방지
+        e?.preventDefault();
         const to = `/recipes/${id}`;
         if (!hasToken()) {
             navigate(`/user/login?from=${encodeURIComponent(to)}`, { replace: true });
@@ -76,8 +76,9 @@ const RecipeMain = () => {
         navigate(to);
     };
 
+    // ✅ 업로드 버튼: RecipeForm 경로로 이동
     const handleUploadClick = () => {
-        const to = "/post-create";
+        const to = "/recipes/create";
         if (!hasToken()) {
             navigate(`/user/login?from=${encodeURIComponent(to)}`, { replace: true });
             return;
@@ -89,7 +90,7 @@ const RecipeMain = () => {
         <Link
             to={`/recipes/${recipe.id}`}
             onClick={(e) => handleCardClick(recipe.id, e)}
-            className="recipe-card" // 기존 스타일 그대로 사용
+            className="recipe-card"
             style={{ cursor: "pointer", textDecoration: "none", color: "inherit" }}
             aria-label={`${recipe.subject} 상세로 이동`}
         >

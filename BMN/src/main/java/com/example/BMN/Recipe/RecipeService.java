@@ -15,20 +15,16 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
-/**
- * RecipeService (작성자 자동 세팅 + 재료 rows 저장 포함 최신본)
- */
 @RequiredArgsConstructor
 @Service
 public class RecipeService {
 
     private final RecipeRepository recipeRepository;
-    private final RecipeStepImageRepository recipeStepImageRepository;
+    private final RecipeStepImageRepository recipeStepImageRepository; // ✅ 개별 삭제 처리용
     private final UserRepository userRepository;
 
-    /* ========================= 작성자(업로더) 해석 ========================= */
+    /* ========================= 작성자(업로더) ========================= */
 
-    /** 컨트롤러에서 넘긴 author가 없으면 SecurityContext로부터 username을 꺼내 DB에서 SiteUser 조회 */
     private SiteUser resolveCurrentAuthor(SiteUser fromController) {
         if (fromController != null) return fromController;
 
@@ -41,21 +37,21 @@ public class RecipeService {
         return userRepository.findByUserName(username).orElse(null);
     }
 
-    /* ========================= 생성/수정/삭제 ========================= */
+    /* ========================= 생성 ========================= */
 
     @Transactional
     public Long createRecipe(
             String subject,
-            List<RecipeIngredientDTO> ingredients,  // [{name, link, position}]
+            List<RecipeIngredientDTO> ingredients,
             Integer cookingTimeMinutes,
             String description,
             String tools,
             Integer estimatedPrice,
             String content,
             MultipartFile thumbnail,
-            List<MultipartFile> stepImages,         // 스텝 이미지들
-            List<String> captions,                  // 각 스텝 캡션 (선택)
-            SiteUser authorFromController           // 컨트롤러 주입값(없을 수 있음)
+            List<MultipartFile> stepImages,
+            List<String> captions,
+            SiteUser authorFromController
     ) throws IOException {
 
         Recipe recipe = new Recipe();
@@ -67,7 +63,7 @@ public class RecipeService {
         recipe.setContent(content);
         recipe.setCreateDate(LocalDateTime.now());
 
-        // ✅ 업로더 설정(컨트롤러 값 없으면 SecurityContext로 보완)
+        // 작성자
         SiteUser author = resolveCurrentAuthor(authorFromController);
         recipe.setAuthor(author);
 
@@ -76,10 +72,10 @@ public class RecipeService {
             recipe.setThumbnail(thumbnail.getBytes());
         }
 
-        // 재료 rows 저장
+        // 재료
         replaceIngredients(recipe, ingredients);
 
-        // 스텝 이미지 저장
+        // 스텝 이미지
         if (stepImages != null) {
             for (int i = 0; i < stepImages.size(); i++) {
                 MultipartFile f = stepImages.get(i);
@@ -99,13 +95,104 @@ public class RecipeService {
         return recipeRepository.save(recipe).getId();
     }
 
-    /**
-     * 기존 재료 rows 비우고 새로 채우기.
-     * name이 비거나 정규화 결과가 비면 스킵한다.
-     */
+    /* ========================= 수정 (보존 + 일부삭제 + 추가) ========================= */
+
+    @Transactional
+    public Long updateRecipeKeepStepsWithDelete(
+            Long recipeId,
+            String subject,
+            List<RecipeIngredientDTO> ingredients,
+            Integer cookingTimeMinutes,
+            String description,
+            String tools,
+            Integer estimatedPrice,
+            String content,
+            MultipartFile thumbnail,
+            List<MultipartFile> newStepImages,   // 새로 추가할 스텝
+            List<String> captionsForNewSteps,    // 새 스텝 캡션
+            List<Long> removeStepIds             // 삭제할 기존 스텝 ID 목록
+    ) throws IOException {
+
+        Recipe recipe = getRecipe(recipeId);
+
+        // 작성자 검증
+        SiteUser current = resolveCurrentAuthor(null);
+        if (recipe.getAuthor() == null || current == null ||
+                !Objects.equals(recipe.getAuthor().getId(), current.getId())) {
+            throw new SecurityException("본인만 수정할 수 있습니다.");
+        }
+
+        // ✅ 보존 정책: null이 아닐 때만 갱신
+        if (subject != null)             recipe.setSubject(subject);
+        if (cookingTimeMinutes != null)  recipe.setCookingTimeMinutes(cookingTimeMinutes);
+        if (description != null)         recipe.setDescription(description);
+        if (tools != null)               recipe.setTools(tools);
+        if (estimatedPrice != null)      recipe.setEstimatedPrice(estimatedPrice);
+        if (content != null)             recipe.setContent(content);
+
+        // 썸네일 교체 (있을 때만)
+        if (thumbnail != null && !thumbnail.isEmpty()) {
+            recipe.setThumbnail(thumbnail.getBytes());
+        }
+
+        // 재료 교체 (null이 아니면)
+        if (ingredients != null) {
+            replaceIngredients(recipe, ingredients);
+        }
+
+        // 1) 삭제 요청된 기존 스텝 제거
+        if (removeStepIds != null && !removeStepIds.isEmpty()) {
+            recipe.getStepImages().removeIf(s ->
+                    s.getId() != null && removeStepIds.contains(s.getId())
+            );
+            for (Long sid : removeStepIds) {
+                recipeStepImageRepository.findById(sid).ifPresent(si -> {
+                    if (si.getRecipe() != null && Objects.equals(si.getRecipe().getId(), recipe.getId())) {
+                        recipeStepImageRepository.delete(si);
+                    }
+                });
+            }
+        }
+
+        // 2) 새 스텝 추가
+        int nextIndex = recipe.getStepImages() == null ? 1 : recipe.getStepImages().size() + 1;
+        if (newStepImages != null) {
+            for (int i = 0; i < newStepImages.size(); i++) {
+                MultipartFile f = newStepImages.get(i);
+                if (f == null || f.isEmpty()) continue;
+
+                RecipeStepImage step = new RecipeStepImage();
+                step.setStepIndex(nextIndex++);
+                step.setImage(f.getBytes());
+
+                String cap = (captionsForNewSteps != null && captionsForNewSteps.size() > i)
+                        ? captionsForNewSteps.get(i)
+                        : null;
+                step.setCaption(cap);
+
+                recipe.addStepImage(step);
+            }
+        }
+
+        // 3) stepIndex 재정렬
+        if (recipe.getStepImages() != null) {
+            recipe.getStepImages().sort(Comparator.comparing(
+                    RecipeStepImage::getStepIndex,
+                    Comparator.nullsLast(Integer::compareTo)
+            ));
+            int idx = 1;
+            for (RecipeStepImage si : recipe.getStepImages()) {
+                si.setStepIndex(idx++);
+            }
+        }
+
+        return recipeRepository.save(recipe).getId();
+    }
+
+    /* ========================= 재료 교체 ========================= */
+
     @Transactional
     public void replaceIngredients(Recipe recipe, List<RecipeIngredientDTO> items) {
-        // 모두 제거 (orphanRemoval=true 이므로 DB에서도 정리됨)
         if (recipe.getIngredientRows() != null) {
             recipe.getIngredientRows().clear();
         }
@@ -119,26 +206,23 @@ public class RecipeService {
             String name = dto.getName() == null ? "" : dto.getName().trim();
             if (name.isEmpty()) continue;
 
-            // 정규화 (static 메서드명: normalizeOne)
             String norm = IngredientNormalizer.normalizeOne(name);
             if (norm == null || norm.isBlank()) {
-                // 혹시라도 제거 규칙으로 전부 날아갔다면 최소한 소문자/trim 으로 fallback
                 norm = name.toLowerCase();
                 if (norm.isBlank()) continue;
             }
 
             RecipeIngredient row = new RecipeIngredient();
             row.setName(name);
-            row.setNameNorm(norm);  // NOT NULL
+            row.setNameNorm(norm);
             row.setLink(dto.getLink());
 
             Integer pos = dto.getPosition();
             row.setPosition(pos != null ? pos : posCounter++);
 
-            recipe.addIngredientRow(row); // 양방향 세팅 + 리스트 추가
+            recipe.addIngredientRow(row);
         }
 
-        // 보장된 정렬
         if (recipe.getIngredientRows() != null) {
             recipe.getIngredientRows().sort(Comparator.comparing(
                     RecipeIngredient::getPosition,
@@ -159,105 +243,31 @@ public class RecipeService {
                 .orElseThrow(() -> new DataNotFoundException("recipe not found"));
     }
 
+    // 전체 레시피 조회
     public List<Recipe> findAll() {
-        return recipeRepository.findAll();
+        return this.recipeRepository.findAll();
     }
 
+    // ID 리스트로 조회
     public List<Recipe> findByIds(List<Long> recipeIds) {
-        return recipeRepository.findByIdIn(recipeIds);
-    }
-
-    /* ========================= 즐겨찾기 ========================= */
-
-    @Transactional
-    public void addRecipeToFavorites(String userName, Long recipeId) {
-        if (userName == null || userName.isBlank()) return;
-
-        SiteUser user = userRepository.findByUserName(userName)
-                .orElseThrow(() -> new RuntimeException("User not found"));
-        Recipe recipe = recipeRepository.findById(recipeId)
-                .orElseThrow(() -> new RuntimeException("Recipe not found"));
-
-        if (!user.getFavorite().contains(recipe)) {
-            user.getFavorite().add(recipe);
-            userRepository.save(user);
+        if (recipeIds == null || recipeIds.isEmpty()) {
+            return Collections.emptyList();
         }
+        return this.recipeRepository.findAllById(recipeIds);
     }
 
-    /* ========================= 메타 수정/삭제 ========================= */
-
-    @Transactional
-    public Recipe updateRecipeMeta(Long recipeId, RecipeUpdateRequest req) {
-        Recipe recipe = getRecipe(recipeId);
-
-        if (req.getTitle() != null)           recipe.setSubject(req.getTitle());
-        if (req.getDescription() != null)     recipe.setDescription(req.getDescription());
-        if (req.getTools() != null)           recipe.setTools(req.getTools());
-        if (req.getEstimatedPrice() != null)  recipe.setEstimatedPrice(req.getEstimatedPrice());
-        if (req.getContent() != null)         recipe.setContent(req.getContent());
-        // 필요 시 cookingTimeMinutes 등 추가
-
-        return recipeRepository.save(recipe);
-    }
+    /* ========================= 삭제 ========================= */
 
     @Transactional
     public void deleteRecipe(Long recipeId) {
         Recipe recipe = getRecipe(recipeId);
+
+        SiteUser current = resolveCurrentAuthor(null);
+        if (recipe.getAuthor() == null || current == null ||
+                !Objects.equals(recipe.getAuthor().getId(), current.getId())) {
+            throw new SecurityException("본인만 삭제할 수 있습니다.");
+        }
+
         recipeRepository.delete(recipe);
-    }
-
-    /* ========================= 스텝 이미지 CRUD ========================= */
-
-    @Transactional
-    public RecipeStepImage addStepImage(Long recipeId, Integer stepIndex, String caption, MultipartFile imageFile)
-            throws IOException {
-        Recipe recipe = getRecipe(recipeId);
-
-        RecipeStepImage step = new RecipeStepImage();
-        step.setRecipe(recipe);
-        step.setStepIndex(stepIndex != null ? stepIndex : 0);
-        step.setCaption(caption);
-
-        if (imageFile != null && !imageFile.isEmpty()) {
-            step.setImage(imageFile.getBytes());
-        }
-
-        return recipeStepImageRepository.save(step);
-    }
-
-    @Transactional
-    public RecipeStepImage updateStepImage(Long recipeId, Long stepId, Integer stepIndex, String caption,
-                                           MultipartFile imageFile, boolean removeImage) throws IOException {
-        Recipe recipe = getRecipe(recipeId);
-        RecipeStepImage step = recipeStepImageRepository.findById(stepId)
-                .orElseThrow(() -> new DataNotFoundException("step not found"));
-
-        if (!Objects.equals(step.getRecipe().getId(), recipe.getId())) {
-            throw new IllegalArgumentException("해당 단계가 레시피에 속하지 않습니다.");
-        }
-
-        if (stepIndex != null) step.setStepIndex(stepIndex);
-        if (caption != null)   step.setCaption(caption);
-
-        if (removeImage) {
-            step.setImage(null);
-        } else if (imageFile != null && !imageFile.isEmpty()) {
-            step.setImage(imageFile.getBytes());
-        }
-
-        return recipeStepImageRepository.save(step);
-    }
-
-    @Transactional
-    public void deleteStepImage(Long recipeId, Long stepId) {
-        Recipe recipe = getRecipe(recipeId);
-        RecipeStepImage step = recipeStepImageRepository.findById(stepId)
-                .orElseThrow(() -> new DataNotFoundException("step not found"));
-
-        if (!Objects.equals(step.getRecipe().getId(), recipe.getId())) {
-            throw new IllegalArgumentException("해당 단계가 레시피에 속하지 않습니다.");
-        }
-
-        recipeStepImageRepository.delete(step);
     }
 }

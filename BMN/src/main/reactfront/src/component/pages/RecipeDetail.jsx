@@ -1,13 +1,55 @@
+// src/component/pages/RecipeDetail.jsx
 import React, { useEffect, useMemo, useState } from "react";
-import { Link, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 
+axios.defaults.baseURL = "http://localhost:8080";
+
+function b64urlDecode(str) {
+    try {
+        const pad = (s) => s + "===".slice((s.length + 3) % 4);
+        const b64 = pad(str.replace(/-/g, "+").replace(/_/g, "/"));
+        return decodeURIComponent(
+            Array.prototype.map
+                .call(atob(b64), (c) => "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2))
+                .join("")
+        );
+    } catch {
+        return "";
+    }
+}
+
+function getCurrentUserFromToken() {
+    const token = localStorage.getItem("token");
+    if (!token) return { username: null, userId: null };
+    const parts = token.split(".");
+    if (parts.length < 2) return { username: null, userId: null };
+    const payloadJson = b64urlDecode(parts[1]);
+    try {
+        const payload = JSON.parse(payloadJson || "{}");
+        const username = payload.username ?? payload.sub ?? null;
+        const userId = payload.userId ?? payload.uid ?? payload.id ?? null;
+        return { username, userId };
+    } catch {
+        return { username: null, userId: null };
+    }
+}
+
+function normalizeLink(link) {
+    if (!link) return "";
+    return /^https?:\/\//i.test(link) ? link : `http://${link}`;
+}
+
 export default function RecipeDetail() {
     const { id } = useParams();
+    const navigate = useNavigate();
+
     const [recipe, setRecipe] = useState(null);
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(true);
+
+    const { username: currentUsername, userId: currentUserIdFromToken } = getCurrentUserFromToken();
 
     useEffect(() => {
         let alive = true;
@@ -17,7 +59,6 @@ export default function RecipeDetail() {
         axios
             .get(`/recipe/api/${id}`, {
                 headers: token ? { Authorization: `Bearer ${token}` } : {},
-                withCredentials: true,
             })
             .then((res) => {
                 if (!alive) return;
@@ -37,34 +78,120 @@ export default function RecipeDetail() {
         };
     }, [id]);
 
-    const steps = useMemo(() => {
-        const arr = recipe?.stepImages ?? [];
-        return [...arr].sort((a, b) => (a.stepOrder ?? 0) - (b.stepOrder ?? 0));
+    const cookMinutes = recipe?.cookingTimeMinutes ?? null;
+    const estPrice = recipe?.estimatedPrice ?? null;
+    const authorName = recipe?.authorDisplayName ?? recipe?.authorUsername ?? null;
+
+    const thumbSrc =
+        recipe?.thumbnailUrl || (recipe?.id ? `http://localhost:8080/recipe/thumbnail/${recipe.id}` : undefined);
+
+    const ingredientRows = useMemo(() => {
+        const arr = Array.isArray(recipe?.ingredientRows) ? recipe.ingredientRows : [];
+        return [...arr].sort((a, b) => {
+            const ap = a?.position ?? a?.order ?? 0;
+            const bp = b?.position ?? b?.order ?? 0;
+            return ap - bp;
+        });
     }, [recipe]);
+
+    const ingredientsFallbackText = typeof recipe?.ingredients === "string" ? recipe.ingredients : "";
+
+    const steps = useMemo(() => {
+        const arr = Array.isArray(recipe?.stepImages) ? recipe.stepImages : [];
+        return [...arr].sort((a, b) => {
+            const aa = a?.stepOrder ?? a?.stepIndex ?? 0;
+            const bb = b?.stepOrder ?? b?.stepIndex ?? 0;
+            return aa - bb;
+        });
+    }, [recipe]);
+
+    const canEditOrDelete = useMemo(() => {
+        if (!recipe) return false;
+        if (currentUsername && recipe.authorUsername && currentUsername === recipe.authorUsername) return true;
+        if (currentUserIdFromToken && recipe.authorId && String(currentUserIdFromToken) === String(recipe.authorId)) return true;
+        return false;
+    }, [recipe, currentUsername, currentUserIdFromToken]);
+
+    async function handleDelete() {
+        if (!recipe?.id) return;
+        if (!canEditOrDelete) {
+            alert("본인만 삭제할 수 있습니다.");
+            return;
+        }
+        if (!window.confirm("정말 삭제하시겠어요? 삭제 후 되돌릴 수 없습니다.")) return;
+        try {
+            const token = localStorage.getItem("token");
+            const res = await fetch(`/recipe/${recipe.id}/delete`, {
+                method: "DELETE",
+                headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+            });
+            if (!res.ok) throw new Error(`삭제 실패: ${res.status}`);
+            alert("삭제되었습니다.");
+            navigate("/recipes");
+        } catch (e) {
+            console.error(e);
+            alert("삭제 중 오류가 발생했습니다.");
+        }
+    }
 
     if (loading) return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
     if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
     if (!recipe) return null;
 
-    const thumbSrc =
-        recipe.thumbnailUrl || (recipe.id ? `http://localhost:8080/recipe/thumbnail/${recipe.id}` : undefined);
-
     return (
         <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
-            <Link to="/recipes" style={{ textDecoration: "none" }}>
-                ← 목록으로
-            </Link>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+                <Link to="/recipes" style={{ textDecoration: "none" }}>
+                    ← 목록으로
+                </Link>
 
-            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
+                {canEditOrDelete && (
+                    <div style={{ display: "flex", gap: 8 }}>
+                        {/* ✅ 초록색 수정 버튼 */}
+                        <button
+                            type="button"
+                            onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
+                            style={{
+                                padding: "8px 12px",
+                                borderRadius: 8,
+                                border: "none",
+                                background: "#4caf50",
+                                color: "#fff",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                            }}
+                        >
+                            수정
+                        </button>
+                        <button
+                            type="button"
+                            onClick={handleDelete}
+                            style={{
+                                padding: "8px 12px",
+                                borderRadius: 8,
+                                border: "none",
+                                background: "#ffe9e9",
+                                color: "#b00020",
+                                fontWeight: 600,
+                                cursor: "pointer",
+                            }}
+                        >
+                            삭제
+                        </button>
+                    </div>
+                )}
+            </div>
+
+            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? recipe.title ?? "(제목 없음)"}</h1>
 
             <div style={{ color: "#666", marginBottom: 16 }}>
-                {recipe.cookingTimeMinutes ? <>조리시간 {recipe.cookingTimeMinutes}분</> : null}
-                {recipe.cookingTimeMinutes && recipe.estimatedPrice ? " · " : null}
-                {recipe.estimatedPrice ? <>예상비용 {recipe.estimatedPrice}원</> : null}
-                {(recipe.authorDisplayName || recipe.authorUsername) ? (
+                {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
+                {cookMinutes != null && estPrice != null ? " · " : null}
+                {estPrice != null && <>예상비용 {estPrice}원</>}
+                {authorName ? (
                     <>
-                        {(recipe.cookingTimeMinutes || recipe.estimatedPrice) ? " · " : null}
-                        작성자 {recipe.authorDisplayName || recipe.authorUsername}
+                        {(cookMinutes != null || estPrice != null) ? " · " : null}
+                        작성자 {authorName}
                     </>
                 ) : null}
             </div>
@@ -86,11 +213,55 @@ export default function RecipeDetail() {
                 </>
             )}
 
-            {recipe.ingredients && recipe.ingredients.trim() && (
+            {ingredientRows.length > 0 ? (
                 <>
                     <h3>재료</h3>
-                    <p style={{ whiteSpace: "pre-line", lineHeight: 1.7 }}>{recipe.ingredients}</p>
+                    <ul style={{ lineHeight: 1.9 }}>
+                        {ingredientRows.map((it) => {
+                            const hasLink = !!(it.link && it.link.trim());
+                            const href = hasLink ? normalizeLink(it.link.trim()) : null;
+                            return (
+                                <li
+                                    key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
+                                    style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+                                >
+                                    <span>{it.name}</span>
+                                    {hasLink && (
+                                        <>
+                                            <span style={{ color: "#999" }}>·</span>
+                                            <a
+                                                href={href}
+                                                target="_blank"
+                                                rel="noreferrer"
+                                                style={{
+                                                    display: "inline-flex",
+                                                    alignItems: "center",
+                                                    gap: 6,
+                                                    padding: "2px 8px",
+                                                    border: "1px solid #ddd",
+                                                    borderRadius: 6,
+                                                    textDecoration: "none",
+                                                    fontSize: 13,
+                                                }}
+                                                title={href}
+                                            >
+                                                구매링크
+                                            </a>
+                                        </>
+                                    )}
+                                </li>
+                            );
+                        })}
+                    </ul>
                 </>
+            ) : (
+                typeof recipe?.ingredients === "string" &&
+                recipe.ingredients && (
+                    <>
+                        <h3>재료</h3>
+                        <p style={{ whiteSpace: "pre-line", lineHeight: 1.7 }}>{recipe.ingredients}</p>
+                    </>
+                )
             )}
 
             {recipe.tools && recipe.tools.trim() && (
@@ -105,15 +276,17 @@ export default function RecipeDetail() {
                     <h3>조리 단계</h3>
                     <ol style={{ paddingLeft: 20 }}>
                         {steps.map((s, idx) => {
+                            const order = s.stepOrder ?? s.stepIndex ?? idx + 1;
                             const src = s.imageUrl || (s.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
+                            const caption = s.description ?? s.caption ?? "";
                             return (
-                                <li key={`${s.stepOrder}-${idx}`} style={{ marginBottom: 24 }}>
-                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Step {s.stepOrder ?? idx + 1}</div>
-                                    {s.description && <div style={{ marginBottom: 8 }}>{s.description}</div>}
+                                <li key={`${order}-${s.id ?? idx}`} style={{ marginBottom: 24 }}>
+                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Step {order}</div>
+                                    {caption && <div style={{ marginBottom: 8 }}>{caption}</div>}
                                     {src && (
                                         <img
                                             src={src}
-                                            alt={`step-${s.stepOrder ?? idx + 1}`}
+                                            alt={`step-${order}`}
                                             style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block" }}
                                             loading="lazy"
                                             onError={onImgError}

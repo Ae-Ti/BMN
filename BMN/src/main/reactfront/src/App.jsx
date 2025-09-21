@@ -4,14 +4,16 @@ import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Layout from "./component/Layout";
 import RecipeMain from "./component/pages/RecipeMain";
 import RecipeDetail from "./component/pages/RecipeDetail";
-import PostCreate from "./component/pages/PostCreate";
 import LogIn from "./component/pages/LogIn";
 import SignUp from "./component/pages/SignUp";
 import HouseholdLedgerMain from "./component/pages/HouseholdLedgerMain";
 import ProtectedRoute from "./component/ProtectedRoute";
 import RecipesList from "./component/pages/RecipeList";
 
-// ✅ 새 페이지
+// ✅ 새로 교체된 공용 작성/수정 폼
+import RecipeForm from "./component/pages/RecipeForm";
+
+// ✅ 기타 페이지
 import MyPage from "./component/pages/MyPage";
 import FridgePage from "./component/pages/FridgePage";
 
@@ -26,7 +28,7 @@ const App = () => {
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
 
-                    {/* ✅ 상세 & 업로드 보호 */}
+                    {/* ✅ 상세 & 업로드/수정 보호 */}
                     <Route
                         path="recipes/:id"
                         element={
@@ -36,15 +38,23 @@ const App = () => {
                         }
                     />
                     <Route
-                        path="post-create"
+                        path="recipes/create"
                         element={
                             <ProtectedRoute>
-                                <PostCreate />
+                                <RecipeForm />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="recipes/edit/:id"
+                        element={
+                            <ProtectedRoute>
+                                <RecipeForm />
                             </ProtectedRoute>
                         }
                     />
 
-                    {/* 그 외 보호 라우트 */}
+                    {/* ✅ 그 외 보호 라우트 */}
                     <Route
                         path="household-ledger"
                         element={
