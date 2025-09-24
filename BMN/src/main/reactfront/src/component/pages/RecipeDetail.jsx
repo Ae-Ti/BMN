@@ -181,7 +181,6 @@ export default function RecipeDetail() {
                 )}
             </div>
 
-            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? recipe.title ?? "(제목 없음)"}</h1>
             <Link
                 to="/ingredient"
                 state={{
