@@ -9,6 +9,7 @@ import SignUp from "./component/pages/SignUp";
 import HouseholdLedgerMain from "./component/pages/HouseholdLedgerMain";
 import ProtectedRoute from "./component/ProtectedRoute";
 import RecipesList from "./component/pages/RecipeList";
+import Ingredient from "./component/pages/Ingredient";
 
 // ✅ 새로 교체된 공용 작성/수정 폼
 import RecipeForm from "./component/pages/RecipeForm";
@@ -27,6 +28,8 @@ const App = () => {
                     <Route path="recipes" element={<RecipesList />} />
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
+                    <Route path="/recipe/:id" element={<RecipeDetail />} />
+                    <Route path="/ingredient" element={<Ingredient />} /> {/* ✅ 추가 */}
 
                     {/* ✅ 상세 & 업로드/수정 보호 */}
                     <Route

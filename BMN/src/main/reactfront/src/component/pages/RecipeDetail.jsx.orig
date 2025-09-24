@@ -1,6 +1,10 @@
 // src/component/pages/RecipeDetail.jsx
 import React, { useEffect, useMemo, useState } from "react";
+<<<<<<< HEAD
 import { Link, useNavigate, useParams } from "react-router-dom";
+=======
+import { Link, useParams, useNavigate } from "react-router-dom";
+>>>>>>> 316de66200573ead43fad66fba3ea48f55ce9c4e
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 
@@ -44,6 +48,10 @@ function normalizeLink(link) {
 export default function RecipeDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+<<<<<<< HEAD
+
+=======
+>>>>>>> 316de66200573ead43fad66fba3ea48f55ce9c4e
     const [recipe, setRecipe] = useState(null);
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(true);
@@ -144,6 +152,7 @@ export default function RecipeDetail() {
                     ← 목록으로
                 </Link>
 
+<<<<<<< HEAD
                 {canEditOrDelete && (
                     <div style={{ display: "flex", gap: 8 }}>
                         {/* ✅ 초록색 수정 버튼 */}
@@ -182,6 +191,7 @@ export default function RecipeDetail() {
             </div>
 
             <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? recipe.title ?? "(제목 없음)"}</h1>
+=======
             <Link
                 to="/ingredient"
                 state={{
@@ -203,6 +213,7 @@ export default function RecipeDetail() {
             </Link>
 
             <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
+>>>>>>> 316de66200573ead43fad66fba3ea48f55ce9c4e
 
             <div style={{ color: "#666", marginBottom: 16 }}>
                 {cookMinutes != null && <>조리시간 {cookMinutes}분</>}

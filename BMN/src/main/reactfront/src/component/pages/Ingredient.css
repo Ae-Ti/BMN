@@ -1,0 +1,93 @@
+.ingredient-page {
+    width: 80%;
+    margin: 0 auto;
+    font-family: Arial, sans-serif;
+}
+
+/* 상단 박스 */
+.ingredient-top-box {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border: 1px solid #ddd;
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+    background-color: #fafafa;
+}
+
+.thumbnail img {
+    width: 150px;
+    height: 150px;
+    object-fit: cover;
+    border-radius: 8px;
+}
+
+.cost-section {
+    flex: 1;
+    text-align: center;
+}
+
+.cost-section input {
+    width: 100px;
+    margin-left: 10px;
+}
+
+.reflect-button button {
+    background-color: #4CAF50;
+    color: white;
+    padding: 10px 15px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.reflect-button button:hover {
+    background-color: #45a049;
+}
+
+/* 하단 박스 */
+.ingredient-bottom-box {
+    display: flex;
+    gap: 20px;
+}
+
+/* 재료 리스트 */
+.ingredient-list {
+    width: 40%;
+    border-right: 1px solid #ddd;
+    padding-right: 10px;
+}
+
+.ingredient-list ul {
+    list-style: none;
+    padding: 0;
+}
+
+.ingredient-list li {
+    padding: 8px;
+    cursor: pointer;
+}
+
+.ingredient-list li:hover {
+    background-color: #f1f1f1;
+}
+
+.ingredient-list li.selected {
+    background-color: #e0ffe0;
+}
+
+/* 구매처 링크 */
+.ingredient-link {
+    width: 60%;
+    padding-left: 10px;
+}
+
+.ingredient-link a {
+    color: #007BFF;
+    text-decoration: none;
+}
+
+.ingredient-link a:hover {
+    text-decoration: underline;
+}
