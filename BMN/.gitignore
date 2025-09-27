@@ -76,3 +76,5 @@ src/main/reactfront/build/
 # (만약 빌드 결과를 resources/static 으로 복사한다면 그 복사본도 무시)
 src/main/resources/static/**
 !src/main/resources/static/.gitkeep   # 폴더만 유지하고 싶으면
+
+src/main/resources/application.yml

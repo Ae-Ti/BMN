@@ -3,8 +3,8 @@ import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import "./HouseholdMain.css";
-
 import axios from "axios";
+
 const api = axios.create({ baseURL: "/api" });
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
@@ -12,7 +12,13 @@ api.interceptors.request.use((config) => {
     return config;
 });
 
-const toISO = (dateObj) => dateObj.toISOString().slice(0, 10); // YYYY-MM-DD
+/** ✅ 로컬 타임존(KST) 기준으로 YYYY-MM-DD 생성 */
+const toLocalISO = (d = new Date()) => {
+    const y = d.getFullYear();
+    const m = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
+    return `${y}-${m}-${day}`;
+};
 
 function LoginBox({ onLoggedIn }) {
     const [username, setUsername] = useState("user");
@@ -44,14 +50,13 @@ const HouseholdLedgerMain = () => {
     const [authed, setAuthed] = useState(!!localStorage.getItem("token"));
     const [selectedDate, setSelectedDate] = useState(new Date());
 
-    const [dayTransactions, setDayTransactions] = useState([]); // [{id,date,type,name,amount}]
-    const [monthData, setMonthData] = useState(null); // {year,month,days:[{date,totalIncome,totalExpense}]}
+    const [dayTransactions, setDayTransactions] = useState([]);
+    const [monthData, setMonthData] = useState(null);
 
-    const [type, setType] = useState("income"); // 입력폼(소문자) → 서버 전송 시 대문자
+    const [type, setType] = useState("income");
     const [name, setName] = useState("");
     const [amount, setAmount] = useState("");
 
-    // 수정 상태
     const [editingId, setEditingId] = useState(null);
     const [editType, setEditType] = useState("income");
     const [editName, setEditName] = useState("");
@@ -73,13 +78,14 @@ const HouseholdLedgerMain = () => {
     };
 
     const fetchDayList = async (dateObj) => {
-        const { data } = await api.get("/ledger/transactions", { params: { date: toISO(dateObj) } });
+        const { data } = await api.get("/ledger/transactions", { params: { date: toLocalISO(dateObj) } }); // ✅ 변경
         setDayTransactions(data);
     };
 
     const refreshBoth = async () => {
+        const dateStr = toLocalISO(selectedDate); // ✅ 변경
         const [dayRes, monthRes] = await Promise.all([
-            api.get("/ledger/transactions", { params: { date: toISO(selectedDate) } }),
+            api.get("/ledger/transactions", { params: { date: dateStr } }),
             api.get("/ledger/calendar", {
                 params: { year: selectedDate.getFullYear(), month: selectedDate.getMonth() + 1 },
             }),
@@ -91,8 +97,8 @@ const HouseholdLedgerMain = () => {
     const handleAddTransaction = async () => {
         if (!name || !amount) return;
         await api.post("/ledger/transactions", {
-            date: toISO(selectedDate),
-            type: type.toUpperCase(), // INCOME | EXPENSE
+            date: toLocalISO(selectedDate), // ✅ 변경
+            type: type.toUpperCase(),
             name,
             amount: Number(amount),
         });
@@ -101,23 +107,21 @@ const HouseholdLedgerMain = () => {
         await refreshBoth();
     };
 
-    // 편집 시작
     const startEdit = (t) => {
         setEditingId(t.id);
-        setEditType(t.type === "INCOME" ? "income" : "expense"); // UI는 소문자 유지
+        setEditType(t.type === "INCOME" ? "income" : "expense");
         setEditName(t.name);
         setEditAmount(String(t.amount));
     };
 
-    // 편집 저장 (PATCH)
     const saveEdit = async () => {
         if (!editingId) return;
         await api.patch(`/ledger/transactions/${editingId}`, {
             type: editType.toUpperCase(),
             name: editName,
             amount: Number(editAmount),
-            // date를 바꾸고 싶다면 아래 주석 해제
-            // date: toISO(selectedDate),
+            // 날짜를 바꾸려면 아래 사용 (로컬 기준 날짜로!)
+            // date: toLocalISO(selectedDate),
         });
         setEditingId(null);
         await refreshBoth();
@@ -130,7 +134,6 @@ const HouseholdLedgerMain = () => {
         setEditAmount("");
     };
 
-    // 삭제
     const deleteTx = async (id) => {
         if (!window.confirm("삭제할까요?")) return;
         await api.delete(`/ledger/transactions/${id}`);
@@ -141,7 +144,7 @@ const HouseholdLedgerMain = () => {
         if (!authed) return;
         (async () => {
             await fetchMonthTotals(selectedDate);
-            await fetchDayList(selectedDate);
+            await fetchDayList(selectedDate); // ✅ 로컬 날짜로 조회
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [authed]);
@@ -149,7 +152,7 @@ const HouseholdLedgerMain = () => {
     useEffect(() => {
         if (!authed) return;
         (async () => {
-            await fetchDayList(selectedDate);
+            await fetchDayList(selectedDate);   // ✅ 로컬 날짜로 조회
             await fetchMonthTotals(selectedDate);
         })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -173,7 +176,7 @@ const HouseholdLedgerMain = () => {
                     value={selectedDate}
                     locale="ko-KR"
                     tileContent={({ date }) => {
-                        const d = tileTotals.get(toISO(date));
+                        const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
                         if (!d) return null;
                         return (
                             <div className="calendar-tile">
@@ -220,7 +223,6 @@ const HouseholdLedgerMain = () => {
                                 </li>
                             );
                         }
-                        // 편집 모드
                         return (
                             <li key={t.id} className="edit row">
                                 <select value={editType} onChange={(e) => setEditType(e.target.value)}>

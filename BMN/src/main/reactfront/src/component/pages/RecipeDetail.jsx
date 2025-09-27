@@ -137,6 +137,11 @@ export default function RecipeDetail() {
     if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
     if (!recipe) return null;
 
+    // ✅ A안: ingredientRows를 {name, link} 배열로 변환해서 넘기기
+    const ingredientPayload = ingredientRows
+        .map(it => ({ name: it?.name ?? "", link: it?.link ?? "" }))
+        .filter(x => x.name && x.name.trim().length > 0);
+
     return (
         <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
@@ -184,8 +189,9 @@ export default function RecipeDetail() {
             <Link
                 to="/ingredient"
                 state={{
-                    cost: recipe.estimatedPrice,         // 예상비용 전달
-                    ingredients: recipe.ingredients,  // 재료 리스트 (API에서 받아온 배열)
+                    cost: recipe.estimatedPrice,            // 예상비용
+                    ingredients: ingredientPayload,         // ✅ 배열로 전달
+                    thumbnail: thumbSrc                     // ✅ 썸네일도 전달(선택)
                 }}
                 style={{
                     position: "fixed",
@@ -223,7 +229,7 @@ export default function RecipeDetail() {
                     loading="lazy"
                     onError={onImgError}
                 />
-            )}x
+            )}
 
             {recipe.description && (
                 <>

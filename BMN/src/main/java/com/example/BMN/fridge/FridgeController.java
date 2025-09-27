@@ -7,10 +7,11 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDate;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:8080"})
 @RestController
 @RequestMapping("/api/fridge")
 public class FridgeController {
@@ -45,6 +46,23 @@ public class FridgeController {
     @GetMapping("/ingredients")
     public List<IngredientDto> list(@RequestParam(defaultValue = "ALL") String category) {
         return service.list(category).stream().map(IngredientDto::of).toList();
+    }
+
+    // ✅ 보유 재료의 "이름만" 반환하는 경량 엔드포인트
+    // GET /api/fridge/items?category=ALL
+    @GetMapping("/items")
+    public List<String> listItemNames(@RequestParam(defaultValue = "ALL") String category) {
+        // service.listNames는 사용자/카테고리 필터링까지 수행
+        List<String> names = service.listNames(category);
+
+        // 공백/대소문자 차이 중복 제거를 위해 LinkedHashSet으로 정리 (원본 순서 유지)
+        LinkedHashSet<String> uniq = new LinkedHashSet<>();
+        for (String n : names) {
+            if (n == null) continue;
+            String normalized = n.trim();
+            if (!normalized.isEmpty()) uniq.add(normalized);
+        }
+        return List.copyOf(uniq);
     }
 
     @PostMapping("/ingredients")

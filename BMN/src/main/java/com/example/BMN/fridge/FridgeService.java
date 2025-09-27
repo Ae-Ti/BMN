@@ -39,6 +39,15 @@ public class FridgeService {
         return repo.findAllByOwnerAndCategoryOrderByIdDesc(owner, cat);
     }
 
+    // ✅ 이름만 반환 (Controller의 /items에서 사용)
+    @Transactional(readOnly = true)
+    public List<String> listNames(String category) {
+        return list(category).stream()
+                .map(Ingredient::getName)
+                .filter(n -> n != null && !n.isBlank())
+                .toList();
+    }
+
     public Ingredient create(String name, Integer quantity, String unit, IngredientCategory category, LocalDate expireDate) {
         SiteUser owner = me();
         Ingredient i = new Ingredient();
