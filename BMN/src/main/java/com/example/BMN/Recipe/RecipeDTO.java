@@ -38,7 +38,6 @@ public class RecipeDTO {
         this.subject = r.getSubject();
         this.description = r.getDescription();
         this.tools = r.getTools();
-        this.content = r.getContent();
         this.cookingTimeMinutes = r.getCookingTimeMinutes();
         this.estimatedPrice = r.getEstimatedPrice();
 

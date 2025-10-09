@@ -14,25 +14,20 @@ export default function RecipeForm() {
     const [subject, setSubject] = useState("");
     const [description, setDescription] = useState("");
     const [tools, setTools] = useState("");
-    const [content, setContent] = useState("");
     const [cookingTimeMinutes, setCookingTimeMinutes] = useState("");
     const [estimatedPrice, setEstimatedPrice] = useState("");
 
-    // 썸네일 파일 + 미리보기
     const [thumbnail, setThumbnail] = useState(null);
-    const [thumbnailPreview, setThumbnailPreview] = useState(null); // string(url)
+    const [thumbnailPreview, setThumbnailPreview] = useState(null);
 
-    // 재료
     const [ingredients, setIngredients] = useState([]);
 
-    // 기존 스텝
     const [existingSteps, setExistingSteps] = useState([]);
     const [removeStepIds, setRemoveStepIds] = useState([]);
 
     // 새 스텝: { file, description, previewUrl }
     const [newSteps, setNewSteps] = useState([{ file: null, description: "", previewUrl: null }]);
 
-    // 현재 레시피 썸네일(수정 모드에서 서버 이미지)
     const serverThumbUrl = useMemo(() => (isEdit ? thumbnailPreview || null : null), [isEdit, thumbnailPreview]);
 
     useEffect(() => {
@@ -47,16 +42,12 @@ export default function RecipeForm() {
                 setSubject(r.subject ?? "");
                 setDescription(r.description ?? "");
                 setTools(r.tools ?? "");
-                setContent(r.content ?? "");
                 setCookingTimeMinutes(r.cookingTimeMinutes ?? "");
                 setEstimatedPrice(r.estimatedPrice ?? "");
                 setIngredients(Array.isArray(r.ingredientRows) ? r.ingredientRows : []);
                 setExistingSteps(Array.isArray(r.stepImages) ? r.stepImages : []);
 
-                // 서버 썸네일 미리보기
-                if (r.thumbnailUrl) {
-                    setThumbnailPreview(r.thumbnailUrl);
-                }
+                if (r.thumbnailUrl) setThumbnailPreview(r.thumbnailUrl);
             })
             .catch((err) => {
                 console.error(err);
@@ -64,7 +55,6 @@ export default function RecipeForm() {
             });
     }, [id, isEdit]);
 
-    // 썸네일 선택 -> 미리보기 생성
     function handleThumbChange(e) {
         const f = e.target.files?.[0] || null;
         if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
@@ -74,7 +64,6 @@ export default function RecipeForm() {
         setThumbnailPreview(f ? URL.createObjectURL(f) : null);
     }
 
-    // 재료
     const addIngredient = () => setIngredients([...ingredients, { name: "", link: "" }]);
     const updateIngredient = (idx, field, value) => {
         const copy = [...ingredients];
@@ -87,14 +76,11 @@ export default function RecipeForm() {
         setIngredients(copy);
     };
 
-    // 새 스텝
     const addNewStep = () => setNewSteps([...newSteps, { file: null, description: "", previewUrl: null }]);
-
     const updateNewStep = (idx, field, value) => {
         setNewSteps((prev) => {
             const copy = [...prev];
             if (field === "file") {
-                // 기존 URL revoke
                 if (copy[idx].previewUrl && copy[idx].previewUrl.startsWith("blob:")) {
                     try { URL.revokeObjectURL(copy[idx].previewUrl); } catch {}
                 }
@@ -107,7 +93,6 @@ export default function RecipeForm() {
             return copy;
         });
     };
-
     const removeNewStep = (idx) => {
         setNewSteps((prev) => {
             const copy = [...prev];
@@ -120,14 +105,12 @@ export default function RecipeForm() {
         });
     };
 
-    // 기존 스텝 삭제
     const handleRemoveExistingStep = (stepId) => {
         if (!window.confirm("이 단계를 삭제하시겠습니까?")) return;
         setRemoveStepIds((prev) => [...prev, stepId]);
         setExistingSteps((prev) => prev.filter((s) => s.id !== stepId));
     };
 
-    // 언마운트 시 blob URL 정리
     useEffect(() => {
         return () => {
             if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
@@ -148,7 +131,6 @@ export default function RecipeForm() {
             fd.append("subject", String(subject ?? ""));
             fd.append("description", String(description ?? ""));
             fd.append("tools", String(tools ?? ""));
-            fd.append("content", String(content ?? ""));
             fd.append("cookingTimeMinutes", String(cookingTimeMinutes ?? ""));
             fd.append("estimatedPrice", String(estimatedPrice ?? ""));
 
@@ -207,11 +189,6 @@ export default function RecipeForm() {
                 <div>
                     <label>도구</label>
                     <textarea value={tools} onChange={(e) => setTools(e.target.value)} />
-                </div>
-
-                <div>
-                    <label>본문</label>
-                    <textarea value={content} onChange={(e) => setContent(e.target.value)} />
                 </div>
 
                 <div>
@@ -292,7 +269,7 @@ export default function RecipeForm() {
                     </div>
                 )}
 
-                {/* 새 스텝 (파일 선택 시 미리보기) */}
+                {/* 새 스텝 */}
                 <div style={{ marginTop: 16 }}>
                     <h3>새 단계 추가</h3>
                     {newSteps.map((s, idx) => (

@@ -9,8 +9,8 @@ import java.util.List;
 
 public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Recipe findBySubject(String subject);
-    Recipe findBySubjectAndContent(String subject, String content);
     List<Recipe> findBySubjectLike(String subject);
+    Recipe findBySubjectAndDescription(String subject, String description);
     Page<Recipe> findAll(Pageable pageable);
 
     List<Recipe> findAllByAuthorOrderByIdDesc(SiteUser author);

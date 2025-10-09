@@ -1,7 +1,7 @@
 package com.example.BMN.Recipe;
 
-import com.example.BMN.Review.Review;
 import com.example.BMN.User.SiteUser;
+import com.example.BMN.comment.Comment; // ✅ 바뀐 지점
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
@@ -47,18 +47,17 @@ public class Recipe {
 
     private Integer estimatedPrice; // 총 예상 가격
 
-    @Column(columnDefinition = "TEXT")
-    private String content; // 추가 설명
-
     private LocalDateTime createDate; // 작성 날짜
 
-    @OneToMany(mappedBy = "recipe", cascade = CascadeType.REMOVE)
-    private List<Review> reviewList = new ArrayList<>();
+    // ✅ Review → Comment 로 교체, 레시피 삭제 시 댓글 자동 삭제
+    @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OrderBy("createdAt ASC")
+    private List<Comment> commentList = new ArrayList<>();
 
     @ManyToOne(fetch = FetchType.LAZY)
     private SiteUser author;
 
-    // ✅ 새로 추가: 정규화된 재료 행(Row)들
+    // ✅ 정규화된 재료 행(Row)
     @OneToMany(mappedBy = "recipe", cascade = CascadeType.ALL, orphanRemoval = true)
     @OrderBy("position ASC")
     private List<RecipeIngredient> ingredientRows = new ArrayList<>();
@@ -67,4 +66,12 @@ public class Recipe {
         ri.setRecipe(this);
         this.ingredientRows.add(ri);
     }
+
+    // ⭐ 평균 별점
+    @Column(nullable = false)
+    private Double averageRating = 0.0;
+
+    // ⭐ 댓글(평점) 개수
+    @Column(nullable = false)
+    private Integer ratingCount = 0;
 }

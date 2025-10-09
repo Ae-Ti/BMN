@@ -4,7 +4,6 @@ import { useNavigate } from "react-router-dom";
 const PostCreate = () => {
     // 텍스트 필드
     const [subject, setSubject] = useState("");
-    const [content, setContent] = useState("");
     const [ingredientsName, setIngredientsName] = useState("");
     const [ingredientsLink, setIngredientsLink] = useState("");
     const [ingredientsList, setIngredientsList] = useState([]); // [{name, link}]
@@ -46,7 +45,7 @@ const PostCreate = () => {
         setThumbnailPreview(f ? URL.createObjectURL(f) : null);
     };
 
-    // 스텝 이미지 선택 (캡션 배열을 항상 "문자열"로 정규화)
+    // 스텝 이미지 선택 (캡션 배열 정규화)
     const handleStepsChange = (e) => {
         const files = Array.from(e.target.files || []);
         setStepPreviews(files.map((f) => URL.createObjectURL(f)));
@@ -82,7 +81,7 @@ const PostCreate = () => {
         const fd = new FormData();
         fd.append("subject", subject);
 
-        // ingredients: JSON 배열로
+        // ingredients: JSON 배열
         const ingredientsBlob = new Blob([JSON.stringify(ingredientsList)], {
             type: "application/json",
         });
@@ -93,13 +92,12 @@ const PostCreate = () => {
         fd.append("description", description);
         fd.append("tools", tools);
         fd.append("estimatedPrice", String(estimatedPrice));
-        fd.append("content", content);
 
         // 파일들
         fd.append("thumbnail", thumbRef.current.files[0]);
         Array.from(stepsRef.current.files).forEach((f) => fd.append("stepImages", f));
 
-        // ✅ captions: JSON 배열을 "하나의 파트"로 전송 (application/json)
+        // 캡션들 JSON 배열로
         const captionsArray = (stepCaptions ?? []).map((c) => (c ?? "").toString());
         const captionsBlob = new Blob([JSON.stringify(captionsArray)], {
             type: "application/json",
@@ -113,7 +111,7 @@ const PostCreate = () => {
                     const token = localStorage.getItem("token");
                     return token ? { Authorization: `Bearer ${token}` } : undefined;
                 })(),
-                body: fd, // 멀티파트 바운더리는 브라우저가 자동 설정
+                body: fd,
             });
             if (!res.ok) throw new Error(`업로드 실패: ${res.status}`);
             alert("등록 완료!");
@@ -184,9 +182,9 @@ const PostCreate = () => {
                         <ul style={{ marginTop: 8 }}>
                             {ingredientsList.map((it, i) => (
                                 <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                  <span>
-                    {it.name} {it.link ? `— ${it.link}` : ""}
-                  </span>
+                                    <span>
+                                        {it.name} {it.link ? `— ${it.link}` : ""}
+                                    </span>
                                     <button type="button" onClick={() => removeIngredient(i)}>
                                         삭제
                                     </button>
@@ -196,7 +194,7 @@ const PostCreate = () => {
                     )}
                 </div>
 
-                {/* 시간/도구/가격 */}
+                {/* 시간/도구/가격/설명 */}
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div>
                         <label>소요 시간(분)</label>
@@ -232,7 +230,7 @@ const PostCreate = () => {
                         />
                     </div>
                     <div>
-                        <label>조리 설명(한 줄)</label>
+                        <label>조리 설명</label>
                         <input
                             type="text"
                             value={description}
@@ -241,18 +239,6 @@ const PostCreate = () => {
                             placeholder="예) 센 불에서 3분간 볶기"
                         />
                     </div>
-                </div>
-
-                {/* 본문(추가 설명) */}
-                <div>
-                    <label>추가 설명</label>
-                    <textarea
-                        value={content}
-                        onChange={(e) => setContent(e.target.value)}
-                        rows={5}
-                        style={{ width: "100%", padding: 8 }}
-                        placeholder="레시피 팁, 주의사항 등을 적어주세요."
-                    />
                 </div>
 
                 {/* 스텝 이미지 + 캡션 */}

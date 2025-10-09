@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
+import RecipeComments from "../blocks/RecipeComments";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
@@ -28,8 +29,8 @@ function getCurrentUserFromToken() {
     const payloadJson = b64urlDecode(parts[1]);
     try {
         const payload = JSON.parse(payloadJson || "{}");
-        const username = payload.username ?? payload.sub ?? null;
-        const userId = payload.userId ?? payload.uid ?? payload.id ?? null;
+        const username = payload.userName ?? payload.username ?? payload.sub ?? null;
+        const userId = payload.userId ?? payload.uid ?? payload.id ?? payload.user_id ?? null;
         return { username, userId };
     } catch {
         return { username: null, userId: null };
@@ -48,7 +49,19 @@ export default function RecipeDetail() {
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(true);
 
+    // ⭐ 평균 별점 상태
+    const [avgRating, setAvgRating] = useState(null);
+
     const { username: currentUsername, userId: currentUserIdFromToken } = getCurrentUserFromToken();
+
+    // 평균 계산 유틸
+    function calcAvgFrom(list) {
+        if (!Array.isArray(list) || list.length === 0) return null;
+        const valid = list.map((c) => Number(c?.rating || 0)).filter((n) => Number.isFinite(n) && n > 0);
+        if (valid.length === 0) return null;
+        const sum = valid.reduce((a, b) => a + b, 0);
+        return (sum / valid.length).toFixed(1);
+    }
 
     useEffect(() => {
         let alive = true;
@@ -62,6 +75,19 @@ export default function RecipeDetail() {
             .then((res) => {
                 if (!alive) return;
                 setRecipe(res.data);
+
+                // 1) 백엔드가 비정규화된 평균을 주는 경우 우선 사용
+                if (res.data?.averageRating != null) {
+                    const v = Number(res.data.averageRating);
+                    setAvgRating(Number.isFinite(v) ? v.toFixed(1) : null);
+                    return;
+                }
+                // 2) 응답에 commentList가 포함되어 있으면 계산
+                if (Array.isArray(res.data?.commentList)) {
+                    setAvgRating(calcAvgFrom(res.data.commentList));
+                } else {
+                    setAvgRating(null);
+                }
             })
             .catch((e) => {
                 if (!alive) return;
@@ -76,6 +102,27 @@ export default function RecipeDetail() {
             alive = false;
         };
     }, [id]);
+
+    // 응답에 댓글이 포함되지 않는 백엔드라면, 별도 호출로 평균 계산 (필요 시)
+    useEffect(() => {
+        let alive = true;
+        if (avgRating != null) return; // 이미 계산된 경우 스킵
+        if (!id) return;
+
+        axios
+            .get(`/recipe/api/${id}/comments`)
+            .then((res) => {
+                if (!alive) return;
+                setAvgRating(calcAvgFrom(res.data || []));
+            })
+            .catch(() => {
+                /* 평균은 부가정보라 에러 무시 */
+            });
+
+        return () => {
+            alive = false;
+        };
+    }, [id, avgRating]);
 
     const cookMinutes = recipe?.cookingTimeMinutes ?? null;
     const estPrice = recipe?.estimatedPrice ?? null;
@@ -137,10 +184,10 @@ export default function RecipeDetail() {
     if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
     if (!recipe) return null;
 
-    // ✅ A안: ingredientRows를 {name, link} 배열로 변환해서 넘기기
+    // 장보기 페이지로 넘길 페이로드
     const ingredientPayload = ingredientRows
-        .map(it => ({ name: it?.name ?? "", link: it?.link ?? "" }))
-        .filter(x => x.name && x.name.trim().length > 0);
+        .map((it) => ({ name: it?.name ?? "", link: it?.link ?? "" }))
+        .filter((x) => x.name && x.name.trim().length > 0);
 
     return (
         <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
@@ -189,9 +236,9 @@ export default function RecipeDetail() {
             <Link
                 to="/ingredient"
                 state={{
-                    cost: recipe.estimatedPrice,            // 예상비용
-                    ingredients: ingredientPayload,         // ✅ 배열로 전달
-                    thumbnail: thumbSrc                     // ✅ 썸네일도 전달(선택)
+                    cost: recipe.estimatedPrice, // 예상비용
+                    ingredients: ingredientPayload, // ✅ 배열로 전달
+                    thumbnail: thumbSrc, // ✅ 썸네일도 전달(선택)
                 }}
                 style={{
                     position: "fixed",
@@ -201,7 +248,7 @@ export default function RecipeDetail() {
                     color: "#fff",
                     padding: "10px 20px",
                     borderRadius: "50px",
-                    textDecoration: "none"
+                    textDecoration: "none",
                 }}
             >
                 담기
@@ -213,9 +260,15 @@ export default function RecipeDetail() {
                 {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
                 {cookMinutes != null && estPrice != null ? " · " : null}
                 {estPrice != null && <>예상비용 {estPrice}원</>}
-                {authorName ? (
+                {avgRating != null && (
                     <>
                         {(cookMinutes != null || estPrice != null) ? " · " : null}
+                        ⭐ 평균평점 {avgRating}/5
+                    </>
+                )}
+                {authorName ? (
+                    <>
+                        {(cookMinutes != null || estPrice != null || avgRating != null) ? " · " : null}
                         작성자 {authorName}
                     </>
                 ) : null}
@@ -323,6 +376,9 @@ export default function RecipeDetail() {
                     </ol>
                 </>
             )}
+
+            {/* ✅ 댓글 섹션 — 평균 갱신 콜백 연결 */}
+            <RecipeComments recipeId={recipe.id} onAvgChange={setAvgRating} />
         </div>
     );
 }

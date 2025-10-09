@@ -19,16 +19,16 @@ public class RecipeForm {
     @NotNull(message="대표사진은 필수입니다.")
     private MultipartFile thumbnail;
 
-    @Size(max = 2000, message ="재료는 최대 2000자입니다.")
+    @Size(max = 20, message ="재료는 최대 20자입니다.")
     private String ingredients;
 
     @NotNull(message = "소요시간은 필수입니다.")
     private Integer cookingTimeMinutes;
 
-    @Size(max = 10000, message = "조리방법은 최대 10000자입니다.")
+    @Size(max = 100, message = "조리방법은 최대 100자입니다.")
     private String description;
 
-    @Size(max = 1000, message = "조리도구는 최대 1000자입니다.")
+    @Size(max = 100, message = "조리도구는 최대 100자입니다.")
     private String tools;
 
     //파일 배열
@@ -37,7 +37,5 @@ public class RecipeForm {
     @NotNull(message ="총예상가격은 필수입니다.")
     private Integer estimatedPrice;
 
-    @Size(max = 10000, message ="추가설명은 최대 1000자입니다.")
-    private String content;//선택
     //작성자는 넣지 않음 - 서버가 로그인 유저로 세팅
 }

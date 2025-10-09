@@ -63,7 +63,6 @@ public class RecipeService {
         recipe.setDescription(description);
         recipe.setTools(tools);
         recipe.setEstimatedPrice(estimatedPrice);
-        recipe.setContent(content);
         recipe.setCreateDate(LocalDateTime.now());
 
         // 업로더
@@ -123,7 +122,6 @@ public class RecipeService {
         if (description != null)         recipe.setDescription(description);
         if (tools != null)               recipe.setTools(tools);
         if (estimatedPrice != null)      recipe.setEstimatedPrice(estimatedPrice);
-        if (content != null)             recipe.setContent(content);
 
         if (thumbnail != null && !thumbnail.isEmpty()) {
             recipe.setThumbnail(thumbnail.getBytes());
