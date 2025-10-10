@@ -19,26 +19,11 @@ const RecipeMain = () => {
     const navigate = useNavigate();
     const [bestRecipes, setBestRecipes] = useState([]);
     const [favoriteRecipes, setFavoriteRecipes] = useState([]);
-    const [userName, setUserName] = useState("");
 
-    const thumbUrl = (id) => `http://localhost:8080/recipe/thumbnail/${id}`;
+    const thumbUrl = (id, fallbackUrl) =>
+        fallbackUrl || (id ? `http://localhost:8080/recipe/thumbnail/${id}` : "");
 
-    // 로그인한 사용자 정보
-    useEffect(() => {
-        const token = localStorage.getItem("token");
-        if (!token) return;
-        axios
-            .get("/user/info", {
-                headers: { Authorization: `Bearer ${token}` },
-                withCredentials: true,
-            })
-            .then((res) => {
-                if (res.data?.userName) setUserName(res.data.userName);
-            })
-            .catch(() => {});
-    }, []);
-
-    // 베스트 레시피
+    // 베스트 레시피 (기존 엔드포인트 유지)
     useEffect(() => {
         const token = localStorage.getItem("token");
         axios
@@ -47,23 +32,30 @@ const RecipeMain = () => {
             })
             .then((res) => {
                 if (Array.isArray(res.data)) setBestRecipes(res.data.slice(0, 4));
+                // Page<Recipe>로 오면 적절히 파싱해도 됨
             })
             .catch(() => {});
     }, []);
 
-    // 즐겨찾기
+    // 내 즐겨찾기 (신규: /recipe/api/me/favorites)
     useEffect(() => {
-        if (!userName) return;
+        if (!hasToken()) {
+            setFavoriteRecipes([]);
+            return;
+        }
         const token = localStorage.getItem("token");
         axios
-            .get(`/favorite/data/${userName}`, {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
+            .get("/recipe/api/me/favorites?limit=4", {
+                headers: { Authorization: `Bearer ${token}` },
             })
             .then((res) => {
-                if (Array.isArray(res.data)) setFavoriteRecipes(res.data.slice(0, 4));
+                // 응답이 배열(RecipeDTO[])이라고 가정
+                if (Array.isArray(res.data)) setFavoriteRecipes(res.data);
             })
-            .catch(() => {});
-    }, [userName]);
+            .catch(() => {
+                setFavoriteRecipes([]);
+            });
+    }, []);
 
     // 카드 클릭 시: 비로그인이면 SPA 로그인으로
     const handleCardClick = (id, e) => {
@@ -95,7 +87,7 @@ const RecipeMain = () => {
             aria-label={`${recipe.subject} 상세로 이동`}
         >
             <img
-                src={thumbUrl(recipe.id)}
+                src={thumbUrl(recipe.id, recipe.thumbnailUrl)}
                 alt={recipe.subject}
                 className="recipe-image"
                 loading="lazy"
@@ -107,7 +99,7 @@ const RecipeMain = () => {
 
     return (
         <div className="recipe-main">
-            {/* 제목 + 더보기 버튼 */}
+            {/* 베스트 */}
             <div className="section-header">
                 <h2 className="title" style={{ margin: 0 }}>베스트 레시피</h2>
                 <button
@@ -131,7 +123,8 @@ const RecipeMain = () => {
                 )}
             </div>
 
-            <h2 className="title">즐겨찾기</h2>
+            {/* 즐겨찾기 */}
+            <h2 className="title">내 즐겨찾기</h2>
             <div className="recipe-list">
                 {favoriteRecipes.length > 0 ? (
                     favoriteRecipes.map((recipe) => <Card key={recipe.id} recipe={recipe} />)
@@ -140,6 +133,7 @@ const RecipeMain = () => {
                 )}
             </div>
 
+            {/* 업로드 버튼 */}
             <button
                 onClick={handleUploadClick}
                 style={{

@@ -1,13 +1,19 @@
+// src/main/java/com/example/BMN/Recipe/RecipeDTO.java
 package com.example.BMN.Recipe;
 
 import com.example.BMN.User.SiteUser;
 import lombok.Data;
 
 import java.util.List;
+import java.util.Objects;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /**
- * 프론트 응답용 DTO (엔티티 필드명과 1:1 매핑 정합성 확보)
+ * 프론트 응답용 DTO (엔티티 필드명과 1:1 정합성 + 파생 필드 포함)
+ * - 엔티티에 없는 content 제거
+ * - 즐겨찾기/조회수/평점 정보 포함
+ * - "내가 즐겨찾기 했는지" 여부(favoritedByMe) 포함
  */
 @Data
 public class RecipeDTO {
@@ -15,25 +21,37 @@ public class RecipeDTO {
     private String subject;
     private String description;
     private String tools;
-    private String content;
     private Integer cookingTimeMinutes;
     private Integer estimatedPrice;
 
     // 작성자 표시용
     private Long authorId;
-    private String authorUsername;      // SiteUser.userName 매핑
+    private String authorUsername;      // SiteUser.userName
     private String authorDisplayName;   // 닉네임 필드가 있으면 매핑(없으면 null)
 
-    // 썸네일 URL (있을 때만)
+    // 미디어
     private String thumbnailUrl;
 
-    // 재료: 엔티티의 ingredientRows 컬렉션을 그대로 변환
-    private List<IngredientRowDTO> ingredientRows;
+    // 메타
+    private Double averageRating;   // 정규화된 평균 별점
+    private Integer ratingCount;    // 평점 개수
+    private Integer favoriteCount;  // 즐겨찾기 수
+    private Long viewCount;         // 조회수
+    private Boolean favoritedByMe;  // 현재 로그인 사용자가 즐겨찾기 했는지
 
-    // 조리 단계 이미지
+    // 재료/스텝
+    private List<IngredientRowDTO> ingredientRows;
     private List<StepImageDTO> stepImages;
 
+    /* --------- 생성자 --------- */
+
+    // 로그인 사용자 정보가 없을 때(비로그인/옵셔널)
     public RecipeDTO(Recipe r) {
+        this(r, null);
+    }
+
+    // 로그인 사용자(me)를 받아 favoritedByMe 계산
+    public RecipeDTO(Recipe r, SiteUser me) {
         this.id = r.getId();
         this.subject = r.getSubject();
         this.description = r.getDescription();
@@ -45,15 +63,28 @@ public class RecipeDTO {
         SiteUser a = r.getAuthor();
         if (a != null) {
             this.authorId = a.getId();
-            // ⚠️ SiteUser는 getUserName() (대/소문자 주의)
             this.authorUsername = a.getUserName();
-            // 닉네임 필드가 있다면 여기에 매핑, 없으면 null 유지
+            // a.getNickname() 이 있으면 사용
             // this.authorDisplayName = a.getNickname();
         }
 
         // 썸네일 URL
         if (r.getThumbnail() != null && r.getThumbnail().length > 0) {
             this.thumbnailUrl = "/recipe/thumbnail/" + r.getId();
+        }
+
+        // 메타
+        this.averageRating = Optional.ofNullable(r.getAverageRating()).orElse(0.0);
+        this.ratingCount   = Optional.ofNullable(r.getRatingCount()).orElse(0);
+        this.favoriteCount = Optional.ofNullable(r.getFavoriteCount()).orElse(0);
+        this.viewCount     = Optional.ofNullable(r.getViewCount()).orElse(0L);
+
+        // 내가 즐겨찾기 했는지
+        if (me != null && me.getFavorite() != null) {
+            // 엔티티 equals/hashCode 가 아이디 기준이면 contains 동작 OK
+            this.favoritedByMe = me.getFavorite().contains(r);
+        } else {
+            this.favoritedByMe = false;
         }
 
         // 재료 rows
@@ -65,6 +96,14 @@ public class RecipeDTO {
         // 스텝 이미지
         this.stepImages = (r.getStepImages() == null) ? List.of()
                 : r.getStepImages().stream()
+                .sorted((s1, s2) -> {
+                    Integer aIdx = s1.getStepIndex();
+                    Integer bIdx = s2.getStepIndex();
+                    if (aIdx == null && bIdx == null) return 0;
+                    if (aIdx == null) return 1;
+                    if (bIdx == null) return -1;
+                    return Integer.compare(aIdx, bIdx);
+                })
                 .map(StepImageDTO::new)
                 .collect(Collectors.toList());
     }
@@ -97,8 +136,8 @@ public class RecipeDTO {
 
         public StepImageDTO(RecipeStepImage s) {
             this.id = s.getId();
-            this.stepOrder = s.getStepIndex();     // ✅ 엔티티 stepIndex 매핑
-            this.description = s.getCaption();     // ✅ 엔티티 caption 매핑
+            this.stepOrder = s.getStepIndex();
+            this.description = s.getCaption();
             if (s.getImage() != null && s.getImage().length > 0) {
                 this.imageUrl = "/recipe/steps/" + s.getId() + "/image";
             }

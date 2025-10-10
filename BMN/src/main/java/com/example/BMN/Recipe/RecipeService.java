@@ -1,3 +1,4 @@
+// src/main/java/com/example/BMN/Recipe/RecipeService.java
 package com.example.BMN.Recipe;
 
 import com.example.BMN.DataNotFoundException;
@@ -6,6 +7,8 @@ import com.example.BMN.User.UserRepository;
 import com.example.BMN.fridge.Ingredient;
 import com.example.BMN.fridge.IngredientRepository;
 import jakarta.transaction.Transactional;
+import lombok.AllArgsConstructor;
+import lombok.Data;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
@@ -28,8 +31,11 @@ public class RecipeService {
     private final RecipeStepImageRepository recipeStepImageRepository;
     private final UserRepository userRepository;
 
-    // ✅ 추가: 냉장고 재료 조회용
+    // 냉장고 재료 조회
     private final IngredientRepository ingredientRepository;
+
+    // 즐겨찾기(조인) 리포지토리
+    private final FavoriteRepository favoriteRepository;
 
     /* ---------------- 공통 유틸 ---------------- */
 
@@ -42,6 +48,18 @@ public class RecipeService {
         return userRepository.findByUserName(username).orElse(null);
     }
 
+    public SiteUser findUserByUsername(String username) {
+        if (username == null || username.isBlank()) return null;
+        return userRepository.findByUserName(username).orElse(null);
+    }
+
+    public SiteUser currentUserOrNull() {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        if (auth == null) return null;
+        String username = auth.getName();
+        return findUserByUsername(username);
+    }
+
     /* ---------------- 생성 ---------------- */
     @Transactional
     public Long createRecipe(
@@ -51,7 +69,6 @@ public class RecipeService {
             String description,
             String tools,
             Integer estimatedPrice,
-            String content,
             MultipartFile thumbnail,
             List<MultipartFile> stepImages,
             List<String> captions,
@@ -90,6 +107,13 @@ public class RecipeService {
                 recipe.addStepImage(step);
             }
         }
+
+        // 초기 카운터들
+        if (recipe.getAverageRating() == null) recipe.setAverageRating(0.0);
+        if (recipe.getRatingCount() == null) recipe.setRatingCount(0);
+        if (recipe.getViewCount() == null) recipe.setViewCount(0L);
+        if (recipe.getFavoriteCount() == null) recipe.setFavoriteCount(0);
+
         return recipeRepository.save(recipe).getId();
     }
 
@@ -103,7 +127,6 @@ public class RecipeService {
             String description,
             String tools,
             Integer estimatedPrice,
-            String content,
             MultipartFile thumbnail,
             List<MultipartFile> newStepImages,
             List<String> captionsForNewSteps,
@@ -205,7 +228,7 @@ public class RecipeService {
         }
     }
 
-    /* ---------------- 조회/삭제 ---------------- */
+    /* ---------------- 기본 조회/삭제 ---------------- */
     public Page<Recipe> getList(int page) {
         Pageable pageable = PageRequest.of(page, 10, Sort.by(Sort.Order.desc("createDate")));
         return this.recipeRepository.findAll(pageable);
@@ -236,20 +259,139 @@ public class RecipeService {
         recipeRepository.delete(recipe);
     }
 
+    /* ---------------- 조회수/즐겨찾기 ---------------- */
+
+    // 조회수 +1
+    @Transactional
+    public void increaseViewCount(Long recipeId) {
+        Recipe r = recipeRepository.findById(recipeId)
+                .orElseThrow(() -> new IllegalArgumentException("레시피가 존재하지 않습니다."));
+        Long vc = (r.getViewCount() == null) ? 0L : r.getViewCount();
+        r.setViewCount(vc + 1);
+    }
+
+    @Data @AllArgsConstructor
+    public static class FavoriteResult {
+        private boolean favorited;   // 현재 로그인 사용자의 상태
+        private int favoriteCount;   // 총 즐겨찾기 개수
+    }
+
+    /** 현재 로그인 사용자가 즐겨찾기 했는지 */
+    @Transactional
+    public boolean isFavorited(Long recipeId) {
+        SiteUser me = resolveCurrentAuthor(null);
+        if (me == null) return false;
+        Recipe r = getRecipe(recipeId);
+        return favoriteRepository.existsByUserAndRecipe(me, r);
+    }
+
+    /** 레시피 즐겨찾기 총 개수 */
+    @Transactional
+    public int getFavoriteCount(Long recipeId) {
+        Recipe r = getRecipe(recipeId);
+        return favoriteRepository.countByRecipe(r);
+    }
+
+    /** 즐겨찾기 추가: 조인 행 INSERT + 카운트 원자적 +1 */
+    @Transactional
+    public FavoriteResult addFavorite(Long recipeId) {
+        SiteUser me = resolveCurrentAuthor(null);
+        if (me == null) throw new SecurityException("로그인이 필요합니다.");
+        Recipe r = getRecipe(recipeId);
+
+        if (!favoriteRepository.existsByUserAndRecipe(me, r)) {
+            favoriteRepository.save(new Favorite(me, r));
+            // 원자적 카운트 +1
+            recipeRepository.increaseFavoriteCount(r.getId());
+        }
+        int cnt = favoriteRepository.countByRecipe(r);
+        return new FavoriteResult(true, cnt);
+    }
+
+    /** 즐겨찾기 해제: 조인 행 DELETE + 카운트 원자적 -1 (0 미만 방지) */
+    @Transactional
+    public FavoriteResult removeFavorite(Long recipeId) {
+        SiteUser me = resolveCurrentAuthor(null);
+        if (me == null) throw new SecurityException("로그인이 필요합니다.");
+        Recipe r = getRecipe(recipeId);
+
+        if (favoriteRepository.existsByUserAndRecipe(me, r)) {
+            favoriteRepository.deleteByUserAndRecipe(me, r);
+            // 원자적 카운트 -1
+            recipeRepository.decreaseFavoriteCount(r.getId());
+        }
+        int cnt = favoriteRepository.countByRecipe(r);
+        return new FavoriteResult(false, cnt);
+    }
+
+    /** (선택) 과거 데이터 보정용: 조인테이블 기준으로 컬럼을 재계산하여 저장 */
+    @Transactional
+    public void recalcFavoriteCount(Long recipeId) {
+        Recipe r = getRecipe(recipeId);
+        int cnt = favoriteRepository.countByRecipe(r);
+        r.setFavoriteCount(cnt);
+        // dirty checking 으로 업데이트
+    }
+
+    /* ---------------- 정렬/목록 ---------------- */
+
+    /** 정렬된 목록 */
+    @Transactional
+    public Page<Recipe> listSorted(int page, int size, String sortKey) {
+        if (size <= 0) size = 12;
+        if (page < 0) page = 0;
+        if (sortKey == null || sortKey.isBlank()) sortKey = "latest";
+
+        Sort sort = switch (sortKey) {
+            case "views"     -> Sort.by(Sort.Order.desc("viewCount"), Sort.Order.desc("id"));
+            case "rating"    -> Sort.by(Sort.Order.desc("averageRating"),
+                    Sort.Order.desc("ratingCount"),
+                    Sort.Order.desc("id"));
+            case "oldest"    -> Sort.by(Sort.Order.asc("createDate"));
+            case "latest"    -> Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id"));
+            case "favorites" -> Sort.by(Sort.Order.desc("favoriteCount"), Sort.Order.desc("id"));
+            default          -> Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id"));
+        };
+
+        Pageable pageable = PageRequest.of(page, size, sort);
+        return recipeRepository.findAll(pageable);
+    }
+
+    /** 내가 작성한 레시피 (페이지네이션) */
+    @Transactional
+    public Page<Recipe> listMyRecipes(int page, int size) {
+        SiteUser me = resolveCurrentAuthor(null);
+        if (me == null) return Page.empty();
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size),
+                Sort.by(Sort.Order.desc("createDate"), Sort.Order.desc("id")));
+        return recipeRepository.findByAuthor(me, pageable);
+    }
+
+    /** 내가 즐겨찾기한 레시피 (페이지네이션) */
+    @Transactional
+    public Page<Recipe> listMyFavoriteRecipes(int page, int size) {
+        SiteUser me = resolveCurrentAuthor(null);
+        if (me == null) return Page.empty();
+
+        Pageable pageable = PageRequest.of(Math.max(0, page), Math.max(1, size),
+                Sort.by(Sort.Order.desc("id")));
+
+        Page<Favorite> favPage = favoriteRepository.findByUser(me, pageable);
+        List<Recipe> recipes = favPage.stream().map(Favorite::getRecipe).toList();
+
+        return new PageImpl<>(recipes, pageable, favPage.getTotalElements());
+    }
+
     /* ==========================================================
      *                 냉장고 기반 레시피 추천
-     *  - 일치율(레시피 재료 중 냉장고가 가진 비율) 우선
-     *  - 유통기한 임박 재료가 포함되면 가산점
      * ========================================================== */
     @Transactional
     public List<RecipeMatchDTO> recommendByFridge(int limit) {
-        // 1) 내 냉장고 재료 로드
         SiteUser me = resolveCurrentAuthor(null);
         if (me == null) return List.of();
         List<Ingredient> my = ingredientRepository.findAllByOwnerOrderByIdDesc(me);
         if (my.isEmpty()) return List.of();
 
-        // nameNorm 세트 & 각 재료의 가장 임박한 유통기한 정보
         Map<String, LocalDate> normToSoonestExpire = new HashMap<>();
         Set<String> fridgeNorms = new HashSet<>();
         for (Ingredient ing : my) {
@@ -260,17 +402,13 @@ public class RecipeService {
             if (norm.isBlank()) continue;
 
             fridgeNorms.add(norm);
-
             LocalDate d = ing.getExpireDate();
             if (d != null) {
-                normToSoonestExpire.merge(norm, d, (oldV, newV) ->
-                        oldV.isBefore(newV) ? oldV : newV // 더 이른 날짜(임박)를 저장
-                );
+                normToSoonestExpire.merge(norm, d, (oldV, newV) -> oldV.isBefore(newV) ? oldV : newV);
             }
         }
         if (fridgeNorms.isEmpty()) return List.of();
 
-        // 2) 전체 레시피와 비교 (규모가 크면 향후 최적화)
         List<Recipe> recipes = recipeRepository.findAll();
 
         List<RecipeMatchDTO> out = new ArrayList<>();
@@ -278,7 +416,6 @@ public class RecipeService {
             List<RecipeIngredient> rows = r.getIngredientRows();
             if (rows == null || rows.isEmpty()) continue;
 
-            // 레시피 유니크 재료 set (nameNorm 기준)
             LinkedHashMap<String, String> normToDisplay = new LinkedHashMap<>();
             for (RecipeIngredient ri : rows) {
                 String norm = ri.getNameNorm();
@@ -293,7 +430,6 @@ public class RecipeService {
             }
             if (normToDisplay.isEmpty()) continue;
 
-            // 매칭 계산
             Set<String> recipeNorms = normToDisplay.keySet();
             Set<String> matched = recipeNorms.stream()
                     .filter(fridgeNorms::contains)
@@ -301,35 +437,23 @@ public class RecipeService {
 
             int total = recipeNorms.size();
             int hit = matched.size();
-            if (total == 0 || hit == 0) continue; // 일치 0이면 추천 제외 (원하면 포함 가능)
+            if (total == 0 || hit == 0) continue;
 
             int percent = (int) Math.round(100.0 * hit / total);
 
-            // 임박일(최소 일수) 계산
             Integer soonestDays = null;
             LocalDate today = LocalDate.now();
             for (String m : matched) {
                 LocalDate d = normToSoonestExpire.get(m);
                 if (d == null) continue;
-                int days = (int) ChronoUnit.DAYS.between(today, d); // 음수면 이미 지남
+                int days = (int) ChronoUnit.DAYS.between(today, d);
                 soonestDays = (soonestDays == null) ? days : Math.min(soonestDays, days);
             }
 
-            // 가중치 점수: 일치율 + 임박 가산(<=7일이면 +최대 20점 선형)
-            double base = percent;
-            double bonus = 0.0;
-            if (soonestDays != null && soonestDays <= 7) {
-                int remain = Math.max(soonestDays, 0); // 음수면 0일로 간주
-                bonus = (7 - remain) / 7.0 * 20.0;     // 0~20
-            }
-            double score = base + bonus;
-
-            // 썸네일 URL
             String thumb = (r.getThumbnail() != null && r.getThumbnail().length > 0)
                     ? ("/recipe/thumbnail/" + r.getId())
                     : null;
 
-            // DTO 구성
             List<String> matchedNames = matched.stream().map(normToDisplay::get).toList();
             List<String> missingNames = recipeNorms.stream()
                     .filter(n -> !matched.contains(n))
@@ -349,16 +473,12 @@ public class RecipeService {
                     matchedNames,
                     missingNames
             );
-            // 점수는 정렬에서만 사용 -> Map에 임시로 보관 or comparator에서 다시 계산
-            // 여기선 리스트에 넣고 나중에 comparator에서 동일 로직으로 비교
             out.add(dto);
         }
 
-        // 정렬: 1) 일치율 내림차순 2) 임박일 오름차순(null last) 3) 소요시간 오름차순 4) 최신순(id desc)
         out.sort((a, b) -> {
             int c1 = Integer.compare(b.getMatchPercent(), a.getMatchPercent());
             if (c1 != 0) return c1;
-            // 임박일: null은 뒤로
             Integer da = a.getSoonestExpiryDays();
             Integer db = b.getSoonestExpiryDays();
             if (da == null && db != null) return 1;

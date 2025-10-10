@@ -42,48 +42,55 @@ function normalizeLink(link) {
     return /^https?:\/\//i.test(link) ? link : `http://${link}`;
 }
 
+function authHeaders() {
+    const token = localStorage.getItem("token");
+    return token ? { Authorization: `Bearer ${token}` } : {};
+}
+
 export default function RecipeDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
+
     const [recipe, setRecipe] = useState(null);
     const [err, setErr] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    // ⭐ 평균 별점 상태
+    // 별점
     const [avgRating, setAvgRating] = useState(null);
+
+    // 즐겨찾기
+    const [isFav, setIsFav] = useState(false);
+    const [favCount, setFavCount] = useState(0);
 
     const { username: currentUsername, userId: currentUserIdFromToken } = getCurrentUserFromToken();
 
-    // 평균 계산 유틸
     function calcAvgFrom(list) {
         if (!Array.isArray(list) || list.length === 0) return null;
-        const valid = list.map((c) => Number(c?.rating || 0)).filter((n) => Number.isFinite(n) && n > 0);
+        const valid = list
+            .map((c) => Number(c?.rating || 0))
+            .filter((n) => Number.isFinite(n) && n > 0);
         if (valid.length === 0) return null;
         const sum = valid.reduce((a, b) => a + b, 0);
         return (sum / valid.length).toFixed(1);
     }
 
+    // 최초 진입: 본문 + 즐겨찾기 상태/카운트 + 조회수
     useEffect(() => {
         let alive = true;
-        const token = localStorage.getItem("token");
-
         setLoading(true);
+
+        const headers = authHeaders();
+
+        // 상세
         axios
-            .get(`/recipe/api/${id}`, {
-                headers: token ? { Authorization: `Bearer ${token}` } : {},
-            })
+            .get(`/recipe/api/${id}`, { headers })
             .then((res) => {
                 if (!alive) return;
                 setRecipe(res.data);
-
-                // 1) 백엔드가 비정규화된 평균을 주는 경우 우선 사용
                 if (res.data?.averageRating != null) {
                     const v = Number(res.data.averageRating);
                     setAvgRating(Number.isFinite(v) ? v.toFixed(1) : null);
-                    return;
-                }
-                // 2) 응답에 commentList가 포함되어 있으면 계산
-                if (Array.isArray(res.data?.commentList)) {
+                } else if (Array.isArray(res.data?.commentList)) {
                     setAvgRating(calcAvgFrom(res.data.commentList));
                 } else {
                     setAvgRating(null);
@@ -98,27 +105,38 @@ export default function RecipeDetail() {
                 setLoading(false);
             });
 
+        // 즐겨찾기 상태 + 카운트 (로그인 시)
+        axios
+            .get(`/recipe/api/${id}/favorite`, { headers }) // ← 컨트롤러와 정합
+            .then((res) => {
+                if (!alive || !res?.data) return;
+                setIsFav(!!res.data.favorited);
+                setFavCount(Number(res.data.favoriteCount || 0));
+            })
+            .catch(() => {
+                // 비로그인/권한 없음 등은 무시
+                setIsFav(false);
+            });
+
+        // 조회수 +1
+        axios.post(`/recipe/api/${id}/view`).catch(() => {});
+
         return () => {
             alive = false;
         };
     }, [id]);
 
-    // 응답에 댓글이 포함되지 않는 백엔드라면, 별도 호출로 평균 계산 (필요 시)
+    // 평균 별점 보강(댓글 별도 fetch 백엔드일 때)
     useEffect(() => {
         let alive = true;
-        if (avgRating != null) return; // 이미 계산된 경우 스킵
-        if (!id) return;
-
+        if (avgRating != null || !id) return;
         axios
             .get(`/recipe/api/${id}/comments`)
             .then((res) => {
                 if (!alive) return;
                 setAvgRating(calcAvgFrom(res.data || []));
             })
-            .catch(() => {
-                /* 평균은 부가정보라 에러 무시 */
-            });
-
+            .catch(() => {});
         return () => {
             alive = false;
         };
@@ -140,8 +158,6 @@ export default function RecipeDetail() {
         });
     }, [recipe]);
 
-    const ingredientsFallbackText = typeof recipe?.ingredients === "string" ? recipe.ingredients : "";
-
     const steps = useMemo(() => {
         const arr = Array.isArray(recipe?.stepImages) ? recipe.stepImages : [];
         return [...arr].sort((a, b) => {
@@ -154,7 +170,8 @@ export default function RecipeDetail() {
     const canEditOrDelete = useMemo(() => {
         if (!recipe) return false;
         if (currentUsername && recipe.authorUsername && currentUsername === recipe.authorUsername) return true;
-        if (currentUserIdFromToken && recipe.authorId && String(currentUserIdFromToken) === String(recipe.authorId)) return true;
+        if (currentUserIdFromToken && recipe.authorId && String(currentUserIdFromToken) === String(recipe.authorId))
+            return true;
         return false;
     }, [recipe, currentUsername, currentUserIdFromToken]);
 
@@ -180,11 +197,38 @@ export default function RecipeDetail() {
         }
     }
 
+    // 즐겨찾기 토글
+    async function handleToggleFavorite(e) {
+        e?.preventDefault?.();
+        const token = localStorage.getItem("token");
+        if (!token) {
+            const to = window.location.pathname || `/recipes/${id}`;
+            navigate(`/user/login?from=${encodeURIComponent(to)}`, { replace: true });
+            return;
+        }
+        try {
+            const headers = { Authorization: `Bearer ${token}` };
+            const url = `/recipe/api/${id}/favorite`;
+            const res = isFav
+                ? await axios.delete(url, { headers })
+                : await axios.post(url, null, { headers });
+
+            // 서버 응답으로 정확히 반영
+            if (res?.data) {
+                setIsFav(!!res.data.favorited);
+                setFavCount(Number(res.data.favoriteCount || 0));
+            }
+        } catch (err) {
+            console.error(err);
+            alert("즐겨찾기 처리 중 오류가 발생했습니다.");
+        }
+    }
+
     if (loading) return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
     if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
     if (!recipe) return null;
 
-    // 장보기 페이지로 넘길 페이로드
+    // 장보기 페이로드
     const ingredientPayload = ingredientRows
         .map((it) => ({ name: it?.name ?? "", link: it?.link ?? "" }))
         .filter((x) => x.name && x.name.trim().length > 0);
@@ -198,7 +242,6 @@ export default function RecipeDetail() {
 
                 {canEditOrDelete && (
                     <div style={{ display: "flex", gap: 8 }}>
-                        {/* ✅ 초록색 수정 버튼 */}
                         <button
                             type="button"
                             onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
@@ -233,26 +276,56 @@ export default function RecipeDetail() {
                 )}
             </div>
 
-            <Link
-                to="/ingredient"
-                state={{
-                    cost: recipe.estimatedPrice, // 예상비용
-                    ingredients: ingredientPayload, // ✅ 배열로 전달
-                    thumbnail: thumbSrc, // ✅ 썸네일도 전달(선택)
-                }}
+            {/* 우하단: 담기 + 즐겨찾기 */}
+            <div
                 style={{
                     position: "fixed",
-                    bottom: "20px",
-                    right: "20px",
-                    background: "#007bff",
-                    color: "#fff",
-                    padding: "10px 20px",
-                    borderRadius: "50px",
-                    textDecoration: "none",
+                    bottom: 20,
+                    right: 20,
+                    display: "flex",
+                    gap: 12,
+                    alignItems: "center",
+                    zIndex: 1000,
                 }}
             >
-                담기
-            </Link>
+                <Link
+                    to="/ingredient"
+                    state={{
+                        cost: recipe.estimatedPrice,
+                        ingredients: ingredientPayload,
+                        thumbnail: thumbSrc,
+                    }}
+                    style={{
+                        background: "#007bff",
+                        color: "#fff",
+                        padding: "10px 20px",
+                        borderRadius: 50,
+                        textDecoration: "none",
+                    }}
+                >
+                    담기
+                </Link>
+
+                <button
+                    onClick={handleToggleFavorite}
+                    aria-label={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    title={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
+                    style={{
+                        display: "inline-flex",
+                        alignItems: "center",
+                        gap: 6,
+                        padding: "10px 16px",
+                        borderRadius: 50,
+                        border: "1px solid #ddd",
+                        background: isFav ? "#ffe8ec" : "#ffffff",
+                        color: isFav ? "#d81b60" : "#222",
+                        cursor: "pointer",
+                    }}
+                >
+                    <span style={{ fontSize: 18 }}>{isFav ? "♥" : "♡"}</span>
+                    <span style={{ fontWeight: 700 }}>{favCount ?? 0}</span>
+                </button>
+            </div>
 
             <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
 
@@ -291,7 +364,7 @@ export default function RecipeDetail() {
                 </>
             )}
 
-            {ingredientRows.length > 0 ? (
+            {ingredientRows.length > 0 && (
                 <>
                     <h3>재료</h3>
                     <ul style={{ lineHeight: 1.9 }}>
@@ -332,14 +405,6 @@ export default function RecipeDetail() {
                         })}
                     </ul>
                 </>
-            ) : (
-                typeof recipe?.ingredients === "string" &&
-                recipe.ingredients && (
-                    <>
-                        <h3>재료</h3>
-                        <p style={{ whiteSpace: "pre-line", lineHeight: 1.7 }}>{recipe.ingredients}</p>
-                    </>
-                )
             )}
 
             {recipe.tools && recipe.tools.trim() && (
@@ -349,7 +414,7 @@ export default function RecipeDetail() {
                 </>
             )}
 
-            {steps.length > 0 && (
+            {Array.isArray(steps) && steps.length > 0 && (
                 <>
                     <h3>조리 단계</h3>
                     <ol style={{ paddingLeft: 20 }}>
@@ -377,7 +442,6 @@ export default function RecipeDetail() {
                 </>
             )}
 
-            {/* ✅ 댓글 섹션 — 평균 갱신 콜백 연결 */}
             <RecipeComments recipeId={recipe.id} onAvgChange={setAvgRating} />
         </div>
     );
