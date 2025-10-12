@@ -1,6 +1,6 @@
-// src/component/pages/MyPage.jsx
+// src/component/pages/ProfilePage.jsx
 import React, { useEffect, useMemo, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
 
 axios.defaults.baseURL = "http://localhost:8080";
@@ -50,8 +50,8 @@ function authHeaders() {
 const styles = {
     pageWrap: {
         padding: 16,
-        maxWidth: 1200,       // ✅ 화면 중앙 배치용
-        margin: "0 auto",     // ✅ 중앙 정렬
+        maxWidth: 1200,
+        margin: "0 auto",
     },
     grid: {
         display: "grid",
@@ -80,10 +80,6 @@ const styles = {
         justifyContent: "center",
         height: 36,
         padding: "0 14px",
-        maxWidth: 200,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
         borderRadius: 999,
         border: "1px solid #16a34a",
         background: "#22c55e",
@@ -98,10 +94,6 @@ const styles = {
         justifyContent: "center",
         height: 36,
         padding: "0 14px",
-        maxWidth: 240,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
         borderRadius: 999,
         border: "1px solid #16a34a",
         background: "#fff",
@@ -112,113 +104,139 @@ const styles = {
     },
 };
 
-const MyPage = () => {
+const ProfilePage = () => {
+    const { username } = useParams();
     const nav = useNavigate();
-    const [tab, setTab] = useState("my");
-    const [myRecipes, setMyRecipes] = useState([]);
-    const [favRecipes, setFavRecipes] = useState([]);
-    const [loading, setLoading] = useState(false);
 
+    const [tab, setTab] = useState("my");
     const [profile, setProfile] = useState({
         username: "",
         nickname: "",
         email: "",
         followingCount: 0,
         followerCount: 0,
+        followedByMe: false,
     });
-    const [meLoading, setMeLoading] = useState(true);
+    const [loading, setLoading] = useState(false);
+    const [myRecipes, setMyRecipes] = useState([]);
+    const [favRecipes, setFavRecipes] = useState([]);
+
+    const myName = usernameFromToken();
+    const isMyProfile = myName && myName === username;
 
     /* ---------- 프로필 정보 로드 ---------- */
-    useEffect(() => {
-        (async () => {
-            setMeLoading(true);
-            try {
-                const { data } = await axios.get("/user/profile/me", { headers: authHeaders() });
-                setProfile({
-                    username: data?.username ?? data?.userName ?? usernameFromToken(),
-                    nickname: data?.nickname ?? "",
-                    email: data?.email ?? "",
-                    followingCount: data?.followingCount ?? 0,
-                    followerCount: data?.followerCount ?? 0,
-                });
-            } catch {
-                setProfile({
-                    username: usernameFromToken(),
-                    nickname: "",
-                    email: "",
-                    followingCount: 0,
-                    followerCount: 0,
-                });
-            } finally {
-                setMeLoading(false);
-            }
-        })();
-    }, []);
+    const fetchProfile = useCallback(async () => {
+        try {
+            const { data } = await axios.get(`/user/profile/${encodeURIComponent(username)}`, {
+                headers: authHeaders(),
+            });
+            setProfile({
+                username: data?.username ?? username,
+                nickname: data?.nickname ?? "",
+                email: data?.email ?? "",
+                followingCount: data?.followingCount ?? 0,
+                followerCount: data?.followerCount ?? 0,
+                followedByMe: !!data?.followedByMe,
+            });
+        } catch {
+            setProfile({
+                username,
+                nickname: "",
+                email: "",
+                followingCount: 0,
+                followerCount: 0,
+                followedByMe: false,
+            });
+        }
+    }, [username]);
 
-    /* ---------- 레시피 데이터 로드 ---------- */
-    const fetchMyRecipes = useCallback(async () => {
-        const { data } = await axios.get("/user/profile/me/recipes", { headers: authHeaders() });
+    useEffect(() => {
+        fetchProfile();
+    }, [fetchProfile]);
+
+    /* ---------- follow/unfollow ---------- */
+    const handleFollowToggle = async () => {
+        if (!myName) {
+            nav(`/user/login?from=${encodeURIComponent(window.location.pathname)}`, { replace: true });
+            return;
+        }
+        try {
+            if (profile.followedByMe) {
+                await axios.delete(`/user/profile/${encodeURIComponent(username)}/follow`, {
+                    headers: authHeaders(),
+                });
+                setProfile((p) => ({
+                    ...p,
+                    followedByMe: false,
+                    followerCount: Math.max(0, (p.followerCount ?? 1) - 1),
+                }));
+            } else {
+                await axios.post(`/user/profile/${encodeURIComponent(username)}/follow`, null, {
+                    headers: authHeaders(),
+                });
+                setProfile((p) => ({
+                    ...p,
+                    followedByMe: true,
+                    followerCount: (p.followerCount ?? 0) + 1,
+                }));
+            }
+        } catch (e) {
+            console.error(e);
+            alert("팔로우 작업 중 오류가 발생했습니다.");
+        }
+    };
+
+    /* ---------- 레시피 ---------- */
+    const fetchUserRecipes = useCallback(async () => {
+        const { data } = await axios.get(`/user/profile/${encodeURIComponent(username)}/recipes`);
         return Array.isArray(data) ? data : [];
-    }, []);
-    const fetchFavRecipes = useCallback(async () => {
-        const { data } = await axios.get("/user/profile/me/favorites", { headers: authHeaders() });
+    }, [username]);
+    const fetchUserFavorites = useCallback(async () => {
+        const { data } = await axios.get(`/user/profile/${encodeURIComponent(username)}/favorites`);
         return Array.isArray(data) ? data : [];
-    }, []);
+    }, [username]);
 
     useEffect(() => {
         (async () => {
             setLoading(true);
             try {
-                setMyRecipes(await fetchMyRecipes());
-            } catch (e) {
-                console.error(e);
-                alert("내 레시피를 불러오지 못했습니다.");
+                setMyRecipes(await fetchUserRecipes());
             } finally {
                 setLoading(false);
             }
         })();
-    }, [fetchMyRecipes]);
+    }, [fetchUserRecipes]);
 
     useEffect(() => {
+        if (tab !== "fav" || favRecipes.length > 0) return;
         (async () => {
-            if (tab !== "fav" || favRecipes.length > 0) return;
             setLoading(true);
             try {
-                setFavRecipes(await fetchFavRecipes());
-            } catch (e) {
-                console.error(e);
-                alert("즐겨찾기한 레시피를 불러오지 못했습니다.");
+                setFavRecipes(await fetchUserFavorites());
             } finally {
                 setLoading(false);
             }
         })();
-    }, [tab, favRecipes.length, fetchFavRecipes]);
+    }, [tab, favRecipes.length, fetchUserFavorites]);
 
     const activeList = tab === "my" ? myRecipes : favRecipes;
-    const hasItems = Array.isArray(activeList) && activeList.length > 0;
-    const totalCount = activeList?.length ?? 0;
-
-    const getThumbSrc = (r) =>
-        r?.thumbnailUrl || (r?.id ? `http://localhost:8080/recipe/thumbnail/${r.id}` : placeHolder);
 
     const initials = useMemo(() => {
         const base = (profile.nickname || profile.username || "").trim();
         return base ? base.slice(0, 2).toUpperCase() : "U";
     }, [profile]);
 
-    /* ---------- 팔로워/팔로잉 확인 페이지 이동 ---------- */
-    const goFollowers = () => {
-        const uname = profile.username || usernameFromToken();
-        if (!uname) return;
-        nav(`/profile/${encodeURIComponent(uname)}/followers`);
-    };
+    const getThumbSrc = (r) =>
+        r?.thumbnailUrl || (r?.id ? `http://localhost:8080/recipe/thumbnail/${r.id}` : placeHolder);
 
-    /* ---------- RENDER ---------- */
+    const goFollowList = () => nav(`/profile/${encodeURIComponent(username)}/followers`);
+
+    /* ======================= 렌더 ======================= */
     return (
         <div style={styles.pageWrap}>
-            <h1>마이페이지</h1>
+            <h1>{profile.username}의 프로필</h1>
 
-            {/* 프로필 카드 (가로 확장 + 중앙배치 + 버튼 배치 개선) */}
+            {/* 프로필 카드 */}
             <div
                 style={{
                     position: "relative",
@@ -230,13 +248,12 @@ const MyPage = () => {
                     borderRadius: 12,
                     background: "#fff",
                     boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-                    margin: "0 auto 16px",   // ✅ 중앙 배치
-                    maxWidth: 1100,          // ✅ 더 넓게
+                    margin: "0 auto 16px",
+                    maxWidth: 1100,
                     width: "100%",
                     minHeight: 180,
                 }}
             >
-                {/* 상단 정보 */}
                 <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
                     <div
                         aria-hidden
@@ -258,7 +275,7 @@ const MyPage = () => {
 
                     <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ fontSize: 20, fontWeight: 800 }}>
-                            {meLoading ? "정보 불러오는 중…" : profile.nickname || profile.username}
+                            {profile.nickname || profile.username}
                         </div>
                         <div style={{ marginTop: 6, fontSize: 15, color: "#333" }}>
                             <div><b>아이디</b>: {profile.username || "-"}</div>
@@ -271,29 +288,34 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 좌하단: 팔로워/팔로잉 확인 (요청대로 별도 유지) */}
-                <div style={{ position: "absolute", left: 20, bottom: 16, display: "flex", gap: 8 }}>
+                {/* 하단 버튼 - 양옆 배치 */}
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginTop: 12,
+                    }}
+                >
+                    {!isMyProfile && (
+                        <button
+                            onClick={handleFollowToggle}
+                            style={styles.greenBtn}
+                            disabled={!myName}
+                        >
+                            {profile.followedByMe ? "언팔로우" : "팔로우"}
+                        </button>
+                    )}
                     <button
-                        onClick={goFollowers}
+                        onClick={goFollowList}
                         style={styles.greenBtnOutline}
-                        title="팔로워/팔로잉 확인"
                     >
                         팔로워/팔로잉 확인
                     </button>
                 </div>
-
-                {/* 우하단: 냉장고 관리 / 레시피 목록 (요청대로 오른쪽 하단 배치) */}
-                <div style={{ position: "absolute", right: 20, bottom: 16, display: "flex", gap: 8 }}>
-                    <button onClick={() => nav("/fridge")} style={styles.greenBtn}>
-                        🥕 냉장고 관리
-                    </button>
-                    <button onClick={() => nav("/recipes")} style={styles.greenBtn}>
-                        📖 레시피 목록
-                    </button>
-                </div>
             </div>
 
-            {/* 탭 (크기 업) */}
+            {/* 탭 */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                     style={{
@@ -308,17 +330,16 @@ const MyPage = () => {
                         type="button"
                         onClick={() => setTab("my")}
                         style={{
-                            padding: "10px 18px",    // ✅ 더 큼
+                            padding: "10px 18px",
                             fontWeight: 800,
-                            fontSize: 16,            // ✅ 더 큼
+                            fontSize: 16,
                             border: "none",
                             cursor: "pointer",
                             background: tab === "my" ? "#111827" : "transparent",
                             color: tab === "my" ? "#fff" : "#111827",
                         }}
-                        aria-pressed={tab === "my"}
                     >
-                        내가 작성한 레시피
+                        작성한 레시피
                     </button>
                     <button
                         type="button"
@@ -333,27 +354,21 @@ const MyPage = () => {
                             background: tab === "fav" ? "#111827" : "transparent",
                             color: tab === "fav" ? "#fff" : "#111827",
                         }}
-                        aria-pressed={tab === "fav"}
                     >
                         즐겨찾기한 레시피
                     </button>
                 </div>
-                <span style={{ color: "#666" }}>({totalCount.toLocaleString()}개)</span>
             </div>
 
             {/* 레시피 리스트 */}
             {loading ? (
                 <p style={{ marginTop: 12 }}>불러오는 중...</p>
-            ) : !hasItems ? (
-                <p style={{ marginTop: 12 }}>
-                    {tab === "my" ? "작성한 레시피가 없습니다." : "즐겨찾기한 레시피가 없습니다."}
-                </p>
+            ) : !activeList?.length ? (
+                <p style={{ marginTop: 12 }}>표시할 레시피가 없습니다.</p>
             ) : (
                 <div style={styles.grid}>
                     {activeList.map((r) => {
                         const created = r?.createdAt ? new Date(r.createdAt).toLocaleDateString() : "";
-                        const cookMin = r?.cookingTimeMinutes ?? r?.cookMinutes ?? null;
-                        const estPrice = r?.estimatedPrice ?? null;
                         const subject = r?.title ?? r?.subject ?? "(제목 없음)";
                         const to = `/recipes/${r.id}`;
                         return (
@@ -379,11 +394,11 @@ const MyPage = () => {
                                 />
                                 <div style={styles.body}>
                                     <div style={{ fontWeight: 700, lineHeight: 1.3 }}>{subject}</div>
-                                    <div style={styles.meta}>
-                                        {cookMin != null && <span>⏱ {cookMin}분</span>}
-                                        {estPrice != null && <span>💰 {Number(estPrice).toLocaleString()}원</span>}
-                                        {created && <span>🗓 {created}</span>}
-                                    </div>
+                                    {r?.createdAt && (
+                                        <div style={{ fontSize: 13, color: "#555" }}>
+                                            🗓 작성일: {new Date(r.createdAt).toLocaleDateString()}
+                                        </div>
+                                    )}
                                 </div>
                             </Link>
                         );
@@ -394,4 +409,4 @@ const MyPage = () => {
     );
 };
 
-export default MyPage;
+export default ProfilePage;

@@ -7,6 +7,9 @@ import RecipeComments from "../blocks/RecipeComments";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
+const MY_PAGE_URL = "http://localhost:8080/mypage";
+
+/* ---------- helpers ---------- */
 function b64urlDecode(str) {
     try {
         const pad = (s) => s + "===".slice((s.length + 3) % 4);
@@ -20,7 +23,6 @@ function b64urlDecode(str) {
         return "";
     }
 }
-
 function getCurrentUserFromToken() {
     const token = localStorage.getItem("token");
     if (!token) return { username: null, userId: null };
@@ -36,12 +38,10 @@ function getCurrentUserFromToken() {
         return { username: null, userId: null };
     }
 }
-
 function normalizeLink(link) {
     if (!link) return "";
     return /^https?:\/\//i.test(link) ? link : `http://${link}`;
 }
-
 function authHeaders() {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -62,7 +62,8 @@ export default function RecipeDetail() {
     const [isFav, setIsFav] = useState(false);
     const [favCount, setFavCount] = useState(0);
 
-    const { username: currentUsername, userId: currentUserIdFromToken } = getCurrentUserFromToken();
+    const { username: currentUsername, userId: currentUserIdFromToken } =
+        getCurrentUserFromToken();
 
     function calcAvgFrom(list) {
         if (!Array.isArray(list) || list.length === 0) return null;
@@ -107,7 +108,7 @@ export default function RecipeDetail() {
 
         // 즐겨찾기 상태 + 카운트 (로그인 시)
         axios
-            .get(`/recipe/api/${id}/favorite`, { headers }) // ← 컨트롤러와 정합
+            .get(`/recipe/api/${id}/favorite`, { headers })
             .then((res) => {
                 if (!alive || !res?.data) return;
                 setIsFav(!!res.data.favorited);
@@ -144,13 +145,21 @@ export default function RecipeDetail() {
 
     const cookMinutes = recipe?.cookingTimeMinutes ?? null;
     const estPrice = recipe?.estimatedPrice ?? null;
-    const authorName = recipe?.authorDisplayName ?? recipe?.authorUsername ?? null;
+
+    const authorName =
+        recipe?.authorDisplayName ?? recipe?.authorUsername ?? null;
+    const authorUsername = recipe?.authorUsername ?? null;
 
     const thumbSrc =
-        recipe?.thumbnailUrl || (recipe?.id ? `http://localhost:8080/recipe/thumbnail/${recipe.id}` : undefined);
+        recipe?.thumbnailUrl ||
+        (recipe?.id
+            ? `http://localhost:8080/recipe/thumbnail/${recipe.id}`
+            : undefined);
 
     const ingredientRows = useMemo(() => {
-        const arr = Array.isArray(recipe?.ingredientRows) ? recipe.ingredientRows : [];
+        const arr = Array.isArray(recipe?.ingredientRows)
+            ? recipe.ingredientRows
+            : [];
         return [...arr].sort((a, b) => {
             const ap = a?.position ?? a?.order ?? 0;
             const bp = b?.position ?? b?.order ?? 0;
@@ -169,8 +178,17 @@ export default function RecipeDetail() {
 
     const canEditOrDelete = useMemo(() => {
         if (!recipe) return false;
-        if (currentUsername && recipe.authorUsername && currentUsername === recipe.authorUsername) return true;
-        if (currentUserIdFromToken && recipe.authorId && String(currentUserIdFromToken) === String(recipe.authorId))
+        if (
+            currentUsername &&
+            recipe.authorUsername &&
+            currentUsername === recipe.authorUsername
+        )
+            return true;
+        if (
+            currentUserIdFromToken &&
+            recipe.authorId &&
+            String(currentUserIdFromToken) === String(recipe.authorId)
+        )
             return true;
         return false;
     }, [recipe, currentUsername, currentUserIdFromToken]);
@@ -213,7 +231,7 @@ export default function RecipeDetail() {
                 ? await axios.delete(url, { headers })
                 : await axios.post(url, null, { headers });
 
-            // 서버 응답으로 정확히 반영
+            // 서버 응답 반영
             if (res?.data) {
                 setIsFav(!!res.data.favorited);
                 setFavCount(Number(res.data.favoriteCount || 0));
@@ -224,9 +242,31 @@ export default function RecipeDetail() {
         }
     }
 
-    if (loading) return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
-    if (err) return <div style={{ maxWidth: 920, margin: "32px auto" }}>에러: {String(err)}</div>;
+    if (loading)
+        return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
+    if (err)
+        return (
+            <div style={{ maxWidth: 920, margin: "32px auto" }}>
+                에러: {String(err)}
+            </div>
+        );
     if (!recipe) return null;
+
+    // 작성자 배지/링크: 본인이면 외부 마이페이지 URL, 타인이면 SPA 프로필
+    const authorInitials = (authorName || authorUsername || "U")
+        .trim()
+        .slice(0, 2)
+        .toUpperCase();
+    const isOwnAuthor =
+        !!(currentUsername && authorUsername && currentUsername === authorUsername) ||
+        !!(currentUserIdFromToken &&
+            recipe.authorId &&
+            String(currentUserIdFromToken) === String(recipe.authorId));
+    const authorTo = isOwnAuthor
+        ? MY_PAGE_URL
+        : authorUsername
+            ? `/profile/${encodeURIComponent(authorUsername)}`
+            : undefined;
 
     // 장보기 페이로드
     const ingredientPayload = ingredientRows
@@ -235,7 +275,14 @@ export default function RecipeDetail() {
 
     return (
         <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12 }}>
+            <div
+                style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "center",
+                    gap: 12,
+                }}
+            >
                 <Link to="/recipes" style={{ textDecoration: "none" }}>
                     ← 목록으로
                 </Link>
@@ -327,8 +374,97 @@ export default function RecipeDetail() {
                 </button>
             </div>
 
-            <h1 style={{ margin: "8px 0 12px" }}>{recipe.subject ?? "(제목 없음)"}</h1>
+            {/* 제목 + 작성자 배지 */}
+            <div
+                style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: 12,
+                    marginTop: 8,
+                    marginBottom: 8,
+                    flexWrap: "wrap",
+                }}
+            >
+                <h1 style={{ margin: 0 }}>{recipe.subject ?? "(제목 없음)"}</h1>
 
+                {(authorName || authorUsername) &&
+                    (isOwnAuthor ? (
+                        <a
+                            href={authorTo}
+                            title="내 마이페이지로 이동"
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "6px 10px",
+                                borderRadius: 999,
+                                border: "1px solid #e5e7eb",
+                                background: "#fff",
+                                textDecoration: "none",
+                                color: "#111",
+                            }}
+                        >
+              <span
+                  aria-hidden
+                  style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "#eef2ff",
+                      color: "#3b82f6",
+                      display: "grid",
+                      placeItems: "center",
+                      fontWeight: 800,
+                      fontSize: 12,
+                  }}
+              >
+                {authorInitials}
+              </span>
+                            <span style={{ fontWeight: 700 }}>
+                {authorName || authorUsername}
+              </span>
+                            <span style={{ fontSize: 12, color: "#6b7280" }}>(내 프로필)</span>
+                        </a>
+                    ) : (
+                        <Link
+                            to={authorTo}
+                            title="작성자 프로필로 이동"
+                            style={{
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: 8,
+                                padding: "6px 10px",
+                                borderRadius: 999,
+                                border: "1px solid #e5e7eb",
+                                background: "#fff",
+                                textDecoration: "none",
+                                color: "#111",
+                            }}
+                        >
+              <span
+                  aria-hidden
+                  style={{
+                      width: 28,
+                      height: 28,
+                      borderRadius: "50%",
+                      background: "#eef2ff",
+                      color: "#3b82f6",
+                      display: "grid",
+                      placeItems: "center",
+                      fontWeight: 800,
+                      fontSize: 12,
+                  }}
+              >
+                {authorInitials}
+              </span>
+                            <span style={{ fontWeight: 700 }}>
+                {authorName || authorUsername}
+              </span>
+                        </Link>
+                    ))}
+            </div>
+
+            {/* 메타 줄 */}
             <div style={{ color: "#666", marginBottom: 16 }}>
                 {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
                 {cookMinutes != null && estPrice != null ? " · " : null}
@@ -339,19 +475,19 @@ export default function RecipeDetail() {
                         ⭐ 평균평점 {avgRating}/5
                     </>
                 )}
-                {authorName ? (
-                    <>
-                        {(cookMinutes != null || estPrice != null || avgRating != null) ? " · " : null}
-                        작성자 {authorName}
-                    </>
-                ) : null}
             </div>
 
             {thumbSrc && (
                 <img
                     src={thumbSrc}
                     alt="thumbnail"
-                    style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block", marginBottom: 16 }}
+                    style={{
+                        width: "100%",
+                        maxWidth: 860,
+                        borderRadius: 12,
+                        display: "block",
+                        marginBottom: 16,
+                    }}
                     loading="lazy"
                     onError={onImgError}
                 />
@@ -374,7 +510,12 @@ export default function RecipeDetail() {
                             return (
                                 <li
                                     key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
-                                    style={{ display: "flex", alignItems: "center", gap: 8, flexWrap: "wrap" }}
+                                    style={{
+                                        display: "flex",
+                                        alignItems: "center",
+                                        gap: 8,
+                                        flexWrap: "wrap",
+                                    }}
                                 >
                                     <span>{it.name}</span>
                                     {hasLink && (
@@ -419,18 +560,27 @@ export default function RecipeDetail() {
                     <h3>조리 단계</h3>
                     <ol style={{ paddingLeft: 20 }}>
                         {steps.map((s, idx) => {
-                            const order = s.stepOrder ?? s.stepIndex ?? idx + 1;
-                            const src = s.imageUrl || (s.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
-                            const caption = s.description ?? s.caption ?? "";
+                            const order = s?.stepOrder ?? s?.stepIndex ?? idx + 1;
+                            const src =
+                                s?.imageUrl ||
+                                (s?.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
+                            const caption = s?.description ?? s?.caption ?? "";
                             return (
-                                <li key={`${order}-${s.id ?? idx}`} style={{ marginBottom: 24 }}>
-                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>Step {order}</div>
+                                <li key={`${order}-${s?.id ?? idx}`} style={{ marginBottom: 24 }}>
+                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                                        Step {order}
+                                    </div>
                                     {caption && <div style={{ marginBottom: 8 }}>{caption}</div>}
                                     {src && (
                                         <img
                                             src={src}
                                             alt={`step-${order}`}
-                                            style={{ width: "100%", maxWidth: 860, borderRadius: 12, display: "block" }}
+                                            style={{
+                                                width: "100%",
+                                                maxWidth: 860,
+                                                borderRadius: 12,
+                                                display: "block",
+                                            }}
                                             loading="lazy"
                                             onError={onImgError}
                                         />

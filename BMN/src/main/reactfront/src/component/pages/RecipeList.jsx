@@ -2,11 +2,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import "./recipeMain.css";
 import { onImgError } from "../lib/placeholder";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
-const thumbUrl = (id) => `http://localhost:8080/recipe/thumbnail/${id}`;
 const PAGE_SIZE = 12;
 
 function hasToken() {
@@ -16,66 +16,147 @@ function hasToken() {
     return !(t === "" || t === "null" || t === "undefined");
 }
 
+/* ---------- format helpers ---------- */
+const formatMinutes = (mins) => {
+    const n = Number(mins);
+    if (!Number.isFinite(n) || n <= 0) return "-";
+    if (n < 60) return `${n}분`;
+    const h = Math.floor(n / 60);
+    const m = n % 60;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
+};
+const formatCurrencyKRW = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n < 0) return "-";
+    try {
+        return new Intl.NumberFormat("ko-KR", {
+            style: "currency",
+            currency: "KRW",
+            maximumFractionDigits: 0,
+        }).format(n);
+    } catch {
+        return `${Math.round(n).toLocaleString("ko-KR")}원`;
+    }
+};
+const round1 = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n)) return null;
+    return Math.round(n * 10) / 10;
+};
+
+const thumbUrl = (r) =>
+    r?.thumbnailUrl || (r?.id ? `/recipe/thumbnail/${r.id}` : "");
+
 export default function RecipesList() {
+    const navigate = useNavigate();
+
     const [items, setItems] = useState([]);
-    const [page, setPage] = useState(0);
     const [hasMore, setHasMore] = useState(true);
     const [loading, setLoading] = useState(false);
     const [err, setErr] = useState(null);
+
+    const pageRef = useRef(0);
+    const loadingRef = useRef(false);
+    const seenIdsRef = useRef(new Set());
     const loaderRef = useRef(null);
-    const navigate = useNavigate();
 
-    const fetchPage = useCallback(
-        async (p) => {
-            if (loading || !hasMore) return;
+    const appendUnique = (arr) => {
+        const seen = seenIdsRef.current;
+        const filtered = [];
+        for (const r of arr) {
+            if (!r || r.id == null) continue;
+            if (seen.has(r.id)) continue;
+            seen.add(r.id);
+            filtered.push(r);
+        }
+        if (filtered.length) setItems((prev) => [...prev, ...filtered]);
+    };
 
-            setLoading(true);
-            const token = localStorage.getItem("token");
+    const fetchTrendingPage = useCallback(async () => {
+        if (loadingRef.current || !hasMore) return;
+        loadingRef.current = true;
+        setLoading(true);
+
+        const p = pageRef.current;
+        const token = localStorage.getItem("token");
+        const headers = token ? { Authorization: `Bearer ${token}` } : {};
+
+        try {
+            const res = await axios.get("/recipe/api/trending", {
+                params: { page: p, size: PAGE_SIZE },
+                headers,
+            });
+
+            let list = [];
+            let total = null;
+
+            if (Array.isArray(res.data)) {
+                list = res.data;
+            } else if (res.data && Array.isArray(res.data.content)) {
+                list = res.data.content;
+                total = typeof res.data.total === "number" ? res.data.total : null;
+            } else {
+                throw new Error("알 수 없는 목록 응답 형식");
+            }
+
+            appendUnique(list);
+
+            if (total != null) {
+                const loaded = (p + 1) * PAGE_SIZE;
+                setHasMore(loaded < total);
+            } else {
+                setHasMore(list.length === PAGE_SIZE);
+            }
+
+            if (list.length > 0) pageRef.current = p + 1;
+        } catch (e) {
             try {
-                const res = await axios.get(`/recipe/data?page=${p}&size=${PAGE_SIZE}`, {
-                    headers: token ? { Authorization: `Bearer ${token}` } : {},
+                const res2 = await axios.get("/recipe/data", {
+                    params: { page: p, size: PAGE_SIZE },
+                    headers,
                 });
 
-                if (res.data?.content && Array.isArray(res.data.content)) {
-                    // ✅ Page<Recipe> 응답
-                    setItems((prev) => [...prev, ...res.data.content]);
-                    setPage(res.data.number ?? p);
-                    setHasMore(!res.data.last); // 마지막 페이지 여부 확인
-                } else if (Array.isArray(res.data)) {
-                    // ✅ 배열만 응답하면 한 번에 전부
-                    if (p === 0) setItems(res.data);
-                    setHasMore(false);
+                if (res2.data?.content && Array.isArray(res2.data.content)) {
+                    const pageList = res2.data.content;
+                    appendUnique(pageList);
+                    setHasMore(!res2.data.last);
+                    if (pageList.length > 0) pageRef.current = p + 1;
+                } else if (Array.isArray(res2.data)) {
+                    const list2 = res2.data;
+                    appendUnique(list2);
+                    setHasMore(list2.length === PAGE_SIZE);
+                    if (list2.length > 0) pageRef.current = p + 1;
                 } else {
                     throw new Error("알 수 없는 목록 응답 형식");
                 }
-            } catch (e) {
-                setErr(e.response?.data?.message || e.message);
-            } finally {
-                setLoading(false);
+            } catch (ee) {
+                setErr(ee?.response?.data?.message || ee.message);
+                setHasMore(false);
             }
-        },
-        [loading, hasMore]
-    );
+        } finally {
+            loadingRef.current = false;
+            setLoading(false);
+        }
+    }, [hasMore]);
 
-    // 첫 페이지 로딩
     useEffect(() => {
-        fetchPage(0);
-    }, [fetchPage]);
+        fetchTrendingPage();
+    }, [fetchTrendingPage]);
 
-    // 무한 스크롤
     useEffect(() => {
         if (!loaderRef.current) return;
         const io = new IntersectionObserver(
             (entries) => {
-                if (entries[0].isIntersecting && hasMore && !loading) {
-                    fetchPage(page + 1);
+                const ent = entries[0];
+                if (ent.isIntersecting && !loadingRef.current && hasMore) {
+                    fetchTrendingPage();
                 }
             },
-            { threshold: 0.1 }
+            { rootMargin: "200px 0px", threshold: 0 }
         );
         io.observe(loaderRef.current);
         return () => io.disconnect();
-    }, [fetchPage, hasMore, loading, page]);
+    }, [fetchTrendingPage, hasMore]);
 
     const handleUploadClick = () => {
         const to = "/recipes/create";
@@ -86,76 +167,73 @@ export default function RecipesList() {
         navigate(to);
     };
 
-    if (err)
+    if (err) {
         return (
             <div style={{ maxWidth: 1080, margin: "32px auto" }}>
                 에러: {String(err)}
             </div>
         );
+    }
+
+    const Card = ({ r }) => {
+        const ratingRounded = round1(r?.averageRating);
+        const ratingCount = r?.ratingCount ?? 0;
+        const views = r?.viewCount ?? 0;
+        const favCnt = r?.favoriteCount ?? 0;
+        const author = r?.authorDisplayName || r?.authorUsername || "익명";
+
+        return (
+            <Link
+                to={`/recipes/${r.id}`}
+                className="recipe-card"
+                aria-label={`${r.subject} 상세로 이동`}
+            >
+                <div className="thumb-wrap">
+                    <img
+                        src={thumbUrl(r)}
+                        alt={r.subject}
+                        className="thumb-img"
+                        loading="lazy"
+                        onError={onImgError}
+                    />
+                </div>
+                <div className="card-body">
+                    <p className="recipe-title">{r.subject ?? "(제목 없음)"}</p>
+
+                    <div className="recipe-meta-compact">
+                        <div className="line">
+                            ⏱ {formatMinutes(r?.cookingTimeMinutes)} · 💰{" "}
+                            {formatCurrencyKRW(r?.estimatedPrice)} · ⭐{" "}
+                            {ratingRounded !== null
+                                ? `${ratingRounded.toFixed(1)} (${ratingCount})`
+                                : `- (0)`}
+                        </div>
+                        <div className="line">
+                            👁 {Number(views).toLocaleString("ko-KR")} · ❤{" "}
+                            {Number(favCnt).toLocaleString("ko-KR")} · ✍️ {author}
+                        </div>
+                    </div>
+                </div>
+            </Link>
+        );
+    };
 
     return (
-        <div style={{ maxWidth: 1080, margin: "24px auto", padding: "0 16px" }}>
-            <h1 style={{ margin: "8px 0 16px" }}>레시피 목록</h1>
-            <div style={{ color: "#666", marginBottom: 12 }}>
-                총 {items.length}
-                {hasMore ? "+" : ""}건
+        <div className="recipe-main" style={{ paddingTop: 12 }}>
+            <div className="section-header">
+                <h1 className="title" style={{ fontSize: 22, margin: 0 }}>
+                    레시피 목록
+                </h1>
             </div>
 
-            <div
-                style={{
-                    display: "grid",
-                    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                    gap: 16,
-                }}
-            >
+            {/* ✅ 4열 그리드 */}
+            <div className="recipe-list grid-4">
                 {items.map((r) => (
-                    <Link
-                        key={r.id}
-                        to={`/recipes/${r.id}`}
-                        style={{
-                            textDecoration: "none",
-                            color: "inherit",
-                            border: "1px solid #eee",
-                            borderRadius: 12,
-                            overflow: "hidden",
-                            background: "#fff",
-                        }}
-                    >
-                        <div style={{ aspectRatio: "4 / 3", background: "#f6f6f6" }}>
-                            <img
-                                src={thumbUrl(r.id)}
-                                alt={r.subject}
-                                loading="lazy"
-                                style={{
-                                    width: "100%",
-                                    height: "100%",
-                                    objectFit: "cover",
-                                    display: "block",
-                                }}
-                                onError={onImgError}
-                            />
-                        </div>
-                        <div style={{ padding: 12 }}>
-                            <div
-                                style={{
-                                    fontWeight: 700,
-                                    marginBottom: 6,
-                                    lineHeight: 1.3,
-                                }}
-                            >
-                                {r.subject ?? "(제목 없음)"}
-                            </div>
-                            <div style={{ fontSize: 13, color: "#666" }}>
-                                {r.cookingTimeMinutes
-                                    ? `조리시간 ${r.cookingTimeMinutes}분`
-                                    : "조리시간 정보 없음"}
-                            </div>
-                        </div>
-                    </Link>
+                    <Card key={r.id} r={r} />
                 ))}
             </div>
 
-            {/* 바닥 sentinel */}
+            {/* 바닥 센티널 */}
             <div
                 ref={loaderRef}
                 style={{ height: 60, display: hasMore ? "block" : "none" }}
@@ -165,24 +243,10 @@ export default function RecipesList() {
                 )}
             </div>
 
-            {/* ✅ 우하단 고정 업로드 버튼 */}
+            {/* 업로드 버튼 */}
             <button
+                className="fab-upload"
                 onClick={handleUploadClick}
-                style={{
-                    position: "fixed",
-                    bottom: "20px",
-                    right: "20px",
-                    backgroundColor: "#e7c555",
-                    color: "black",
-                    border: "none",
-                    height: "40px",
-                    width: "100px",
-                    fontSize: "16px",
-                    borderRadius: "25px",
-                    boxShadow: "0px 4px 6px rgba(0, 0, 0, 0.1)",
-                    cursor: "pointer",
-                    zIndex: 1000,
-                }}
                 aria-label="레시피 업로드"
             >
                 업로드

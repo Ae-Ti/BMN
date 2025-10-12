@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.temporal.ChronoUnit;
@@ -301,7 +302,7 @@ public class RecipeService {
 
         if (!favoriteRepository.existsByUserAndRecipe(me, r)) {
             favoriteRepository.save(new Favorite(me, r));
-            // 원자적 카운트 +1
+            // 원자적 카운트 +1 (RecipeRepository에 @Modifying 쿼리 필요)
             recipeRepository.increaseFavoriteCount(r.getId());
         }
         int cnt = favoriteRepository.countByRecipe(r);
@@ -335,7 +336,7 @@ public class RecipeService {
 
     /* ---------------- 정렬/목록 ---------------- */
 
-    /** 정렬된 목록 */
+    /** 정렬된 목록(기존 옵션 유지) */
     @Transactional
     public Page<Recipe> listSorted(int page, int size, String sortKey) {
         if (size <= 0) size = 12;
@@ -355,6 +356,64 @@ public class RecipeService {
 
         Pageable pageable = PageRequest.of(page, size, sort);
         return recipeRepository.findAll(pageable);
+    }
+
+    /** ✅ 트렌딩 정렬(중복 방지 안정 페이징) */
+    @Transactional
+    public Page<Recipe> listTrending(int page, int size) {
+        int p = Math.max(0, page);
+        int s = Math.max(1, size);
+
+        // 1) DB에서 **안정 정렬**로 먼저 페이징 (중복 방지 핵심)
+        Pageable pageable = PageRequest.of(p, s, Sort.by(
+                Sort.Order.desc("favoriteCount"),
+                Sort.Order.desc("viewCount"),
+                Sort.Order.desc("averageRating"),
+                Sort.Order.desc("ratingCount"),
+                Sort.Order.desc("createDate"),
+                Sort.Order.desc("id")
+        ));
+
+        Page<Recipe> basePage = recipeRepository.findAll(pageable);
+        List<Recipe> baseList = basePage.getContent();
+        if (baseList.isEmpty()) {
+            return basePage; // 그대로 반환
+        }
+
+        // 2) 점수 계산용 데이터 (해당 페이지 범위에 대해서만)
+        Map<Long, Long> favCounts = favoriteRepository.countByRecipeIds(
+                baseList.stream().map(Recipe::getId).toList()
+        );
+
+        record Scored(Recipe r, double score) {}
+        LocalDateTime now = LocalDateTime.now();
+
+        // 3) 트렌딩 점수로 **페이지 내부** 미세 정렬 (전체 순서/페이징은 DB가 책임)
+        List<Scored> scored = baseList.stream()
+                .map(r -> {
+                    long views = Optional.ofNullable(r.getViewCount()).orElse(0L);
+                    double fav = favCounts.getOrDefault(r.getId(), 0L);
+                    double rating = Optional.ofNullable(r.getAverageRating()).orElse(0.0);
+                    long ratingCnt = Optional.ofNullable(r.getRatingCount()).orElse(0);
+                    long ageDays = (r.getCreateDate() != null)
+                            ? Math.max(0, Duration.between(r.getCreateDate(), now).toDays())
+                            : 365;
+
+                    double score = Math.log1p(views) * 1.0
+                            + fav * 3.0
+                            + rating * Math.log1p(ratingCnt) * 4.0
+                            + Math.exp(-ageDays / 14.0) * 15.0;
+                    return new Scored(r, score);
+                })
+                .sorted((a, b) -> {
+                    int cmp = Double.compare(b.score, a.score);
+                    return (cmp != 0) ? cmp : Long.compare(b.r.getId(), a.r.getId());
+                })
+                .toList(); // 페이지 내부 정렬만이므로 불변 OK
+
+        // 4) PageImpl로 반환 (총 개수/페이지 정보는 DB 페이지와 동일)
+        List<Recipe> pageContent = scored.stream().map(Scored::r).toList();
+        return new PageImpl<>(pageContent, basePage.getPageable(), basePage.getTotalElements());
     }
 
     /** 내가 작성한 레시피 (페이지네이션) */
