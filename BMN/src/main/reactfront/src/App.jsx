@@ -19,6 +19,7 @@ import MyPage from "./component/pages/MyPage";
 import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
 import FollowListPage from "./component/pages/FollowListPage";
+import MealMain from "./component/pages/MealMain";
 
 const App = () => {
     return (
@@ -105,6 +106,14 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <FridgePage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="/meal"
+                        element={
+                            <ProtectedRoute>
+                                <MealMain />
                             </ProtectedRoute>
                         }
                     />

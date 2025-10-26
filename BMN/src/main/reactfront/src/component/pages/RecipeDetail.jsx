@@ -231,7 +231,6 @@ export default function RecipeDetail() {
                 ? await axios.delete(url, { headers })
                 : await axios.post(url, null, { headers });
 
-            // 서버 응답 반영
             if (res?.data) {
                 setIsFav(!!res.data.favorited);
                 setFavCount(Number(res.data.favoriteCount || 0));
@@ -269,7 +268,7 @@ export default function RecipeDetail() {
             : undefined;
 
     // 장보기 페이로드
-    const ingredientPayload = ingredientRows
+    const ingredientPayload = (Array.isArray(recipe?.ingredientRows) ? recipe.ingredientRows : [])
         .map((it) => ({ name: it?.name ?? "", link: it?.link ?? "" }))
         .filter((x) => x.name && x.name.trim().length > 0);
 
@@ -338,6 +337,8 @@ export default function RecipeDetail() {
                 <Link
                     to="/ingredient"
                     state={{
+                        recipeId: recipe.id,          // ✅ 식단 반영을 위해 반드시 전달
+                        subject: recipe.subject ?? "",// (선택) 제목 표시 용
                         cost: recipe.estimatedPrice,
                         ingredients: ingredientPayload,
                         thumbnail: thumbSrc,

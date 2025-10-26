@@ -50,8 +50,8 @@ function authHeaders() {
 const styles = {
     pageWrap: {
         padding: 16,
-        maxWidth: 1200,       // ✅ 화면 중앙 배치용
-        margin: "0 auto",     // ✅ 중앙 정렬
+        maxWidth: 1200,
+        margin: "0 auto",
     },
     grid: {
         display: "grid",
@@ -218,7 +218,7 @@ const MyPage = () => {
         <div style={styles.pageWrap}>
             <h1>마이페이지</h1>
 
-            {/* 프로필 카드 (가로 확장 + 중앙배치 + 버튼 배치 개선) */}
+            {/* 프로필 카드 */}
             <div
                 style={{
                     position: "relative",
@@ -230,8 +230,8 @@ const MyPage = () => {
                     borderRadius: 12,
                     background: "#fff",
                     boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-                    margin: "0 auto 16px",   // ✅ 중앙 배치
-                    maxWidth: 1100,          // ✅ 더 넓게
+                    margin: "0 auto 16px",
+                    maxWidth: 1100,
                     width: "100%",
                     minHeight: 180,
                 }}
@@ -261,9 +261,15 @@ const MyPage = () => {
                             {meLoading ? "정보 불러오는 중…" : profile.nickname || profile.username}
                         </div>
                         <div style={{ marginTop: 6, fontSize: 15, color: "#333" }}>
-                            <div><b>아이디</b>: {profile.username || "-"}</div>
-                            <div><b>닉네임</b>: {profile.nickname || "-"}</div>
-                            <div><b>이메일</b>: {profile.email || "-"}</div>
+                            <div>
+                                <b>아이디</b>: {profile.username || "-"}
+                            </div>
+                            <div>
+                                <b>닉네임</b>: {profile.nickname || "-"}
+                            </div>
+                            <div>
+                                <b>이메일</b>: {profile.email || "-"}
+                            </div>
                             <div style={{ marginTop: 6 }}>
                                 <b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}
                             </div>
@@ -271,29 +277,26 @@ const MyPage = () => {
                     </div>
                 </div>
 
-                {/* 좌하단: 팔로워/팔로잉 확인 (요청대로 별도 유지) */}
+                {/* 좌하단: 팔로워/팔로잉 확인 */}
                 <div style={{ position: "absolute", left: 20, bottom: 16, display: "flex", gap: 8 }}>
-                    <button
-                        onClick={goFollowers}
-                        style={styles.greenBtnOutline}
-                        title="팔로워/팔로잉 확인"
-                    >
+                    <button onClick={goFollowers} style={styles.greenBtnOutline} title="팔로워/팔로잉 확인">
                         팔로워/팔로잉 확인
                     </button>
                 </div>
 
-                {/* 우하단: 냉장고 관리 / 레시피 목록 (요청대로 오른쪽 하단 배치) */}
+                {/* 우하단: 냉장고 관리 / 식단 페이지 이동 (여기 변경) */}
                 <div style={{ position: "absolute", right: 20, bottom: 16, display: "flex", gap: 8 }}>
                     <button onClick={() => nav("/fridge")} style={styles.greenBtn}>
                         🥕 냉장고 관리
                     </button>
-                    <button onClick={() => nav("/recipes")} style={styles.greenBtn}>
-                        📖 레시피 목록
+                    {/* ▼ 변경: 레시피 목록 버튼 제거, 식단 페이지로 이동 버튼 추가 */}
+                    <button onClick={() => nav("/meal")} style={styles.greenBtn}>
+                        🍱 식단 페이지
                     </button>
                 </div>
             </div>
 
-            {/* 탭 (크기 업) */}
+            {/* 탭 */}
             <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
                 <div
                     style={{
@@ -308,9 +311,9 @@ const MyPage = () => {
                         type="button"
                         onClick={() => setTab("my")}
                         style={{
-                            padding: "10px 18px",    // ✅ 더 큼
+                            padding: "10px 18px",
                             fontWeight: 800,
-                            fontSize: 16,            // ✅ 더 큼
+                            fontSize: 16,
                             border: "none",
                             cursor: "pointer",
                             background: tab === "my" ? "#111827" : "transparent",

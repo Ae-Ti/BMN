@@ -1,0 +1,153 @@
+.meal-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    width: 100%;
+    padding: 20px;
+    box-sizing: border-box;
+}
+
+.calendar-container {
+    flex: 3;
+    max-width: 60%;
+    padding: 15px;
+}
+
+.details-container {
+    flex: 2;
+    max-width: 40%;
+    background: #fff;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+}
+
+/* ✅ react-calendar 기본 스타일 수정 */
+.react-calendar {
+    width: 100%;
+    max-width: 700px;
+    background: white;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 15px;
+    font-size: 18px;
+    color: black;
+}
+
+.react-calendar__month-view__weekdays {
+    text-align: center;
+    font-weight: bold;
+    color: black;
+}
+
+.react-calendar__month-view__weekdays__weekday:nth-child(7) {
+    color: blue;
+}
+
+.react-calendar__month-view__weekdays__weekday:nth-child(1) {
+    color: red;
+}
+
+.react-calendar__tile {
+    color: black !important;
+    font-size: 16px;
+}
+
+.react-calendar__month-view__days__day--neighboringMonth {
+    opacity: 0.5;
+    color: black !important;
+}
+
+.react-calendar__tile--active {
+    background: #f0f0f0;
+    color: black !important;
+    border-radius: 5px;
+}
+
+.react-calendar__navigation {
+    background: white;
+}
+
+.react-calendar__navigation button {
+    color: black;
+    font-weight: bold;
+}
+
+/* ✅ 달력 타일 안의 간단한 식단 이름 표시 */
+.calendar-tile {
+    text-align: center;
+    font-size: 13px;
+    margin-top: 4px;
+    line-height: 1.1;
+}
+
+.calendar-tile .mini-recipe {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.calendar-tile .mini-more {
+    color: #666;
+    font-size: 12px;
+}
+
+/* ✅ 오른쪽 식단 카드 */
+.meal-card-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.meal-card {
+    padding: 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.meal-card .row {
+    display: flex;
+    gap: 12px;
+    align-items: center;
+}
+
+.meal-card .thumb {
+    width: 64px;
+    height: 64px;
+    object-fit: cover;
+    border-radius: 8px;
+    background: #f5f5f5;
+}
+
+.meal-card .info {
+    flex: 1;
+}
+
+.meal-card .title {
+    font-weight: 700;
+    margin-bottom: 4px;
+}
+
+.meal-card .note {
+    color: #666;
+    font-size: 14px;
+}
+
+.btn-link {
+    padding: 6px 10px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    text-decoration: none;
+    color: #111;
+}
+
+.empty {
+    color: #777;
+    padding: 12px 0;
+}
+
+.qty-badge {
+    margin-left: 6px;
+    font-size: 12px;
+    color: #2563eb;
+    font-weight: 800;
+}

@@ -22,7 +22,7 @@ public class WebSpaForward {
             "/household-ledger",          // 가계부
             "/post-create",               // 게시글 작성
             "/favorites", "/favorites/**", // 즐겨찾기 관련
-            "/"
+            "/", "/meal"
     })
     public String forwardToIndex() {
         return "forward:/index.html";

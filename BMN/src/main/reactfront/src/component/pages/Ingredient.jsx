@@ -1,6 +1,6 @@
 // src/component/pages/Ingredient.jsx
 import React, { useState, useMemo, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import './Ingredient.css';
 
 const apiBase = 'http://localhost:8080';
@@ -13,6 +13,16 @@ const localTodayISO = () => {
     const day = String(d.getDate()).padStart(2, '0');
     return `${y}-${m}-${day}`;
 };
+
+// 안전한 플레이스홀더(SVG data URL)
+const PLACEHOLDER =
+    "data:image/svg+xml;utf8," +
+    encodeURIComponent(
+        `<svg xmlns='http://www.w3.org/2000/svg' width='150' height='150'>
+      <rect width='100%' height='100%' rx='12' fill='#f3f4f6'/>
+      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#9ca3af' font-size='14'>No Image</text>
+    </svg>`
+    );
 
 // 재료명 정규화(괄호/단위/공백 정리)
 const normalizeName = (s) => {
@@ -28,12 +38,16 @@ const normalizeName = (s) => {
 
 const Ingredient = () => {
     const location = useLocation();
+    const navigate = useNavigate();
 
     // ✅ 항상 배열 [{ name, link }] 로 온다고 가정
     const ingredients = Array.isArray(location.state?.ingredients) ? location.state.ingredients : [];
-    const thumbnail = location.state?.thumbnail;
+    const rawThumb = location.state?.thumbnail || location.state?.thumbnailUrl || null;
     const initialCostRaw = location.state?.cost ?? 0;
     const initialCost = Number.isFinite(Number(initialCostRaw)) ? Number(initialCostRaw) : 0;
+
+    // ✅ 레시피 연결 정보(필수)
+    const recipeIdFromState = Number(location.state?.recipeId) || null;
 
     // 이름 배열
     const ingredientNames = useMemo(
@@ -57,6 +71,10 @@ const Ingredient = () => {
     const [submitting, setSubmitting] = useState(false);
     const [submitMsg, setSubmitMsg] = useState('');
 
+    // ✅ 식단 슬롯/메모
+    const [mealSlot, setMealSlot] = useState('저녁'); // 아침/점심/저녁/간식
+    const [mealNote, setMealNote] = useState('');     // 기본은 비워두기
+
     // 첫 진입 시 자동 선택
     useEffect(() => {
         if (!selectedIngredient && ingredients.length > 0) {
@@ -76,7 +94,6 @@ const Ingredient = () => {
                 });
                 if (!res.ok) throw new Error(`HTTP ${res.status}`);
                 const data = await res.json();
-                // data: ["양파","계란"] 또는 [{name:"양파"}, ...] 대응
                 const names = Array.isArray(data) ? data.map(x => (typeof x === 'string' ? x : x?.name)).filter(Boolean) : [];
                 const set = new Set(names.map(normalizeName));
                 if (!abort) setFridgeSet(set);
@@ -87,7 +104,7 @@ const Ingredient = () => {
         return () => { abort = true; };
     }, []);
 
-    // 네이버 검색 호출 (기본순 sim은 서버에서 처리)
+    // 네이버 검색 호출
     useEffect(() => {
         let abort = false;
         (async () => {
@@ -206,7 +223,7 @@ const Ingredient = () => {
                         'Authorization': `Bearer ${token}`
                     },
                     body: JSON.stringify({
-                        date: dateISO,              // ✅ 로컬 오늘 날짜
+                        date: dateISO,
                         type: 'EXPENSE',
                         name: plain(title),
                         amount: Number(price) || 0
@@ -232,17 +249,55 @@ const Ingredient = () => {
         }
     };
 
+    // ✅ 식단 반영 + 식단 페이지로 이동
+    const applyMealAndGo = async () => {
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('로그인이 필요합니다.');
+                return;
+            }
+            if (!recipeIdFromState) {
+                alert('레시피 ID가 없어 식단에 등록할 수 없습니다. 레시피 상세에서 다시 시도해주세요.');
+                return;
+            }
+            const res = await fetch(`${apiBase}/api/mealplan/apply-purchases`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${token}`
+                },
+                body: JSON.stringify({
+                    planDate: localTodayISO(),
+                    title: mealSlot,             // 아침/점심/저녁/간식
+                    recipeId: recipeIdFromState, // ✅ 필수!
+                    note: mealNote?.trim() || '' // ✅ 기본 문구 제거 (사용자 입력만)
+                })
+            });
+            if (!res.ok) {
+                const txt = await res.text();
+                throw new Error(`식단 반영 실패 (HTTP ${res.status}): ${txt}`);
+            }
+            navigate('/meal');
+        } catch (e) {
+            alert(e.message || '식단 반영 중 오류가 발생했습니다.');
+        }
+    };
+
     // 냉장고에 있는 재료 여부
     const inFridge = (name) => fridgeSet.has(normalizeName(name));
+
+    // 최종 썸네일 선택
+    const resolvedThumb = rawThumb || PLACEHOLDER;
 
     return (
         <div className="ingredient-page">
             <div className="ingredient-top-box">
                 <div className="thumbnail">
                     <img
-                        src={thumbnail || "https://via.placeholder.com/150"}
+                        src={resolvedThumb}
                         alt="썸네일"
-                        onError={(e) => { e.currentTarget.src = "https://via.placeholder.com/150"; }}
+                        onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
                     />
                 </div>
 
@@ -252,12 +307,40 @@ const Ingredient = () => {
                     <div>{initialCost.toLocaleString()}원</div>
                 </div>
 
-                {/* 최종비용(선택합계) + 가계부 반영 버튼 */}
+                {/* 최종비용(선택합계) + 버튼들 */}
                 <div className="reflect-button" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
                     <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
                         <strong>최종비용(선택합계)</strong>
                         <span style={{ fontSize: 18 }}>{finalTotal.toLocaleString()}원</span>
                     </div>
+
+                    {/* ✅ 식단 슬롯 선택 */}
+                    <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'center', marginTop: 4 }}>
+                        <span style={{ fontSize: 13, color:'#444' }}>식단 시간대:</span>
+                        {['아침','점심','저녁','간식'].map(opt => (
+                            <label key={opt} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13 }}>
+                                <input
+                                    type="radio"
+                                    name="mealSlot"
+                                    value={opt}
+                                    checked={mealSlot === opt}
+                                    onChange={(e)=> setMealSlot(e.target.value)}
+                                />
+                                {opt}
+                            </label>
+                        ))}
+                    </div>
+
+                    {/* ✅ 식단 메모(선택) */}
+                    <input
+                        type="text"
+                        placeholder="메모(선택)"
+                        value={mealNote}
+                        onChange={(e)=> setMealNote(e.target.value)}
+                        style={{ padding: '6px 8px', border: '1px solid #ddd', borderRadius: 6 }}
+                    />
+
+                    {/* 가계부 반영 */}
                     <button
                         style={{ marginTop: 8, padding: '8px 12px' }}
                         onClick={openConfirm}
@@ -265,6 +348,16 @@ const Ingredient = () => {
                         title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
                     >
                         가계부 반영
+                    </button>
+
+                    {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
+                    <button
+                        style={{ marginTop: 6, padding: '8px 12px' }}
+                        onClick={applyMealAndGo}
+                        title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
+                        disabled={!recipeIdFromState}
+                    >
+                        🍱 식단 반영하고 보기
                     </button>
                 </div>
             </div>
