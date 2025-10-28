@@ -42,10 +42,8 @@ public class UserController {
 
             String token = jwtUtil.generateToken(newUser.getUserName());
             return ResponseEntity.ok().body(new SignupResponse(token, "회원가입 성공"));
-        } catch (Exception e) {
-            e.printStackTrace(); // 🛠 예외 로그 출력
-            return ResponseEntity.badRequest().body("회원가입 실패: " + e.getMessage());
         }
+        // 예외는 GlobalExceptionHandler가 처리
     }
 
     @PostMapping("/login")
@@ -58,7 +56,7 @@ public class UserController {
             Optional<SiteUser> userOptional = userRepository.findByUserName(loginRequest.getUserName());
 
             if (userOptional.isEmpty()) {
-                return ResponseEntity.badRequest().body("존재하지 않는 사용자입니다.");
+                throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
             }
 
             SiteUser user = userOptional.get();
@@ -76,17 +74,13 @@ public class UserController {
             System.out.println("비밀번호 매칭 결과: " + isMatch);
 
             if (!isMatch) {
-                return ResponseEntity.badRequest().body("비밀번호가 일치하지 않습니다.");
+                throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
             }
 
             // ✅ JWT 토큰 발급
             String token = jwtUtil.generateToken(user.getUserName());
             return ResponseEntity.ok().body(new LoginResponse(token, "로그인 성공"));
-
-        } catch (Exception e) {
-            e.printStackTrace(); // 🛠 예외 로그 출력
-            return ResponseEntity.status(500).body("서버 오류: " + e.getMessage());
-        }
+            // 예외는 GlobalExceptionHandler가 처리
     }
 
     @Getter

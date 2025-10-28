@@ -77,4 +77,9 @@ src/main/reactfront/build/
 src/main/resources/static/**
 !src/main/resources/static/.gitkeep   # 폴더만 유지하고 싶으면
 
-src/main/resources/application.yml
+# sensitive configuration files (with API keys)
+src/main/resources/application-prod.yml
+src/main/resources/application-local.yml
+*.env
+.env.*
+.envrc
