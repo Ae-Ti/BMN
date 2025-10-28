@@ -140,7 +140,7 @@ const FridgePage = () => {
 
     const tabUI = useMemo(
         () => (
-            <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+            <div className="sx-o"  >
                 {CATEGORIES.map((c) => (
                     <button
                         key={c.key}
@@ -163,29 +163,14 @@ const FridgePage = () => {
     );
 
     return (
-        <div style={{ padding: 16 }}>
+        <div className="sx-p sx-q sx-r sx-s"  >
             <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 8,
-                }}
-            >
-                <h1 style={{ margin: 0 }}>냉장고</h1>
-                <div style={{ display: "flex", gap: 8 }}>
-                    <button
+                >
+                <h1 >냉장고</h1>
+                <div >
+                    <button className="sx-t"
                         onClick={openRecommendations}
-                        style={{
-                            padding: "8px 12px",
-                            borderRadius: 8,
-                            border: "1px solid #ddd",
-                            background: "#0ea5e9",
-                            color: "#fff",
-                            fontWeight: 600,
-                            cursor: "pointer",
-                        }}
-                    >
+                         >
                         추천 레시피
                     </button>
                     <button onClick={() => nav("/mypage")}>← 마이페이지로</button>
@@ -195,34 +180,25 @@ const FridgePage = () => {
             {tabUI}
 
             {/* 입력 폼 */}
-            <div
-                style={{
-                    display: "flex",
-                    gap: 8,
-                    flexWrap: "wrap",
-                    marginBottom: 16,
-                    alignItems: "center",
-                }}
-            >
+            <div className="sx-u"
+                 >
                 <input
                     placeholder="이름"
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />
-                <input
+                <input className="sx-v"
                     type="number"
                     min="1"
                     placeholder="수량"
                     value={form.qty}
                     onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
-                    style={{ width: 80 }}
-                />
-                <input
+                     />
+                <input className="sx-w"
                     placeholder="단위(예: 개, g, 묶음)"
                     value={form.unit}
                     onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                    style={{ width: 140 }}
-                />
+                     />
                 <select
                     value={form.category}
                     onChange={(e) =>
@@ -251,9 +227,9 @@ const FridgePage = () => {
             ) : items.length === 0 ? (
                 <p>해당 카테고리에 항목이 없습니다.</p>
             ) : (
-                <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                <table className="sx-x sx-y"  >
                     <thead>
-                    <tr style={{ textAlign: "left", borderBottom: "1px solid #eee" }}>
+                    <tr >
                         <th>이름</th>
                         <th>카테고리</th>
                         <th>수량</th>
@@ -263,7 +239,7 @@ const FridgePage = () => {
                     </thead>
                     <tbody>
                     {items.map((it) => (
-                        <tr key={it.id} style={{ borderBottom: "1px solid #f0f0f0" }}>
+                        <tr className="sx-z" key={it.id}  >
                             <td>
                                 {it.name}
                                 {it.unit ? ` (${it.unit})` : ""}
@@ -283,7 +259,7 @@ const FridgePage = () => {
                                 >
                                     -
                                 </button>
-                                <span style={{ margin: "0 8px" }}>{it.quantity || 1}</span>
+                                <span className="sx-10"  >{it.quantity || 1}</span>
                                 <button
                                     onClick={() => handleChangeQty(it.id, (it.quantity || 1) + 1)}
                                 >
@@ -292,10 +268,9 @@ const FridgePage = () => {
                             </td>
                             <td>{it.expireDate || "-"}</td>
                             <td>
-                                <button
+                                <button className="sx-11"
                                     onClick={() => handleDelete(it.id)}
-                                    style={{ color: "crimson" }}
-                                >
+                                     >
                                     삭제
                                 </button>
                             </td>
@@ -307,77 +282,36 @@ const FridgePage = () => {
 
             {/* ===== 추천 모달 ===== */}
             {showRec && (
-                <div
+                <div className="sx-12"
                     onClick={closeRecommendations}
-                    style={{
-                        position: "fixed",
-                        inset: 0,
-                        background: "rgba(0,0,0,0.45)",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: 16,
-                        zIndex: 9999,
-                    }}
-                >
-                    <div
+                     >
+                    <div className="sx-13"
                         role="dialog"
                         aria-modal="true"
                         onClick={(e) => e.stopPropagation()}
-                        style={{
-                            position: "relative",
-                            width: "min(100%, 980px)",
-                            maxHeight: "85vh",
-                            overflow: "auto",
-                            background: "#fff",
-                            borderRadius: 14,
-                            boxShadow: "0 10px 30px rgba(0,0,0,0.2)",
-                            padding: 16,
-                        }}
-                    >
+                         >
                         {/* 닫기 X 버튼 */}
-                        <button
+                        <button className="sx-14"
                             onClick={closeRecommendations}
                             aria-label="닫기"
                             title="닫기"
-                            style={{
-                                position: "absolute",
-                                top: 8,
-                                right: 10,
-                                width: 36,
-                                height: 36,
-                                borderRadius: "9999px",
-                                border: "1px solid #eee",
-                                background: "#fff",
-                                fontSize: 18,
-                                fontWeight: 700,
-                                lineHeight: "34px",
-                                textAlign: "center",
-                                cursor: "pointer",
-                            }}
-                        >
+                             >
                             ×
                         </button>
 
-                        <h2 style={{ margin: "4px 40px 12px 4px" }}>맞춤 추천 레시피</h2>
+                        <h2 className="sx-15 sx-16"  >맞춤 추천 레시피</h2>
 
                         {recLoading ? (
-                            <div style={{ padding: 16 }}>추천 불러오는 중…</div>
+                            <div >추천 불러오는 중…</div>
                         ) : recErr ? (
-                            <div style={{ padding: 16, color: "crimson" }}>
+                            <div className="sx-17 sx-16"  >
                                 오류: {String(recErr)}
                             </div>
                         ) : recs.length === 0 ? (
-                            <div style={{ padding: 16 }}>추천 결과가 없습니다.</div>
+                            <div >추천 결과가 없습니다.</div>
                         ) : (
-                            <div
-                                style={{
-                                    display: "grid",
-                                    gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-                                    gap: 16,
-                                    padding: 4,
-                                }}
-                            >
+                            <div className="sx-18"
+                                 >
                                 {recs.map((r) => {
                                     const rid =
                                         r?.id ?? r?.recipeId ?? r?.recipe_id ?? r?.recipeID ?? null;
@@ -411,65 +345,34 @@ const FridgePage = () => {
                                             : null;
 
                                     return (
-                                        <div
+                                        <div className="sx-19"
                                             key={rid ?? r?.subject}
                                             onClick={go}
                                             role="button"
                                             tabIndex={0}
                                             onKeyDown={(e) => (e.key === "Enter" ? go() : null)}
-                                            style={{
-                                                border: "1px solid #eee",
-                                                borderRadius: 12,
-                                                overflow: "hidden",
-                                                cursor: "pointer",
-                                                background: "#fff",
-                                                display: "flex",
-                                                flexDirection: "column",
-                                            }}
-                                        >
-                                            <div style={{ position: "relative", aspectRatio: "4 / 3", background: "#f6f6f6" }}>
-                                                <img
+                                             >
+                                            <div className="sx-1a"  >
+                                                <img className="sx-1b"
                                                     src={thumb}
                                                     alt={r?.subject}
-                                                    style={{
-                                                        width: "100%",
-                                                        height: "100%",
-                                                        objectFit: "cover",
-                                                        display: "block",
-                                                    }}
-                                                    onError={onImgError}
+                                                     onError={onImgError}
                                                 />
                                                 {soonLabel && (
-                                                    <div
-                                                        style={{
-                                                            position: "absolute",
-                                                            top: 8,
-                                                            left: 8,
-                                                            background: "#111",
-                                                            color: "#fff",
-                                                            fontSize: 12,
-                                                            padding: "2px 8px",
-                                                            borderRadius: 999,
-                                                            opacity: 0.9,
-                                                        }}
-                                                    >
+                                                    <div className="sx-1c"
+                                                         >
                                                         {soonLabel}
                                                     </div>
                                                 )}
                                             </div>
-                                            <div style={{ padding: 12 }}>
+                                            <div className="sx-1d sx-1e"  >
                                                 <div
-                                                    style={{
-                                                        fontWeight: 700,
-                                                        marginBottom: 6,
-                                                        lineHeight: 1.3,
-                                                    }}
-                                                >
+                                                    >
                                                     {r?.subject ?? "(제목 없음)"}
                                                 </div>
 
                                                 {/* 매칭/임박 메타 */}
-                                                <div style={{ fontSize: 13, color: "#666" }}>
+                                                <div className="sx-1f"  >
                                                     {matchPct}% 일치
                                                     {typeof r?.matchedIngredients === "number" &&
                                                     typeof r?.totalIngredients === "number"
@@ -482,7 +385,7 @@ const FridgePage = () => {
                                                 </div>
 
                                                 {/* 보조 정보 */}
-                                                <div style={{ fontSize: 12, color: "#999", marginTop: 6 }}>
+                                                <div className="sx-1g"  >
                                                     {r?.cookingTimeMinutes != null
                                                         ? `조리 ${r.cookingTimeMinutes}분`
                                                         : ""}

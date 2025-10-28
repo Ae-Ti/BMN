@@ -242,10 +242,10 @@ export default function RecipeDetail() {
     }
 
     if (loading)
-        return <div style={{ maxWidth: 920, margin: "32px auto" }}>불러오는 중…</div>;
+        return <div className="sx-3l sx-3m"  >불러오는 중…</div>;
     if (err)
         return (
-            <div style={{ maxWidth: 920, margin: "32px auto" }}>
+            <div >
                 에러: {String(err)}
             </div>
         );
@@ -273,49 +273,25 @@ export default function RecipeDetail() {
         .filter((x) => x.name && x.name.trim().length > 0);
 
     return (
-        <div style={{ maxWidth: 920, margin: "32px auto", padding: "0 16px" }}>
+        <div className="sx-3n sx-3o sx-3p"  >
             <div
-                style={{
-                    display: "flex",
-                    justifyContent: "space-between",
-                    alignItems: "center",
-                    gap: 12,
-                }}
-            >
-                <Link to="/recipes" style={{ textDecoration: "none" }}>
+                >
+                <Link to="/recipes" >
                     ← 목록으로
                 </Link>
 
                 {canEditOrDelete && (
-                    <div style={{ display: "flex", gap: 8 }}>
-                        <button
+                    <div className="sx-3q"  >
+                        <button className="sx-3r"
                             type="button"
                             onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
-                            style={{
-                                padding: "8px 12px",
-                                borderRadius: 8,
-                                border: "none",
-                                background: "#4caf50",
-                                color: "#fff",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                            }}
-                        >
+                             >
                             수정
                         </button>
-                        <button
+                        <button className="sx-3s"
                             type="button"
                             onClick={handleDelete}
-                            style={{
-                                padding: "8px 12px",
-                                borderRadius: 8,
-                                border: "none",
-                                background: "#ffe9e9",
-                                color: "#b00020",
-                                fontWeight: 600,
-                                cursor: "pointer",
-                            }}
-                        >
+                             >
                             삭제
                         </button>
                     </div>
@@ -323,18 +299,9 @@ export default function RecipeDetail() {
             </div>
 
             {/* 우하단: 담기 + 즐겨찾기 */}
-            <div
-                style={{
-                    position: "fixed",
-                    bottom: 20,
-                    right: 20,
-                    display: "flex",
-                    gap: 12,
-                    alignItems: "center",
-                    zIndex: 1000,
-                }}
-            >
-                <Link
+            <div className="sx-3t"
+                 >
+                <Link className="sx-3u"
                     to="/ingredient"
                     state={{
                         recipeId: recipe.id,          // ✅ 식단 반영을 위해 반드시 전달
@@ -343,14 +310,7 @@ export default function RecipeDetail() {
                         ingredients: ingredientPayload,
                         thumbnail: thumbSrc,
                     }}
-                    style={{
-                        background: "#007bff",
-                        color: "#fff",
-                        padding: "10px 20px",
-                        borderRadius: 50,
-                        textDecoration: "none",
-                    }}
-                >
+                     >
                     담기
                 </Link>
 
@@ -370,95 +330,43 @@ export default function RecipeDetail() {
                         cursor: "pointer",
                     }}
                 >
-                    <span style={{ fontSize: 18 }}>{isFav ? "♥" : "♡"}</span>
-                    <span style={{ fontWeight: 700 }}>{favCount ?? 0}</span>
+                    <span className="sx-3v sx-3w"  >{isFav ? "♥" : "♡"}</span>
+                    <span >{favCount ?? 0}</span>
                 </button>
             </div>
 
             {/* 제목 + 작성자 배지 */}
-            <div
-                style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    marginTop: 8,
-                    marginBottom: 8,
-                    flexWrap: "wrap",
-                }}
-            >
-                <h1 style={{ margin: 0 }}>{recipe.subject ?? "(제목 없음)"}</h1>
+            <div className="sx-3x sx-3y"
+                 >
+                <h1 >{recipe.subject ?? "(제목 없음)"}</h1>
 
                 {(authorName || authorUsername) &&
                     (isOwnAuthor ? (
-                        <a
+                        <a className="sx-3z"
                             href={authorTo}
                             title="내 마이페이지로 이동"
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "6px 10px",
-                                borderRadius: 999,
-                                border: "1px solid #e5e7eb",
-                                background: "#fff",
-                                textDecoration: "none",
-                                color: "#111",
-                            }}
-                        >
-              <span
+                             >
+              <span className="sx-40 sx-41"
                   aria-hidden
-                  style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "#eef2ff",
-                      color: "#3b82f6",
-                      display: "grid",
-                      placeItems: "center",
-                      fontWeight: 800,
-                      fontSize: 12,
-                  }}
-              >
+                   >
                 {authorInitials}
               </span>
-                            <span style={{ fontWeight: 700 }}>
+                            <span >
                 {authorName || authorUsername}
               </span>
-                            <span style={{ fontSize: 12, color: "#6b7280" }}>(내 프로필)</span>
+                            <span className="sx-42"  >(내 프로필)</span>
                         </a>
                     ) : (
-                        <Link
+                        <Link className="sx-43"
                             to={authorTo}
                             title="작성자 프로필로 이동"
-                            style={{
-                                display: "inline-flex",
-                                alignItems: "center",
-                                gap: 8,
-                                padding: "6px 10px",
-                                borderRadius: 999,
-                                border: "1px solid #e5e7eb",
-                                background: "#fff",
-                                textDecoration: "none",
-                                color: "#111",
-                            }}
-                        >
-              <span
+                             >
+              <span className="sx-40 sx-41"
                   aria-hidden
-                  style={{
-                      width: 28,
-                      height: 28,
-                      borderRadius: "50%",
-                      background: "#eef2ff",
-                      color: "#3b82f6",
-                      display: "grid",
-                      placeItems: "center",
-                      fontWeight: 800,
-                      fontSize: 12,
-                  }}
-              >
+                   >
                 {authorInitials}
               </span>
-                            <span style={{ fontWeight: 700 }}>
+                            <span >
                 {authorName || authorUsername}
               </span>
                         </Link>
@@ -466,7 +374,7 @@ export default function RecipeDetail() {
             </div>
 
             {/* 메타 줄 */}
-            <div style={{ color: "#666", marginBottom: 16 }}>
+            <div className="sx-44"  >
                 {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
                 {cookMinutes != null && estPrice != null ? " · " : null}
                 {estPrice != null && <>예상비용 {estPrice}원</>}
@@ -479,64 +387,41 @@ export default function RecipeDetail() {
             </div>
 
             {thumbSrc && (
-                <img
+                <img className="sx-45"
                     src={thumbSrc}
                     alt="thumbnail"
-                    style={{
-                        width: "100%",
-                        maxWidth: 860,
-                        borderRadius: 12,
-                        display: "block",
-                        marginBottom: 16,
-                    }}
-                    loading="lazy"
+                     loading="lazy"
                     onError={onImgError}
                 />
             )}
 
             {recipe.description && (
                 <>
-                    <h3 style={{ marginTop: 16 }}>설명</h3>
-                    <p style={{ lineHeight: 1.7 }}>{recipe.description}</p>
+                    <h3 className="sx-46 sx-47"  >설명</h3>
+                    <p >{recipe.description}</p>
                 </>
             )}
 
             {ingredientRows.length > 0 && (
                 <>
                     <h3>재료</h3>
-                    <ul style={{ lineHeight: 1.9 }}>
+                    <ul className="sx-48"  >
                         {ingredientRows.map((it) => {
                             const hasLink = !!(it.link && it.link.trim());
                             const href = hasLink ? normalizeLink(it.link.trim()) : null;
                             return (
-                                <li
+                                <li className="sx-49"
                                     key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
-                                    style={{
-                                        display: "flex",
-                                        alignItems: "center",
-                                        gap: 8,
-                                        flexWrap: "wrap",
-                                    }}
-                                >
+                                     >
                                     <span>{it.name}</span>
                                     {hasLink && (
                                         <>
-                                            <span style={{ color: "#999" }}>·</span>
-                                            <a
+                                            <span className="sx-4a"  >·</span>
+                                            <a className="sx-4b"
                                                 href={href}
                                                 target="_blank"
                                                 rel="noreferrer"
-                                                style={{
-                                                    display: "inline-flex",
-                                                    alignItems: "center",
-                                                    gap: 6,
-                                                    padding: "2px 8px",
-                                                    border: "1px solid #ddd",
-                                                    borderRadius: 6,
-                                                    textDecoration: "none",
-                                                    fontSize: 13,
-                                                }}
-                                                title={href}
+                                                 title={href}
                                             >
                                                 구매링크
                                             </a>
@@ -552,14 +437,14 @@ export default function RecipeDetail() {
             {recipe.tools && recipe.tools.trim() && (
                 <>
                     <h3>도구</h3>
-                    <p style={{ whiteSpace: "pre-line" }}>{recipe.tools}</p>
+                    <p className="sx-4c"  >{recipe.tools}</p>
                 </>
             )}
 
             {Array.isArray(steps) && steps.length > 0 && (
                 <>
                     <h3>조리 단계</h3>
-                    <ol style={{ paddingLeft: 20 }}>
+                    <ol className="sx-4d"  >
                         {steps.map((s, idx) => {
                             const order = s?.stepOrder ?? s?.stepIndex ?? idx + 1;
                             const src =
@@ -567,22 +452,16 @@ export default function RecipeDetail() {
                                 (s?.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
                             const caption = s?.description ?? s?.caption ?? "";
                             return (
-                                <li key={`${order}-${s?.id ?? idx}`} style={{ marginBottom: 24 }}>
-                                    <div style={{ fontWeight: 600, marginBottom: 6 }}>
+                                <li className="sx-4e sx-4f" key={`${order}-${s?.id ?? idx}`}  >
+                                    <div >
                                         Step {order}
                                     </div>
-                                    {caption && <div style={{ marginBottom: 8 }}>{caption}</div>}
+                                    {caption && <div className="sx-4g"  >{caption}</div>}
                                     {src && (
-                                        <img
+                                        <img className="sx-4h"
                                             src={src}
                                             alt={`step-${order}`}
-                                            style={{
-                                                width: "100%",
-                                                maxWidth: 860,
-                                                borderRadius: 12,
-                                                display: "block",
-                                            }}
-                                            loading="lazy"
+                                             loading="lazy"
                                             onError={onImgError}
                                         />
                                     )}

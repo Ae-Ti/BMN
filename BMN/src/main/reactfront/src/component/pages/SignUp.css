@@ -19,51 +19,8 @@
     margin-bottom: 15px;
   }
   
-  .signup-box input,
-  .signup-box select {
+  /* Inlined into index.css. Safe to delete this file. */
+  /* DO NOT EDIT - styles moved into src/index.css */
     width: 100%;  /* 한 줄을 가득 채우게 설정 */
+
     padding: 10px;
-    margin-bottom: 10px;
-    border: 1px solid #ccc;
-    border-radius: 5px;
-  }
-  
-  .row {
-    display: flex;
-    gap: 10px;
-  }
-  
-  .row select {
-    flex: 1;
-  }
-  
-  .password-box {
-    position: relative;
-  }
-  
-  .eye-icon {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    cursor: pointer;
-    font-size: 16px;
-  }
-  
-  button {
-    width: 100%;
-    padding: 12px;
-    background-color: #ff7f50;  /* 산뜻한 코랄 색상 */
-    color: white;
-    border: none;
-    border-radius: 5px;
-    font-size: 16px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-  }
-  
-  button:hover {
-    background-color: #ff6347; /* 버튼 호버 시 더 진한 색 */
-  }
-  
-  

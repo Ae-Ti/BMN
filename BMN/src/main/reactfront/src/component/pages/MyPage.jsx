@@ -219,48 +219,21 @@ const MyPage = () => {
             <h1>마이페이지</h1>
 
             {/* 프로필 카드 */}
-            <div
-                style={{
-                    position: "relative",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                    padding: 20,
-                    border: "1px solid #e7e7e7",
-                    borderRadius: 12,
-                    background: "#fff",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-                    margin: "0 auto 16px",
-                    maxWidth: 1100,
-                    width: "100%",
-                    minHeight: 180,
-                }}
-            >
+            <div className="sx-2e sx-2f sx-2g"
+                 >
                 {/* 상단 정보 */}
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+                <div >
                     <div
                         aria-hidden
-                        style={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: "50%",
-                            background: "#eef2ff",
-                            color: "#3b82f6",
-                            display: "grid",
-                            placeItems: "center",
-                            fontWeight: 800,
-                            fontSize: 22,
-                            flex: "0 0 auto",
-                        }}
-                    >
+                        >
                         {initials}
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 20, fontWeight: 800 }}>
+                    <div className="sx-2h sx-2i"  >
+                        <div >
                             {meLoading ? "정보 불러오는 중…" : profile.nickname || profile.username}
                         </div>
-                        <div style={{ marginTop: 6, fontSize: 15, color: "#333" }}>
+                        <div className="sx-2j"  >
                             <div>
                                 <b>아이디</b>: {profile.username || "-"}
                             </div>
@@ -270,7 +243,7 @@ const MyPage = () => {
                             <div>
                                 <b>이메일</b>: {profile.email || "-"}
                             </div>
-                            <div style={{ marginTop: 6 }}>
+                            <div className="sx-2k"  >
                                 <b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}
                             </div>
                         </div>
@@ -278,14 +251,14 @@ const MyPage = () => {
                 </div>
 
                 {/* 좌하단: 팔로워/팔로잉 확인 */}
-                <div style={{ position: "absolute", left: 20, bottom: 16, display: "flex", gap: 8 }}>
+                <div className="sx-2l"  >
                     <button onClick={goFollowers} style={styles.greenBtnOutline} title="팔로워/팔로잉 확인">
                         팔로워/팔로잉 확인
                     </button>
                 </div>
 
                 {/* 우하단: 냉장고 관리 / 식단 페이지 이동 (여기 변경) */}
-                <div style={{ position: "absolute", right: 20, bottom: 16, display: "flex", gap: 8 }}>
+                <div className="sx-2m"  >
                     <button onClick={() => nav("/fridge")} style={styles.greenBtn}>
                         🥕 냉장고 관리
                     </button>
@@ -297,16 +270,9 @@ const MyPage = () => {
             </div>
 
             {/* 탭 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="sx-2n sx-2o"  >
                 <div
-                    style={{
-                        display: "inline-flex",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 999,
-                        overflow: "hidden",
-                        background: "#fff",
-                    }}
-                >
+                    >
                     <button
                         type="button"
                         onClick={() => setTab("my")}
@@ -341,14 +307,14 @@ const MyPage = () => {
                         즐겨찾기한 레시피
                     </button>
                 </div>
-                <span style={{ color: "#666" }}>({totalCount.toLocaleString()}개)</span>
+                <span className="sx-2p sx-2q"  >({totalCount.toLocaleString()}개)</span>
             </div>
 
             {/* 레시피 리스트 */}
             {loading ? (
-                <p style={{ marginTop: 12 }}>불러오는 중...</p>
+                <p >불러오는 중...</p>
             ) : !hasItems ? (
-                <p style={{ marginTop: 12 }}>
+                <p className="sx-2r"  >
                     {tab === "my" ? "작성한 레시피가 없습니다." : "즐겨찾기한 레시피가 없습니다."}
                 </p>
             ) : (
@@ -381,7 +347,7 @@ const MyPage = () => {
                                     onError={(e) => (e.currentTarget.src = placeHolder)}
                                 />
                                 <div style={styles.body}>
-                                    <div style={{ fontWeight: 700, lineHeight: 1.3 }}>{subject}</div>
+                                    <div className="sx-2s"  >{subject}</div>
                                     <div style={styles.meta}>
                                         {cookMin != null && <span>⏱ {cookMin}분</span>}
                                         {estPrice != null && <span>💰 {Number(estPrice).toLocaleString()}원</span>}

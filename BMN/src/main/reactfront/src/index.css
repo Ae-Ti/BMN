@@ -11,3 +11,1504 @@ code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
     monospace;
 }
+
+/* Consolidated app styles - import component/page-specific CSS here so
+   individual JSX files no longer need to import their own CSS. This
+   centralizes load order and makes it easier to optimize and review styles. */
+
+/* Inlined component CSS - consolidated from component/*.css
+   This removes the need for per-component CSS imports in JSX. */
+
+/* ------------------ Layout.css ------------------ */
+/* 기본 레이아웃 설정 */
+.layout {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background-color: #f8f2e5;
+}
+.header {
+  background-color: #e7dbb4;
+  color: white;
+  padding: 16px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+.logo-group { display: flex; align-items: center; gap: 24px; }
+.logo { font-size: 24px; font-weight: bold; }
+.button-group { display: flex; gap: 10px; }
+.button { background-color: transparent; white-space: nowrap; color: #0c0901; font-weight: bold; padding: 8px 15px; border-radius: 8px; text-align: center; font-size: 17px; cursor: pointer; transition: all 0.3s ease; }
+.button:hover { background-color: transparent; }
+.my-page { margin-left: 24px; }
+.my-page-button { background: linear-gradient(to right, #c2a31c, #cea842); color: white; font-weight: bold; padding: 10px 20px; border-radius: 9999px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); font-size: 18px; cursor: pointer; transition: all 0.3s ease; border: 2px solid white; }
+.my-page-button:hover { background: linear-gradient(to right, #caa914, #dfdd60); }
+.my-page-button:active { background: linear-gradient(to right, #d1ba37, #e4cc8a); }
+.auth-group { display: flex; align-items: center; gap: 16px; }
+.search-input { padding: 8px 16px; border-radius: 8px; border: 1px solid #d1d5db; color: #9b6f1e; }
+.auth-button { background: transparent; white-space: nowrap; color: rgb(0,0,0); font-size: 14px; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: color 0.3s ease; }
+.auth-button:hover { background-color: transparent; }
+.main-content { flex-grow: 1; padding: 10px; }
+.recipe-tabs { display:flex; justify-content:center; gap:10px; padding:10px; background-color:#f8f2e5; }
+.tab-button { padding: 10px 15px; border: none; background-color: white; color: black; cursor: pointer; font-size: 16px; }
+.tab-button:hover { background-color: #e0e0e0; }
+
+/* ------------------ recipeMain.css ------------------ */
+.recipe-main { max-width: 1280px; margin:0 auto; padding:12px 16px 80px; box-sizing:border-box; }
+.section-header { display:flex; align-items:center; justify-content:flex-start; margin:6px 0 12px; }
+.section-left { display:flex; align-items:center; gap:10px; }
+.title { margin:0; font-size:21px; font-weight:700; }
+.fab-upload, .more-btn { width:104px; height:40px; border-radius:24px; border:0; display:inline-flex; align-items:center; justify-content:center; font-size:15.5px; font-weight:700; cursor:pointer; box-sizing:border-box; }
+.fab-upload { position: fixed; bottom:20px; right:20px; background-color:#e7c555; color:#111; box-shadow:0 6px 14px rgba(0,0,0,0.15); transition: transform 0.15s, box-shadow 0.15s; }
+.fab-upload:hover { transform: translateY(-2px); box-shadow:0 10px 22px rgba(0,0,0,0.18); }
+.more-btn { background: transparent; color: inherit; gap:6px; transition: background-color 0.15s ease, transform 0.05s ease; }
+.more-btn:hover { background: rgba(0,0,0,0.06); }
+.more-btn:active { transform: translateY(1px); }
+.more-btn .icon { width:16px; height:16px; fill:currentColor; }
+.recipe-list.grid-4 { display:grid; grid-template-columns: repeat(4,1fr); gap:20px; }
+@media (max-width:1100px){ .recipe-list.grid-4 { grid-template-columns: repeat(3,1fr); } }
+@media (max-width:800px){ .recipe-list.grid-4 { grid-template-columns: repeat(2,1fr); } }
+@media (max-width:520px){ .recipe-list.grid-4 { grid-template-columns: 1fr; } }
+.recipe-card { display:flex; flex-direction:column; background:#fff; border-radius:16px; overflow:hidden; box-shadow:0 3px 10px rgba(0,0,0,0.06); text-decoration:none; color:inherit; transition: transform 0.18s, box-shadow 0.18s, filter 0.18s; }
+.recipe-card:hover { transform: translateY(-4px); box-shadow:0 8px 20px rgba(0,0,0,0.12); }
+.recipe-card:active { transform: translateY(-1px) scale(0.99); box-shadow:0 5px 14px rgba(0,0,0,0.1); filter: saturate(1.02); }
+.recipe-card:focus-visible { outline:2px solid #e7c555; outline-offset:2px; }
+.thumb-wrap { position:relative; width:100%; background:#f3f3f3; overflow:hidden; }
+.thumb-wrap::before { content:""; display:block; padding-top:75%; }
+.thumb-img { position:absolute; top:0; left:0; width:100%; height:100%; object-fit:cover; }
+.card-body { padding:10px 12px 12px; }
+.recipe-title { font-size:17px; font-weight:700; margin:2px 0 6px; line-height:1.28; display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; }
+.recipe-meta-compact { font-size:12.5px; color:#555; line-height:1.35; }
+.recipe-meta-compact .line { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.recipe-image { width:auto !important; height:auto !important; }
+
+/* ------------------ logIn.css ------------------ */
+.login-container { display:flex; justify-content:center; align-items:center; height:-10vh; margin-top:-60px; background-color:#f8f2e5; }
+.login-box { background:white; padding:2rem; border-radius:8px; box-shadow:0 0 10px rgba(0,0,0,0.1); width:300px; text-align:center; }
+.login-box h2 { margin-bottom:1rem; }
+.login-input { width:100%; padding:10px; margin:10px 0; border:1px solid #ccc; border-radius:5px; }
+.login-button { width:100%; padding:10px; background-color:#cebe30; color:white; border:none; border-radius:5px; cursor:pointer; }
+.login-button:hover { background-color:#bb954d; }
+.signup-link { margin-top:10px; font-size:0.9rem; color:#4d320a; cursor:pointer; }
+.signup-link:hover { text-decoration:underline; }
+
+/* ------------------ SignUp.css ------------------ */
+.signup-container { display:flex; justify-content:center; align-items:center; height:100vh; }
+.signup-box { width:30%; min-width:320px; padding:20px; border:1px solid #ccc; border-radius:10px; background-color:white; text-align:center; }
+.signup-box h2 { margin-bottom:15px; }
+.signup-box input, .signup-box select { width:100%; padding:10px; margin-bottom:10px; border:1px solid #ccc; border-radius:5px; }
+.row { display:flex; gap:10px; }
+.row select { flex:1; }
+.password-box { position:relative; }
+.eye-icon { position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:16px; }
+.signup-box button { width:100%; padding:12px; background-color:#ff7f50; color:white; border:none; border-radius:5px; font-size:16px; cursor:pointer; transition:background-color 0.3s; }
+.signup-box button:hover { background-color:#ff6347; }
+
+/* ------------------ HouseholdMain.css ------------------ */
+.ledger-container { display:flex; justify-content:space-between; align-items:flex-start; width:100%; padding:20px; box-sizing:border-box; }
+.calendar-container { flex:3; max-width:60%; padding:15px; }
+.react-calendar { width:100%; color:black; max-width:700px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); padding:15px; font-size:18px; }
+.react-calendar__month-view__weekdays { text-align:center; font-weight:bold; color:black; }
+.react-calendar__month-view__weekdays__weekday:nth-child(7) { color:blue; }
+.react-calendar__month-view__weekdays__weekday:nth-child(1) { color:red; }
+.react-calendar__tile { color:black !important; font-size:16px; }
+.react-calendar__month-view__days__day--neighboringMonth { opacity:0.5; color:black !important; }
+.react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
+.details-container { flex:2; max-width:40%; background-color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); min-height:300px; }
+.input-group { display:flex; flex-direction:column; gap:10px; padding:10px; background:#f9f9f9; border-radius:10px; margin-bottom:20px; }
+.input-group select, .input-group input { padding:8px; border:1px solid #ccc; border-radius:5px; font-size:16px; }
+.input-group button { background:#ecea63; color:rgb(255,255,255); padding:8px; border:none; border-radius:5px; font-size:16px; cursor:pointer; }
+.input-group button:hover { background:#e2be47; }
+.transaction-list { margin-top:15px; list-style:none; padding:0; min-height:200px; }
+.transaction-list li { font-size:16px; padding:8px; border-bottom:1px solid #ddd; }
+.transaction-list .income { color:blue; font-weight:bold; }
+.transaction-list .expense { color:red; font-weight:bold; }
+.react-calendar__navigation { background-color:white; }
+.react-calendar__navigation button { color:black; font-weight:bold; }
+.react-calendar__tile--active { background-color:#f0f0f0; color:black !important; }
+.react-calendar__month-view__weekdays { color:black; font-weight:bold; }
+
+/* ------------------ Ingredient.css ------------------ */
+.ingredient-page { width:80%; margin:0 auto; font-family: Arial, sans-serif; }
+.ingredient-top-box { display:flex; align-items:center; justify-content:space-between; border:1px solid #ddd; padding:20px; margin-bottom:20px; border-radius:10px; background-color:#fafafa; }
+.thumbnail img { width:150px; height:150px; object-fit:cover; border-radius:8px; }
+.cost-section { flex:1; text-align:center; }
+.cost-section input { width:100px; margin-left:10px; }
+.reflect-button button { background-color:#4CAF50; color:white; padding:10px 15px; border:none; border-radius:8px; cursor:pointer; }
+.reflect-button button:hover { background-color:#45a049; }
+.ingredient-bottom-box { display:flex; gap:20px; }
+.ingredient-list { width:40%; border-right:1px solid #ddd; padding-right:10px; }
+.ingredient-list ul { list-style:none; padding:0; }
+.ingredient-list li { padding:8px; cursor:pointer; }
+.ingredient-list li:hover { background-color:#f1f1f1; }
+.ingredient-list li.selected { background-color:#e0ffe0; }
+.ingredient-link { width:60%; padding-left:10px; }
+.ingredient-link a { color:#007BFF; text-decoration:none; }
+.ingredient-link a:hover { text-decoration:underline; }
+
+/* ------------------ MealMain.css ------------------ */
+.meal-container { display:flex; justify-content:space-between; align-items:flex-start; width:100%; padding:20px; box-sizing:border-box; }
+.calendar-container { flex:3; max-width:60%; padding:15px; }
+.details-container { flex:2; max-width:40%; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); }
+.react-calendar { width:100%; max-width:700px; background:white; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); padding:15px; font-size:18px; color:black; }
+.react-calendar__month-view__weekdays { text-align:center; font-weight:bold; color:black; }
+.react-calendar__month-view__weekdays__weekday:nth-child(7) { color:blue; }
+.react-calendar__month-view__weekdays__weekday:nth-child(1) { color:red; }
+.react-calendar__tile { color:black !important; font-size:16px; }
+.react-calendar__month-view__days__day--neighboringMonth { opacity:0.5; color:black !important; }
+.react-calendar__tile--active { background:#f0f0f0; color:black !important; border-radius:5px; }
+.react-calendar__navigation { background:white; }
+.react-calendar__navigation button { color:black; font-weight:bold; }
+.calendar-tile { text-align:center; font-size:13px; margin-top:4px; line-height:1.1; }
+.calendar-tile .mini-recipe { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.calendar-tile .mini-more { color:#666; font-size:12px; }
+.meal-card-list { list-style:none; padding:0; margin:0; }
+.meal-card { padding:10px; border-bottom:1px solid #eee; }
+.meal-card .row { display:flex; gap:12px; align-items:center; }
+.meal-card .thumb { width:64px; height:64px; object-fit:cover; border-radius:8px; background:#f5f5f5; }
+.meal-card .info { flex:1; }
+.meal-card .title { font-weight:700; margin-bottom:4px; }
+.meal-card .note { color:#666; font-size:14px; }
+.btn-link { padding:6px 10px; border:1px solid #ddd; border-radius:8px; text-decoration:none; color:#111; }
+.empty { color:#777; padding:12px 0; }
+.qty-badge { margin-left:6px; font-size:12px; color:#2563eb; font-weight:800; }
+
+/* ------------------ recipeDetail.css ------------------ */
+.recipe-detail { max-width:800px; margin:20px auto; padding:20px; border:1px solid #ddd; border-radius:8px; box-shadow:0px 4px 6px rgba(0,0,0,0.1); background-color:#fff; }
+.recipe-header { display:flex; justify-content:space-between; align-items:center; }
+.recipe-header h1 { font-size:24px; font-weight:bold; }
+.author, .date { font-size:14px; color:#666; }
+.image-container { text-align:center; margin-top:10px; }
+.recipe-image { width:100%; max-height:400px; object-fit:cover; border-radius:8px; }
+.stats { display:flex; justify-content:space-around; margin:10px 0; font-size:14px; color:#666; }
+.recipe-section { margin-top:20px; }
+.recipe-section h2 { font-size:18px; border-bottom:2px solid #ddd; padding-bottom:5px; }
+.cooking-steps { display:flex; gap:10px; }
+.step { width:18%; padding:10px; background:#f4f4f4; border-radius:5px; text-align:center; }
+.step-number { font-size:20px; font-weight:bold; color:#ff5722; }
+.recipe-comments { margin-top:20px; }
+.recipe-comments h2 { font-size:18px; border-bottom:2px solid #ddd; padding-bottom:5px; }
+.comment { padding:10px; border-bottom:1px solid #ddd; }
+.cook-button { display:block; width:100%; background-color:#ff9800; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; margin-top:20px; cursor:pointer; }
+.cook-button:hover { background-color:#e68900; }
+.loading-text { text-align:center; font-size:18px; color:#666; }
+
+/* ------------------ postCreate.css ------------------ */
+.form-group { margin-bottom:16px; }
+.form-group label { display:block; font-weight:bold; margin-bottom:8px; }
+.form-group textarea { width:100%; padding:10px; border:1px solid #ccc; border-radius:5px; font-size:16px; resize:vertical; }
+
+
+/* ------------------ Design tokens & base components ------------------ */
+:root {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --muted: #6b7280;
+  --text: #111827;
+  --primary: #ef4444; /* warm red accent */
+  --accent: #f97316; /* orange */
+  --card-border: #e6e6e6;
+  --radius: 10px;
+  --gap: 12px;
+}
+
+html, body, #root {
+  height: 100%;
+  background: var(--bg);
+  color: var(--text);
+}
+
+/* Basic utilities */
+.container {
+  max-width: 1080px;
+  margin: 0 auto;
+  padding: 0 16px;
+}
+
+/* Header */
+.header {
+  background: linear-gradient(90deg, #fffaf0, #fff);
+  border-bottom: 1px solid var(--card-border);
+  padding: 12px 0;
+}
+
+.logo {
+  font-weight: 700;
+  font-size: 18px;
+}
+
+/* Buttons */
+.button, button {
+  background: transparent;
+  border: 1px solid transparent;
+  padding: 8px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.button:hover { opacity: 0.95; }
+
+.auth-button { background: transparent; border: none; }
+
+.fab-upload {
+  position: fixed;
+  right: 20px;
+  bottom: 20px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 12px 16px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.12);
+}
+
+/* Recipe card */
+.recipe-list { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.recipe-card {
+  background: var(--surface);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: block;
+}
+.thumb-wrap { width: 100%; height: 150px; overflow: hidden; background: #fafafa; display:flex; align-items:center; justify-content:center; }
+.thumb-img { width:100%; height:100%; object-fit:cover; display:block; }
+.card-body { padding: 12px; }
+.recipe-title { font-size: 16px; font-weight:700; margin:0 0 8px; }
+.recipe-meta-compact { color: var(--muted); font-size: 13px; }
+
+/* Make small screens responsive */
+@media (max-width: 900px) {
+  .recipe-list { grid-template-columns: repeat(2, 1fr); }
+}
+@media (max-width: 480px) {
+  .recipe-list { grid-template-columns: 1fr; }
+}
+
+/* extracted from src/component/Layout.jsx */
+.sx-1 {
+  display: flex;
+  align-items: center;
+}
+
+/* extracted from src/component/Layout.jsx */
+.sx-2 {
+  margin-left: 8px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-3 {
+  margin-top: 24px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-4 {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-5 {
+  width: 100%;
+  padding: 8px;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-6 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-7 {
+  background: #007bff;
+  color: white;
+  padding: 6px 12px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-8 {
+  list-style: none;
+  padding: 0;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-9 {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 12px;
+  margin-bottom: 12px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-a {
+  width: 100%;
+  padding: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-b {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-c {
+  background: #28a745;
+  color: white;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-d {
+  background: #ccc;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-e {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-f {
+  color: #999;
+  font-size: 13px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-g {
+  margin: 6px 0;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-h {
+  white-space: pre-wrap;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-i {
+  margin-top: 8px;
+  display: flex;
+  gap: 8px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-j {
+  background: #4caf50;
+  color: white;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/blocks/RecipeComments.jsx */
+.sx-k {
+  background: #f44336;
+  color: white;
+  padding: 4px 10px;
+  border: none;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/pages/FollowListPage.jsx */
+.sx-l {
+  padding: 16px;
+}
+
+/* extracted from src/component/pages/FollowListPage.jsx */
+.sx-m {
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/FollowListPage.jsx */
+.sx-n {
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-o {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-p {
+  padding: 16px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-q {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-r {
+  margin: 0;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-s {
+  display: flex;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-t {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #ddd;
+  background: #0ea5e9;
+  color: #fff;
+  font-weight: 600px;
+  cursor: pointer;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-u {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
+  align-items: center;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-v {
+  width: 80px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-w {
+  width: 140px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-x {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-y {
+  text-align: left;
+  border-bottom: 1px solid #eee;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-z {
+  border-bottom: 1px solid #f0f0f0;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-10 {
+  margin: 0 8px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-11 {
+  color: crimson;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-12 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  z-index: 9999px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-13 {
+  position: relative;
+  width: min(100%, 980px);
+  max-height: 85vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  padding: 16px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-14 {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  border: 1px solid #eee;
+  background: #fff;
+  font-size: 18px;
+  font-weight: 700px;
+  line-height: 34px;
+  text-align: center;
+  cursor: pointer;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-15 {
+  margin: 4px 40px 12px 4px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-16 {
+  padding: 16px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-17 {
+  padding: 16px;
+  color: crimson;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-18 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 16px;
+  padding: 4px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-19 {
+  border: 1px solid #eee;
+  border-radius: 12px;
+  overflow: hidden;
+  cursor: pointer;
+  background: #fff;
+  display: flex;
+  flex-direction: column;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1a {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  background: #f6f6f6;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1b {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1c {
+  position: absolute;
+  top: 8px;
+  left: 8px;
+  background: #111;
+  color: #fff;
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  opacity: 0.9px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1d {
+  padding: 12px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1e {
+  font-weight: 700px;
+  margin-bottom: 6px;
+  line-height: 1.3px;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1f {
+  font-size: 13px;
+  color: #666;
+}
+
+/* extracted from src/component/pages/FridgePage.jsx */
+.sx-1g {
+  font-size: 12px;
+  color: #999;
+  margin-top: 6px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1h {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1i {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1j {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1k {
+  font-size: 18px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1l {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  align-items: center;
+  margin-top: 4px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1m {
+  font-size: 13px;
+  color: #444;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1n {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1o {
+  padding: 6px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1p {
+  margin-top: 8px;
+  padding: 8px 12px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1q {
+  margin-top: 6px;
+  padding: 8px 12px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1r {
+  text-align: center;
+  padding-top: 50px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1s {
+  color: #b00020;
+  font-size: 12px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1t {
+  margin-top: 16px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1u {
+  font-size: 13px;
+  color: #444;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1v {
+  white-space: pre-wrap;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1w {
+  margin: 8px 0 14px;
+  font-size: 14px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1x {
+  margin-bottom: 4px;
+  font-weight: 600px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1y {
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-1z {
+  color: #888;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-20 {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-21 {
+  width: 36px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-22 {
+  text-align: left;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-23 {
+  text-align: right;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-24 {
+  border-top: 1px solid #eee;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-25 {
+  text-align: center;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-26 {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-27 {
+  width: min(560px, 92vw);
+  background: #fff;
+  border-radius: 12px;
+  padding: 16px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-28 {
+  margin-top: 0;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-29 {
+  max-height: 240px;
+  overflow: auto;
+  border: 1px solid #eee;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-2a {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-2b {
+  border-top: 1px solid #f1f1f1;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-2c {
+  margin-top: 10px;
+  font-size: 14px;
+}
+
+/* extracted from src/component/pages/Ingredient.jsx */
+.sx-2d {
+  display: flex;
+  gap: 16px;
+  margin-top: 12px;
+  justify-content: flex-end;
+  align-items: baseline;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2e {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #e7e7e7;
+  border-radius: 12px;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+  margin: 0 auto 16px;
+  max-width: 1100px;
+  width: 100%;
+  min-height: 180px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2f {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2g {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #3b82f6;
+  display: grid;
+  place-items: center;
+  font-weight: 800px;
+  font-size: 22px;
+  flex: 0 0 auto;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2h {
+  flex: 1px;
+  min-width: 0;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2i {
+  font-size: 20px;
+  font-weight: 800px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2j {
+  margin-top: 6px;
+  font-size: 15px;
+  color: #333;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2k {
+  margin-top: 6px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2l {
+  position: absolute;
+  left: 20px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2m {
+  position: absolute;
+  right: 20px;
+  bottom: 16px;
+  display: flex;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2n {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2o {
+  display: inline-flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2p {
+  color: #666;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2q {
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2r {
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/MyPage.jsx */
+.sx-2s {
+  font-weight: 700px;
+  line-height: 1.3px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2t {
+  max-width: 720px;
+  margin: 0 auto;
+  padding: 16px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2u {
+  margin-bottom: 12px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2v {
+  display: grid;
+  gap: 12px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2w {
+  width: 100%;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2x {
+  margin-top: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2y {
+  max-width: 100%;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-2z {
+  display: flex;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-30 {
+  flex: 1px;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-31 {
+  flex: 2px;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-32 {
+  margin-top: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-33 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-34 {
+  width: 100%;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-35 {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px,1fr));
+  gap: 8px;
+  margin-top: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-36 {
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 8px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-37 {
+  width: 100%;
+  height: 100px;
+  object-fit: cover;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-38 {
+  width: 100%;
+  padding: 6px;
+  margin-top: 6px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-39 {
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/PostCreate.jsx */
+.sx-3a {
+  width: 100%;
+  padding: 12px;
+  font-weight: 600px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3b {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #3b82f6;
+  display: grid;
+  place-items: center;
+  font-weight: 800px;
+  font-size: 22px;
+  flex: 0 0 auto;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3c {
+  flex: 1px;
+  min-width: 0;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3d {
+  font-size: 20px;
+  font-weight: 800px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3e {
+  margin-top: 6px;
+  font-size: 15px;
+  color: #333;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3f {
+  margin-top: 6px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3g {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3h {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3i {
+  display: inline-flex;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #fff;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3j {
+  font-weight: 700px;
+  line-height: 1.3px;
+}
+
+/* extracted from src/component/pages/ProfilePage.jsx */
+.sx-3k {
+  font-size: 13px;
+  color: #555;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3l {
+  max-width: 920px;
+  margin: 32px auto;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3m {
+  max-width: 920px;
+  margin: 32px auto;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3n {
+  max-width: 920px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3o {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3p {
+  text-decoration: none;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3q {
+  display: flex;
+  gap: 8px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3r {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #4caf50;
+  color: #fff;
+  font-weight: 600px;
+  cursor: pointer;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3s {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: none;
+  background: #ffe9e9;
+  color: #b00020;
+  font-weight: 600px;
+  cursor: pointer;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3t {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  z-index: 1000px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3u {
+  background: #007bff;
+  color: #fff;
+  padding: 10px 20px;
+  border-radius: 50px;
+  text-decoration: none;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3v {
+  font-size: 18px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3w {
+  font-weight: 700px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3x {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+  margin-bottom: 8px;
+  flex-wrap: wrap;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3y {
+  margin: 0;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-3z {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  text-decoration: none;
+  color: #111;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-40 {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #eef2ff;
+  color: #3b82f6;
+  display: grid;
+  place-items: center;
+  font-weight: 800px;
+  font-size: 12px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-41 {
+  font-weight: 700px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-42 {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-43 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  text-decoration: none;
+  color: #111;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-44 {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-45 {
+  width: 100%;
+  max-width: 860px;
+  border-radius: 12px;
+  display: block;
+  margin-bottom: 16px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-46 {
+  margin-top: 16px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-47 {
+  line-height: 1.7px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-48 {
+  line-height: 1.9px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-49 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4a {
+  color: #999;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4b {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  text-decoration: none;
+  font-size: 13px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4c {
+  white-space: pre-line;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4d {
+  padding-left: 20px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4e {
+  margin-bottom: 24px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4f {
+  font-weight: 600px;
+  margin-bottom: 6px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4g {
+  margin-bottom: 8px;
+}
+
+/* extracted from src/component/pages/RecipeDetail.jsx */
+.sx-4h {
+  width: 100%;
+  max-width: 860px;
+  border-radius: 12px;
+  display: block;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4i {
+  max-width: 800px;
+  margin: 32px auto;
+  padding: 0 16px;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4j {
+  width: 240px;
+  height: 180px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid #eee;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4k {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4l {
+  margin-bottom: 12px;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4m {
+  width: 200px;
+  border-radius: 8px;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4n {
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+  padding: 8px;
+  border-radius: 8px;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4o {
+  width: 240px;
+  height: 160px;
+  object-fit: cover;
+  border-radius: 6px;
+  border: 1px solid #eee;
+}
+
+/* extracted from src/component/pages/RecipeForm.jsx */
+.sx-4p {
+  width: 100%;
+  margin-top: 8px;
+}
+
+/* extracted from src/component/pages/RecipeList.jsx */
+.sx-4q {
+  max-width: 1080px;
+  margin: 32px auto;
+}
+
+/* extracted from src/component/pages/RecipeList.jsx */
+.sx-4r {
+  padding-top: 12px;
+}
+
+/* extracted from src/component/pages/RecipeList.jsx */
+.sx-4s {
+  margin-bottom: 8px;
+}
+
+/* extracted from src/component/pages/RecipeList.jsx */
+.sx-4t {
+  font-size: 22px;
+  margin: 0;
+}
+
+/* extracted from src/component/pages/RecipeList.jsx */
+.sx-4u {
+  text-align: center;
+  margin-top: 20px;
+}
+
+/* extracted from src/component/pages/RecipeMain.jsx */
+.sx-4v {
+  max-width: 1080px;
+  margin: 16px auto;
+  color: #b91c1c;
+}

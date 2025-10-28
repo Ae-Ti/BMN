@@ -173,7 +173,7 @@ export default function RecipeForm() {
     }
 
     return (
-        <div style={{ maxWidth: 800, margin: "32px auto", padding: "0 16px" }}>
+        <div className="sx-4i"  >
             <h2>{isEdit ? "레시피 수정" : "새 레시피 작성"}</h2>
             <form onSubmit={handleSubmit}>
                 <div>
@@ -210,15 +210,14 @@ export default function RecipeForm() {
                 </div>
 
                 {/* 썸네일 업로드 + 미리보기 */}
-                <div style={{ marginTop: 12 }}>
+                <div className="sx-39"  >
                     <label>썸네일</label>
                     <input type="file" accept="image/*" onChange={handleThumbChange} />
                     {thumbnailPreview && (
-                        <div style={{ marginTop: 8 }}>
+                        <div className="sx-32 sx-4j"  >
                             <img
                                 src={thumbnailPreview}
                                 alt="thumbnail-preview"
-                                style={{ width: 240, height: 180, objectFit: "cover", borderRadius: 8, border: "1px solid #eee" }}
                                 onError={onImgError}
                             />
                         </div>
@@ -226,10 +225,10 @@ export default function RecipeForm() {
                 </div>
 
                 {/* 재료 */}
-                <div style={{ marginTop: 16 }}>
+                <div className="sx-46 sx-4k"  >
                     <h3>재료</h3>
                     {ingredients.map((ing, idx) => (
-                        <div key={idx} style={{ display: "flex", gap: 8, marginBottom: 4 }}>
+                        <div key={idx} >
                             <input
                                 placeholder="재료명"
                                 value={ing.name ?? ""}
@@ -248,19 +247,18 @@ export default function RecipeForm() {
 
                 {/* 기존 스텝 */}
                 {isEdit && existingSteps.length > 0 && (
-                    <div style={{ marginTop: 16 }}>
+                    <div className="sx-46 sx-4l"  >
                         <h3>기존 단계</h3>
                         {existingSteps.map((s) => (
-                            <div key={s.id} style={{ marginBottom: 12 }}>
+                            <div key={s.id} >
                                 <div>
                                     <strong>Step {s.stepOrder ?? s.stepIndex}</strong> {s.description ?? s.caption}
                                 </div>
                                 {s.imageUrl && (
-                                    <img
+                                    <img className="sx-4m"
                                         src={s.imageUrl}
                                         alt="step"
-                                        style={{ width: 200, borderRadius: 8 }}
-                                        onError={onImgError}
+                                         onError={onImgError}
                                     />
                                 )}
                                 <button type="button" onClick={() => handleRemoveExistingStep(s.id)}>삭제</button>
@@ -270,38 +268,36 @@ export default function RecipeForm() {
                 )}
 
                 {/* 새 스텝 */}
-                <div style={{ marginTop: 16 }}>
+                <div className="sx-46 sx-4n"  >
                     <h3>새 단계 추가</h3>
                     {newSteps.map((s, idx) => (
-                        <div key={idx} style={{ marginBottom: 12, border: "1px solid #eee", padding: 8, borderRadius: 8 }}>
+                        <div key={idx} >
                             <input
                                 type="file"
                                 accept="image/*"
                                 onChange={(e) => updateNewStep(idx, "file", e.target.files?.[0] || null)}
                             />
                             {s.previewUrl && (
-                                <div style={{ marginTop: 8 }}>
-                                    <img
+                                <div className="sx-32"  >
+                                    <img className="sx-4o"
                                         src={s.previewUrl}
                                         alt={`new-step-${idx}`}
-                                        style={{ width: 240, height: 160, objectFit: "cover", borderRadius: 6, border: "1px solid #eee" }}
-                                    />
+                                         />
                                 </div>
                             )}
-                            <input
+                            <input className="sx-4p"
                                 type="text"
                                 placeholder="설명"
                                 value={s.description}
                                 onChange={(e) => updateNewStep(idx, "description", e.target.value)}
-                                style={{ width: "100%", marginTop: 8 }}
-                            />
-                            <button type="button" onClick={() => removeNewStep(idx)} style={{ marginTop: 6 }}>삭제</button>
+                                 />
+                            <button className="sx-3f" type="button" onClick={() => removeNewStep(idx)}  >삭제</button>
                         </div>
                     ))}
                     <button type="button" onClick={addNewStep}>단계 추가</button>
                 </div>
 
-                <button type="submit" style={{ marginTop: 16 }}>
+                <button className="sx-46" type="submit"  >
                     {isEdit ? "수정 완료" : "등록"}
                 </button>
             </form>

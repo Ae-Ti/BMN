@@ -237,51 +237,24 @@ const ProfilePage = () => {
             <h1>{profile.username}의 프로필</h1>
 
             {/* 프로필 카드 */}
-            <div
-                style={{
-                    position: "relative",
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 12,
-                    padding: 20,
-                    border: "1px solid #e7e7e7",
-                    borderRadius: 12,
-                    background: "#fff",
-                    boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-                    margin: "0 auto 16px",
-                    maxWidth: 1100,
-                    width: "100%",
-                    minHeight: 180,
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+            <div className="sx-2e sx-2f sx-3b"
+                 >
+                <div >
                     <div
                         aria-hidden
-                        style={{
-                            width: 72,
-                            height: 72,
-                            borderRadius: "50%",
-                            background: "#eef2ff",
-                            color: "#3b82f6",
-                            display: "grid",
-                            placeItems: "center",
-                            fontWeight: 800,
-                            fontSize: 22,
-                            flex: "0 0 auto",
-                        }}
-                    >
+                        >
                         {initials}
                     </div>
 
-                    <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ fontSize: 20, fontWeight: 800 }}>
+                    <div className="sx-3c sx-3d sx-3e"  >
+                        <div >
                             {profile.nickname || profile.username}
                         </div>
-                        <div style={{ marginTop: 6, fontSize: 15, color: "#333" }}>
+                        <div >
                             <div><b>아이디</b>: {profile.username || "-"}</div>
                             <div><b>닉네임</b>: {profile.nickname || "-"}</div>
                             <div><b>이메일</b>: {profile.email || "-"}</div>
-                            <div style={{ marginTop: 6 }}>
+                            <div className="sx-3f"  >
                                 <b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}
                             </div>
                         </div>
@@ -289,14 +262,8 @@ const ProfilePage = () => {
                 </div>
 
                 {/* 하단 버튼 - 양옆 배치 */}
-                <div
-                    style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        alignItems: "center",
-                        marginTop: 12,
-                    }}
-                >
+                <div className="sx-3g"
+                     >
                     {!isMyProfile && (
                         <button
                             onClick={handleFollowToggle}
@@ -316,16 +283,9 @@ const ProfilePage = () => {
             </div>
 
             {/* 탭 */}
-            <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="sx-3h sx-3i"  >
                 <div
-                    style={{
-                        display: "inline-flex",
-                        border: "1px solid #e5e7eb",
-                        borderRadius: 999,
-                        overflow: "hidden",
-                        background: "#fff",
-                    }}
-                >
+                    >
                     <button
                         type="button"
                         onClick={() => setTab("my")}
@@ -362,9 +322,9 @@ const ProfilePage = () => {
 
             {/* 레시피 리스트 */}
             {loading ? (
-                <p style={{ marginTop: 12 }}>불러오는 중...</p>
+                <p className="sx-39 sx-39"  >불러오는 중...</p>
             ) : !activeList?.length ? (
-                <p style={{ marginTop: 12 }}>표시할 레시피가 없습니다.</p>
+                <p >표시할 레시피가 없습니다.</p>
             ) : (
                 <div style={styles.grid}>
                     {activeList.map((r) => {
@@ -393,9 +353,9 @@ const ProfilePage = () => {
                                     onError={(e) => (e.currentTarget.src = placeHolder)}
                                 />
                                 <div style={styles.body}>
-                                    <div style={{ fontWeight: 700, lineHeight: 1.3 }}>{subject}</div>
+                                    <div className="sx-3j sx-3k"  >{subject}</div>
                                     {r?.createdAt && (
-                                        <div style={{ fontSize: 13, color: "#555" }}>
+                                        <div >
                                             🗓 작성일: {new Date(r.createdAt).toLocaleDateString()}
                                         </div>
                                     )}

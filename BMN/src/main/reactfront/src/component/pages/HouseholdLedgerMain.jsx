@@ -2,7 +2,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "./HouseholdMain.css";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "/api" });
@@ -160,7 +159,7 @@ const HouseholdLedgerMain = () => {
 
     if (!authed) {
         return (
-            <div className="ledger-container" style={{ padding: 16 }}>
+            <div className="ledger-container sx-16" >
                 <h3>로그인이 필요합니다</h3>
                 <LoginBox onLoggedIn={() => setAuthed(true)} />
             </div>

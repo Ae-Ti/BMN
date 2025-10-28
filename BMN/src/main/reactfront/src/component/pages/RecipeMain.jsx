@@ -1,7 +1,6 @@
 // src/component/pages/RecipeMain.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
-import "./recipeMain.css";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 
@@ -167,10 +166,10 @@ const RecipeMain = () => {
     };
 
     return (
-        <div className="recipe-main">
+        <div className="recipe-main sx-4v">
             {/* 에러 노출(선택) */}
             {err && (
-                <div style={{ maxWidth: 1080, margin: "16px auto", color: "#b91c1c" }}>
+                <div >
                     에러: {String(err)}
                 </div>
             )}
@@ -197,7 +196,7 @@ const RecipeMain = () => {
             </div>
 
             {/* 즐겨찾기 섹션 */}
-            <h2 className="title" style={{ marginTop: 24 }}>
+            <h2 className="title sx-3" >
                 내 즐겨찾기
             </h2>
             <div className="recipe-list grid-4">

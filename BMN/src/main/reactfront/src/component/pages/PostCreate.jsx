@@ -123,20 +123,19 @@ const PostCreate = () => {
     };
 
     return (
-        <div style={{ maxWidth: 720, margin: "0 auto", padding: 16 }}>
-            <h2 style={{ marginBottom: 12 }}>레시피 등록</h2>
+        <div className="sx-2t sx-2u sx-2v"  >
+            <h2 >레시피 등록</h2>
 
-            <div style={{ display: "grid", gap: 12 }}>
+            <div >
                 {/* 제목 */}
                 <div>
                     <label>요리 이름</label>
-                    <input
+                    <input className="sx-2w"
                         type="text"
                         value={subject}
                         onChange={(e) => setSubject(e.target.value)}
                         placeholder="예) 김치볶음밥"
-                        style={{ width: "100%", padding: 8 }}
-                    />
+                         />
                 </div>
 
                 {/* 대표 사진 */}
@@ -150,8 +149,8 @@ const PostCreate = () => {
                         onChange={handlePhotoUpload}
                     />
                     {thumbnailPreview && (
-                        <div style={{ marginTop: 8 }}>
-                            <img src={thumbnailPreview} alt="thumbnail" style={{ maxWidth: "100%" }} />
+                        <div className="sx-2x sx-2y"  >
+                            <img src={thumbnailPreview} alt="thumbnail" />
                         </div>
                     )}
                 </div>
@@ -159,29 +158,27 @@ const PostCreate = () => {
                 {/* 재료 */}
                 <div>
                     <label>재료 추가</label>
-                    <div style={{ display: "flex", gap: 8, marginTop: 4 }}>
-                        <input
+                    <div className="sx-2z"  >
+                        <input className="sx-30"
                             type="text"
                             value={ingredientsName}
                             onChange={(e) => setIngredientsName(e.target.value)}
                             placeholder="재료명"
-                            style={{ flex: 1, padding: 8 }}
-                        />
-                        <input
+                             />
+                        <input className="sx-31"
                             type="text"
                             value={ingredientsLink}
                             onChange={(e) => setIngredientsLink(e.target.value)}
                             placeholder="구매 링크(선택)"
-                            style={{ flex: 2, padding: 8 }}
-                        />
+                             />
                         <button type="button" onClick={addIngredient}>
                             추가
                         </button>
                     </div>
                     {ingredientsList.length > 0 && (
-                        <ul style={{ marginTop: 8 }}>
+                        <ul className="sx-32 sx-6"  >
                             {ingredientsList.map((it, i) => (
-                                <li key={i} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                                <li key={i} >
                                     <span>
                                         {it.name} {it.link ? `— ${it.link}` : ""}
                                     </span>
@@ -195,48 +192,44 @@ const PostCreate = () => {
                 </div>
 
                 {/* 시간/도구/가격/설명 */}
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div className="sx-33"  >
                     <div>
                         <label>소요 시간(분)</label>
-                        <input
+                        <input className="sx-34"
                             type="number"
                             value={cookingTimeMinutes}
                             onChange={(e) => setCookingTimeMinutes(e.target.value)}
-                            style={{ width: "100%", padding: 8 }}
-                            min={0}
+                             min={0}
                         />
                     </div>
                     <div>
                         <label>조리 도구</label>
-                        <input
+                        <input className="sx-34"
                             type="text"
                             value={tools}
                             onChange={(e) => setTools(e.target.value)}
-                            style={{ width: "100%", padding: 8 }}
-                            placeholder="예) 국자, 후라이팬"
+                             placeholder="예) 국자, 후라이팬"
                         />
                     </div>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+                <div className="sx-33"  >
                     <div>
                         <label>총 예상 가격(원)</label>
-                        <input
+                        <input className="sx-34"
                             type="number"
                             value={estimatedPrice}
                             onChange={(e) => setEstimatedPrice(e.target.value)}
-                            style={{ width: "100%", padding: 8 }}
-                            min={0}
+                             min={0}
                         />
                     </div>
                     <div>
                         <label>조리 설명</label>
-                        <input
+                        <input className="sx-34"
                             type="text"
                             value={description}
                             onChange={(e) => setDescription(e.target.value)}
-                            style={{ width: "100%", padding: 8 }}
-                            placeholder="예) 센 불에서 3분간 볶기"
+                             placeholder="예) 센 불에서 3분간 볶기"
                         />
                     </div>
                 </div>
@@ -253,28 +246,20 @@ const PostCreate = () => {
                         onChange={handleStepsChange}
                     />
                     {stepPreviews.length > 0 && (
-                        <div
-                            style={{
-                                display: "grid",
-                                gridTemplateColumns: "repeat(auto-fill, minmax(120px,1fr))",
-                                gap: 8,
-                                marginTop: 8,
-                            }}
-                        >
+                        <div className="sx-35 sx-36"
+                             >
                             {stepPreviews.map((url, i) => (
-                                <div key={i} style={{ border: "1px solid #ddd", borderRadius: 8, padding: 8 }}>
-                                    <img
+                                <div key={i} >
+                                    <img className="sx-37"
                                         src={url}
                                         alt={`step-${i + 1}`}
-                                        style={{ width: "100%", height: 100, objectFit: "cover" }}
-                                    />
-                                    <input
+                                         />
+                                    <input className="sx-38"
                                         type="text"
                                         value={stepCaptions[i] ?? ""}
                                         onChange={(e) => updateCaption(i, e.target.value)}
                                         placeholder={`스텝 ${i + 1} 캡션(선택)`}
-                                        style={{ width: "100%", padding: 6, marginTop: 6 }}
-                                    />
+                                         />
                                 </div>
                             ))}
                         </div>
@@ -282,12 +267,11 @@ const PostCreate = () => {
                 </div>
 
                 {/* 제출 */}
-                <div style={{ marginTop: 12 }}>
+                <div className="sx-39 sx-3a"  >
                     <button
                         type="button"
                         onClick={handleSubmit}
-                        style={{ width: "100%", padding: 12, fontWeight: 600 }}
-                    >
+                        >
                         등록하기
                     </button>
                 </div>

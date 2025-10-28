@@ -155,27 +155,20 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
     if (loading) return <p>댓글 불러오는 중...</p>;
 
     return (
-        <div style={{ marginTop: 24 }}>
+        <div className="sx-3 sx-4"  >
             <h3>댓글</h3>
 
             {/* ✅ 작성 폼 */}
             <form
                 onSubmit={handleSubmit}
-                style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    gap: 8,
-                    marginBottom: 20,
-                }}
-            >
-                <textarea
+                >
+                <textarea className="sx-5"
                     value={newContent}
                     onChange={(e) => setNewContent(e.target.value)}
                     placeholder="댓글을 입력하세요"
                     rows={3}
-                    style={{ width: "100%", padding: 8, borderRadius: 6 }}
-                />
-                <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                     />
+                <div className="sx-6"  >
                     <label>별점:</label>
                     <select
                         value={newRating}
@@ -187,17 +180,9 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
                             </option>
                         ))}
                     </select>
-                    <button
+                    <button className="sx-7"
                         type="submit"
-                        style={{
-                            background: "#007bff",
-                            color: "white",
-                            padding: "6px 12px",
-                            border: "none",
-                            borderRadius: 6,
-                            cursor: "pointer",
-                        }}
-                    >
+                         >
                         등록
                     </button>
                 </div>
@@ -205,7 +190,7 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
 
             {/* ✅ 댓글 목록 */}
             {comments.length === 0 && <p>아직 댓글이 없습니다.</p>}
-            <ul style={{ listStyle: "none", padding: 0 }}>
+            <ul className="sx-8"  >
                 {comments.map((c) => {
                     const isMine =
                         (c.authorId != null &&
@@ -216,31 +201,18 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
                             c.authorUserName === userName);
 
                     return (
-                        <li
+                        <li className="sx-9"
                             key={c.id}
-                            style={{
-                                border: "1px solid #ddd",
-                                borderRadius: 8,
-                                padding: 12,
-                                marginBottom: 12,
-                            }}
-                        >
+                             >
                             {editingId === c.id ? (
                                 <>
-                                    <textarea
+                                    <textarea className="sx-a"
                                         value={editingContent}
                                         onChange={(e) => setEditingContent(e.target.value)}
                                         rows={3}
-                                        style={{ width: "100%", padding: 6 }}
-                                    />
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            alignItems: "center",
-                                            gap: 8,
-                                            marginTop: 6,
-                                        }}
-                                    >
+                                         />
+                                    <div className="sx-b"
+                                         >
                                         <label>별점:</label>
                                         <select
                                             value={editingRating}
@@ -254,80 +226,48 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
                                                 </option>
                                             ))}
                                         </select>
-                                        <button
+                                        <button className="sx-c"
                                             onClick={() => handleUpdate(c.id)}
-                                            style={{
-                                                background: "#28a745",
-                                                color: "white",
-                                                padding: "4px 10px",
-                                                border: "none",
-                                                borderRadius: 6,
-                                            }}
-                                        >
+                                             >
                                             저장
                                         </button>
-                                        <button
+                                        <button className="sx-d"
                                             onClick={() => setEditingId(null)}
-                                            style={{
-                                                background: "#ccc",
-                                                padding: "4px 10px",
-                                                border: "none",
-                                                borderRadius: 6,
-                                            }}
-                                        >
+                                             >
                                             취소
                                         </button>
                                     </div>
                                 </>
                             ) : (
                                 <>
-                                    <div
-                                        style={{
-                                            display: "flex",
-                                            justifyContent: "space-between",
-                                            alignItems: "center",
-                                        }}
-                                    >
+                                    <div className="sx-e"
+                                         >
                                         <strong>
                                             {c.authorDisplayName ?? c.authorUserName ?? "익명"}
                                         </strong>
-                                        <span style={{ color: "#999", fontSize: 13 }}>
+                                        <span className="sx-f"  >
                                             {c.createdAt
                                                 ? new Date(c.createdAt).toLocaleString()
                                                 : ""}
                                         </span>
                                     </div>
-                                    <div style={{ margin: "6px 0" }}>⭐ {c.rating}/5</div>
-                                    <div style={{ whiteSpace: "pre-wrap" }}>{c.content}</div>
+                                    <div className="sx-g sx-h sx-i"  >⭐ {c.rating}/5</div>
+                                    <div >{c.content}</div>
 
                                     {isMine && (
-                                        <div style={{ marginTop: 8, display: "flex", gap: 8 }}>
-                                            <button
+                                        <div >
+                                            <button className="sx-j"
                                                 onClick={() => {
                                                     setEditingId(c.id);
                                                     setEditingContent(c.content);
                                                     setEditingRating(c.rating);
                                                 }}
-                                                style={{
-                                                    background: "#4caf50",
-                                                    color: "white",
-                                                    padding: "4px 10px",
-                                                    border: "none",
-                                                    borderRadius: 6,
-                                                }}
-                                            >
+                                                 >
                                                 수정
                                             </button>
-                                            <button
+                                            <button className="sx-k"
                                                 onClick={() => handleDelete(c.id)}
-                                                style={{
-                                                    background: "#f44336",
-                                                    color: "white",
-                                                    padding: "4px 10px",
-                                                    border: "none",
-                                                    borderRadius: 6,
-                                                }}
-                                            >
+                                                 >
                                                 삭제
                                             </button>
                                         </div>

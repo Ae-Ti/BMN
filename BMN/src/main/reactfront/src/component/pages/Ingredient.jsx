@@ -1,7 +1,6 @@
 // src/component/pages/Ingredient.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import './Ingredient.css';
 
 const apiBase = 'http://localhost:8080';
 
@@ -302,23 +301,23 @@ const Ingredient = () => {
                 </div>
 
                 {/* 예상비용(고정) */}
-                <div className="cost-section" style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                <div className="cost-section sx-1h" >
                     <div><strong>예상비용</strong></div>
                     <div>{initialCost.toLocaleString()}원</div>
                 </div>
 
                 {/* 최종비용(선택합계) + 버튼들 */}
-                <div className="reflect-button" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-                    <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                <div className="reflect-button sx-1i sx-1j sx-1k" >
+                    <div >
                         <strong>최종비용(선택합계)</strong>
-                        <span style={{ fontSize: 18 }}>{finalTotal.toLocaleString()}원</span>
+                        <span >{finalTotal.toLocaleString()}원</span>
                     </div>
 
                     {/* ✅ 식단 슬롯 선택 */}
-                    <div style={{ display:'flex', gap:12, flexWrap:'wrap', alignItems:'center', marginTop: 4 }}>
-                        <span style={{ fontSize: 13, color:'#444' }}>식단 시간대:</span>
+                    <div className="sx-1l sx-1m sx-1n"  >
+                        <span >식단 시간대:</span>
                         {['아침','점심','저녁','간식'].map(opt => (
-                            <label key={opt} style={{ display:'inline-flex', alignItems:'center', gap:6, fontSize:13 }}>
+                            <label key={opt} >
                                 <input
                                     type="radio"
                                     name="mealSlot"
@@ -332,18 +331,16 @@ const Ingredient = () => {
                     </div>
 
                     {/* ✅ 식단 메모(선택) */}
-                    <input
+                    <input className="sx-1o"
                         type="text"
                         placeholder="메모(선택)"
                         value={mealNote}
                         onChange={(e)=> setMealNote(e.target.value)}
-                        style={{ padding: '6px 8px', border: '1px solid #ddd', borderRadius: 6 }}
-                    />
+                         />
 
                     {/* 가계부 반영 */}
-                    <button
-                        style={{ marginTop: 8, padding: '8px 12px' }}
-                        onClick={openConfirm}
+                    <button className="sx-1p"
+                         onClick={openConfirm}
                         disabled={Object.keys(checked).length === 0}
                         title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
                     >
@@ -351,9 +348,8 @@ const Ingredient = () => {
                     </button>
 
                     {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
-                    <button
-                        style={{ marginTop: 6, padding: '8px 12px' }}
-                        onClick={applyMealAndGo}
+                    <button className="sx-1q"
+                         onClick={applyMealAndGo}
                         title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
                         disabled={!recipeIdFromState}
                     >
@@ -363,7 +359,7 @@ const Ingredient = () => {
             </div>
 
             {noIngredients ? (
-                <div style={{ textAlign: 'center', paddingTop: '50px' }}>
+                <div className="sx-1r"  >
                     <h2>표시할 재료 정보가 없습니다.</h2>
                     <p>레시피 상세 페이지에서 '담기'를 눌러주세요.</p>
                 </div>
@@ -386,7 +382,7 @@ const Ingredient = () => {
                                         style={{ display: 'flex', gap: 6, alignItems: 'center' }}
                                     >
                                         <span>{name}</span>
-                                        {exists && <span style={{ color: '#b00020', fontSize: 12 }}>이미 있음</span>}
+                                        {exists && <span className="sx-1s"  >이미 있음</span>}
                                     </li>
                                 );
                             })}
@@ -394,9 +390,9 @@ const Ingredient = () => {
 
                         {/* 선택한 상품 요약 */}
                         {Object.keys(checked).length > 0 && (
-                            <div style={{ marginTop: 16 }}>
+                            <div className="sx-1t sx-1u"  >
                                 <h4>선택한 상품</h4>
-                                <ul style={{ fontSize: 13, color: '#444' }}>
+                                <ul >
                                     {Object.entries(checked).map(([k, v]) => (
                                         <li key={k}>
                                             {plain(v.title)} — {Number(v.price).toLocaleString()}원
@@ -408,15 +404,15 @@ const Ingredient = () => {
                     </div>
 
                     {/* 우측: 선택 재료의 링크/검색 결과 */}
-                    <div className="ingredient-link">
+                    <div className="ingredient-link sx-11">
                         {loading && <p>네이버 쇼핑에서 가격을 불러오는 중…</p>}
                         {err && (
-                            <div style={{ color: 'crimson' }}>
+                            <div >
                                 <p>{err}</p>
                                 {debug && (
                                     <details>
                                         <summary>응답 본문 보기</summary>
-                                        <pre style={{ whiteSpace: 'pre-wrap' }}>{debug}</pre>
+                                        <pre className="sx-1v"  >{debug}</pre>
                                     </details>
                                 )}
                             </div>
@@ -429,17 +425,17 @@ const Ingredient = () => {
                                         <h3>{selectedName} 구매처</h3>
 
                                         {/* 사용자 업로드 링크 (자동 가격반영 안됨) */}
-                                        <div style={{ margin: '8px 0 14px', fontSize: 14 }}>
-                                            <div style={{ marginBottom: 4, fontWeight: 600 }}>사용자 등록 구매링크</div>
+                                        <div className="sx-1w sx-1x"  >
+                                            <div >사용자 등록 구매링크</div>
                                             {userLink ? (
                                                 <div>
                                                     <a href={userLink} target="_blank" rel="noreferrer">{userLink}</a>
-                                                    <div style={{ color: '#888', fontSize: 12, marginTop: 4 }}>
+                                                    <div className="sx-1y"  >
                                                         이 링크는 자동 가격반영이 되지 않습니다.
                                                     </div>
                                                 </div>
                                             ) : (
-                                                <div style={{ color: '#888' }}>등록된 구매 링크가 없습니다.</div>
+                                                <div className="sx-1z"  >등록된 구매 링크가 없습니다.</div>
                                             )}
                                         </div>
 
@@ -447,13 +443,13 @@ const Ingredient = () => {
                                         {!priceMap || !matchedKey || !priceMap[matchedKey] || priceMap[matchedKey].length === 0 ? (
                                             <p>네이버 쇼핑 검색 결과가 없습니다.</p>
                                         ) : (
-                                            <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                                            <table className="sx-20 sx-21"  >
                                                 <thead>
                                                 <tr>
-                                                    <th style={{ width: 36 }}></th>
-                                                    <th style={{ textAlign: 'left' }}>상품명</th>
-                                                    <th style={{ textAlign: 'right' }}>가격</th>
-                                                    <th style={{ textAlign: 'left' }}>몰</th>
+                                                    <th ></th>
+                                                    <th className="sx-22 sx-23 sx-22"  >상품명</th>
+                                                    <th >가격</th>
+                                                    <th >몰</th>
                                                     <th>바로가기</th>
                                                 </tr>
                                                 </thead>
@@ -463,8 +459,8 @@ const Ingredient = () => {
                                                     const price = Number(it.lprice) || 0;
                                                     const isChecked = !!checked[rowKey];
                                                     return (
-                                                        <tr key={rowKey} style={{ borderTop: '1px solid #eee' }}>
-                                                            <td style={{ textAlign: 'center' }}>
+                                                        <tr className="sx-24 sx-25" key={rowKey}  >
+                                                            <td >
                                                                 <input
                                                                     type="checkbox"
                                                                     checked={isChecked}
@@ -473,7 +469,7 @@ const Ingredient = () => {
                                                                 />
                                                             </td>
                                                             <td>{renderTitleHTML(it.title)}</td>
-                                                            <td style={{ textAlign: 'right' }}>
+                                                            <td className="sx-23"  >
                                                                 {price.toLocaleString()}원
                                                             </td>
                                                             <td>{it.mallName}</td>
@@ -498,36 +494,28 @@ const Ingredient = () => {
 
             {/* ✅ 확인 모달 (최종비용만 표시) */}
             {confirmOpen && (
-                <div
-                    style={{
-                        position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.35)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999
-                    }}
-                    onClick={() => !submitting && setConfirmOpen(false)}
+                <div className="sx-26 sx-27"
+                     onClick={() => !submitting && setConfirmOpen(false)}
                 >
                     <div
-                        style={{
-                            width: 'min(560px, 92vw)', background: '#fff', borderRadius: 12,
-                            padding: 16, boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
-                        }}
                         onClick={(e) => e.stopPropagation()}
                     >
-                        <h3 style={{ marginTop: 0 }}>가계부에 반영할까요?</h3>
+                        <h3 className="sx-28 sx-29 sx-2a"  >가계부에 반영할까요?</h3>
 
                         {/* 선택 항목 목록 */}
-                        <div style={{ maxHeight: 240, overflow: 'auto', border: '1px solid #eee', borderRadius: 8, padding: 8 }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 14 }}>
+                        <div >
+                            <table >
                                 <thead>
                                 <tr>
-                                    <th style={{ textAlign: 'left' }}>항목</th>
-                                    <th style={{ textAlign: 'right' }}>금액</th>
+                                    <th className="sx-22 sx-23"  >항목</th>
+                                    <th >금액</th>
                                 </tr>
                                 </thead>
                                 <tbody>
                                 {Object.entries(checked).map(([k, v]) => (
-                                    <tr key={k} style={{ borderTop: '1px solid #f1f1f1' }}>
+                                    <tr className="sx-2b sx-23" key={k}  >
                                         <td>{plain(v.title)}</td>
-                                        <td style={{ textAlign: 'right' }}>{Number(v.price).toLocaleString()}원</td>
+                                        <td >{Number(v.price).toLocaleString()}원</td>
                                     </tr>
                                 ))}
                                 </tbody>
@@ -535,11 +523,11 @@ const Ingredient = () => {
                         </div>
 
                         {/* 최종비용만 표시 */}
-                        <div style={{ marginTop: 10, fontSize: 14 }}>
+                        <div className="sx-2c sx-2d"  >
                             최종비용(선택합계): <strong>{finalTotal.toLocaleString()}원</strong>
                         </div>
 
-                        <div style={{ display: 'flex', gap: 16, marginTop: 12, justifyContent: 'flex-end', alignItems: 'baseline' }}>
+                        <div >
                             <button onClick={() => setConfirmOpen(false)} disabled={submitting}>취소</button>
                             <button onClick={confirmApplyToLedger} disabled={submitting}>
                                 {submitting ? '반영 중…' : '확인'}

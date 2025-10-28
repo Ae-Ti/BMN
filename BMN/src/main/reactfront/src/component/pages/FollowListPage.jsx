@@ -220,7 +220,7 @@ const FollowListPage = () => {
     const tabLabel = tab === "followers" ? "팔로워" : "팔로잉";
 
     return (
-        <div style={{ padding: 16 }}>
+        <div className="sx-l"  >
             <h1>{username}의 {tabLabel} 목록</h1>
 
             {/* 탭 */}
@@ -241,8 +241,8 @@ const FollowListPage = () => {
                 </button>
             </div>
 
-            {loading && <p style={{ marginTop: 12 }}>불러오는 중...</p>}
-            {!loading && list.length === 0 && <p style={{ marginTop: 12 }}>표시할 항목이 없습니다.</p>}
+            {loading && <p className="sx-m sx-n"  >불러오는 중...</p>}
+            {!loading && list.length === 0 && <p >표시할 항목이 없습니다.</p>}
 
             {!loading && list.length > 0 && (
                 <div style={styles.grid}>

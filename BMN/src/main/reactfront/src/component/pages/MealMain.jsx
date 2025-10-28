@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
-import "./MealMain.css";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "/api" });

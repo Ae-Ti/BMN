@@ -1,6 +1,5 @@
 // src/component/Layout.jsx
 import React, { useEffect, useState, useCallback } from "react";
-import "./Layout.css";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
 
@@ -72,7 +71,7 @@ const Layout = () => {
                 </div>
 
                 <div className="auth-group">
-                    <form
+                    <form className="sx-1"
                         className="header-search"
                         onSubmit={(e) => {
                             e.preventDefault();
@@ -80,8 +79,7 @@ const Layout = () => {
                             if (!q) return;
                             navigate(`/recipes?q=${encodeURIComponent(q)}`);
                         }}
-                        style={{ display: "flex", alignItems: "center" }}
-                    >
+                         >
                         <input
                             type="text"
                             value={searchText}
@@ -90,7 +88,7 @@ const Layout = () => {
                             aria-label="레시피 검색"
                             className="search-input"
                         />
-                        <button type="submit" className="search-button" style={{ marginLeft: 8 }}>
+                        <button type="submit" className="search-button sx-2" >
                             검색
                         </button>
                     </form>

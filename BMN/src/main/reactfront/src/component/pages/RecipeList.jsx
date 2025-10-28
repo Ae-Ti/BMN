@@ -2,7 +2,6 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
-import "./recipeMain.css";
 import { onImgError } from "../lib/placeholder";
 
 axios.defaults.baseURL = "http://localhost:8080";
@@ -267,7 +266,7 @@ export default function RecipesList() {
 
     if (err) {
         return (
-            <div style={{ maxWidth: 1080, margin: "32px auto" }}>
+            <div className="sx-4q"  >
                 에러: {String(err)}
             </div>
         );
@@ -320,14 +319,14 @@ export default function RecipesList() {
     const displayed = items;
 
     return (
-        <div className="recipe-main" style={{ paddingTop: 12 }}>
+        <div className="recipe-main sx-4r sx-4s" >
             {qRaw ? (
-                <div style={{ marginBottom: 8 }}>
+                <div >
                     검색어: <strong>{qRaw}</strong>
                 </div>
             ) : null}
             <div className="section-header">
-                <h1 className="title" style={{ fontSize: 22, margin: 0 }}>
+                <h1 className="title sx-4t" >
                     레시피 목록
                 </h1>
             </div>
@@ -345,7 +344,7 @@ export default function RecipesList() {
                 style={{ height: 60, display: hasMore ? "block" : "none" }}
             >
                 {loading && (
-                    <div style={{ textAlign: "center", marginTop: 20 }}>불러오는 중…</div>
+                    <div className="sx-4u"  >불러오는 중…</div>
                 )}
             </div>
 
