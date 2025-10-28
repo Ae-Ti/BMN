@@ -83,3 +83,7 @@ src/main/resources/application-local.yml
 *.env
 .env.*
 .envrc
+
+# Prevent accidentally committed app config and report
+src/main/resources/application.yml
+프로젝트_평가_보고서.md
