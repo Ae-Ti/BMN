@@ -27,6 +27,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Page<Recipe> findAllByOrderByAverageRatingDescRatingCountDesc(Pageable pageable);// 평점순(평점→참여수)
     Page<Recipe> findByAuthor(SiteUser author, Pageable pageable);
 
+    /* ------------------ 검색 (간단한 텍스트 검색) ------------------ */
+    @Query(value = "SELECT DISTINCT r FROM Recipe r LEFT JOIN r.ingredientRows ir " +
+        "WHERE LOWER(r.subject) LIKE %:q% OR r.description LIKE %:q% OR LOWER(ir.name) LIKE %:q%",
+        countQuery = "SELECT COUNT(DISTINCT r) FROM Recipe r LEFT JOIN r.ingredientRows ir " +
+            "WHERE LOWER(r.subject) LIKE %:q% OR r.description LIKE %:q% OR LOWER(ir.name) LIKE %:q%")
+    Page<Recipe> searchByText(@Param("q") String q, Pageable pageable);
+
     /* ------------------ 원자적 증감 쿼리 ------------------ */
 
     /** 즐겨찾기 수 +1 */

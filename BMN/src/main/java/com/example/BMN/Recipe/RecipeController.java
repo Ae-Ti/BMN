@@ -243,6 +243,30 @@ public class RecipeController {
         return ResponseEntity.ok(result);
     }
 
+    /* ===================== 검색 (서버 사이드) ===================== */
+    @GetMapping("/api/search")
+    @ResponseBody
+    public ResponseEntity<?> searchApi(
+            @RequestParam(name = "q") String q,
+            @RequestParam(required = false) Integer page,
+            @RequestParam(required = false) Integer size
+    ) {
+        int p = (page != null) ? page : 0;
+        int s = (size != null) ? size : 12;
+        if (q == null || q.trim().isEmpty()) {
+            // 빈 쿼리는 트렌딩으로 위임
+            Page<Recipe> paged = recipeService.listTrending(p, s);
+            List<RecipeDTO> content = paged.getContent().stream().map(RecipeDTO::new).toList();
+            PageEnvelope<RecipeDTO> result = new PageEnvelope<>(content, paged.getNumber(), paged.getSize(), paged.getTotalElements(), paged.isLast());
+            return ResponseEntity.ok(result);
+        }
+
+        Page<Recipe> paged = recipeService.searchByText(q, p, s);
+        List<RecipeDTO> content = paged.getContent().stream().map(RecipeDTO::new).toList();
+        PageEnvelope<RecipeDTO> result = new PageEnvelope<>(content, paged.getNumber(), paged.getSize(), paged.getTotalElements(), paged.isLast());
+        return ResponseEntity.ok(result);
+    }
+
     // 공통 PageEnvelope DTO
     public record PageEnvelope<T>(
             List<T> content,

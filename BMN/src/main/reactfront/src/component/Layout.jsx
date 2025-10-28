@@ -2,7 +2,6 @@
 import React, { useEffect, useState, useCallback } from "react";
 import "./Layout.css";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
-import RecipeCategoryTabs from "./pages/RecipeCategoryTabs";
 import LogoutButton from "./LogoutButton";
 
 const TOKEN_KEY = "token";
@@ -23,6 +22,18 @@ const isTokenValid = (raw) => {
 const Layout = () => {
     const navigate = useNavigate();
     const location = useLocation();
+    const [searchText, setSearchText] = useState("");
+
+    // Keep header search input in sync with URL q when on /recipes
+    useEffect(() => {
+        try {
+            const params = new URLSearchParams(location.search);
+            const q = params.get("q") || "";
+            setSearchText(q);
+        } catch (e) {
+            // ignore
+        }
+    }, [location.pathname, location.search]);
     const readAuthed = () => isTokenValid(localStorage.getItem(TOKEN_KEY));
     const [authed, setAuthed] = useState(readAuthed());
 
@@ -61,7 +72,28 @@ const Layout = () => {
                 </div>
 
                 <div className="auth-group">
-                    <input type="text" placeholder="검색..." className="search-input" />
+                    <form
+                        className="header-search"
+                        onSubmit={(e) => {
+                            e.preventDefault();
+                            const q = String(searchText || "").trim();
+                            if (!q) return;
+                            navigate(`/recipes?q=${encodeURIComponent(q)}`);
+                        }}
+                        style={{ display: "flex", alignItems: "center" }}
+                    >
+                        <input
+                            type="text"
+                            value={searchText}
+                            onChange={(e) => setSearchText(e.target.value)}
+                            placeholder="궁금한 레시피가 있나요?"
+                            aria-label="레시피 검색"
+                            className="search-input"
+                        />
+                        <button type="submit" className="search-button" style={{ marginLeft: 8 }}>
+                            검색
+                        </button>
+                    </form>
                     {!authed ? (
                         <>
                             <button className="auth-button" onClick={() => navigate("/signup")}>
@@ -77,8 +109,7 @@ const Layout = () => {
                 </div>
             </header>
 
-            <RecipeCategoryTabs />
-
+            
             <main>
                 <Outlet />
             </main>

@@ -416,6 +416,60 @@ public class RecipeService {
         return new PageImpl<>(pageContent, basePage.getPageable(), basePage.getTotalElements());
     }
 
+    /** 검색 (간단한 텍스트 기반, 페이징) */
+    @Transactional
+    public Page<Recipe> searchByText(String q, int page, int size) {
+        if (q == null) q = "";
+        String lower = q.trim().toLowerCase();
+        if (size <= 0) size = 12;
+        if (page < 0) page = 0;
+
+        Pageable pageable = PageRequest.of(page, size);
+        Page<Recipe> basePage = recipeRepository.searchByText(lower, pageable);
+        List<Recipe> baseList = basePage.getContent();
+        if (baseList.isEmpty()) return basePage;
+
+        // compute a lightweight similarity score combining text matches and simple signals
+        Map<Long, Long> favCounts = favoriteRepository.countByRecipeIds(
+                baseList.stream().map(Recipe::getId).toList()
+        );
+
+        record Scored(Recipe r, double score) {}
+        List<Scored> scored = baseList.stream().map(r -> {
+            double score = 0.0;
+            try {
+                String combined = ((r.getSubject() == null) ? "" : r.getSubject()) + "\n" +
+                        ((r.getDescription() == null) ? "" : r.getDescription());
+                String combinedLower = combined.toLowerCase();
+                if (combinedLower.contains(lower)) score += 50.0;
+                // extra weight for subject occurrences
+                if (r.getSubject() != null && r.getSubject().toLowerCase().contains(lower)) score += 30.0;
+            } catch (Exception ignored) {}
+
+            // ingredient name matches
+            try {
+                if (r.getIngredientRows() != null) {
+                    for (var ing : r.getIngredientRows()) {
+                        if (ing == null || ing.getName() == null) continue;
+                        if (ing.getName().toLowerCase().contains(lower)) score += 20.0;
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            // trending signals
+            long views = Optional.ofNullable(r.getViewCount()).orElse(0L);
+            double fav = favCounts.getOrDefault(r.getId(), 0L);
+            double rating = Optional.ofNullable(r.getAverageRating()).orElse(0.0);
+            long ratingCnt = Optional.ofNullable(r.getRatingCount()).orElse(0);
+            score += Math.log1p(views) * 0.3 + fav * 1.0 + rating * Math.log1p(ratingCnt) * 1.5;
+
+            return new Scored(r, score);
+        }).sorted((a, b) -> Double.compare(b.score, a.score)).toList();
+
+        List<Recipe> pageContent = scored.stream().map(Scored::r).toList();
+        return new PageImpl<>(pageContent, basePage.getPageable(), basePage.getTotalElements());
+    }
+
     /** 내가 작성한 레시피 (페이지네이션) */
     @Transactional
     public Page<Recipe> listMyRecipes(int page, int size) {

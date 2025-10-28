@@ -1,17 +1,8 @@
 import React from "react";
 
-const categories = ["맞춤레시피", "초스피드", "최신", "요리고수", "가성비"];
-
-const RecipeCategoryTabs = () => {
-  return (
-    <div className="recipe-tabs">
-      {categories.map((category) => (
-        <button key={category} className="tab-button">
-          {category}
-        </button>
-      ))}
-    </div>
-  );
-};
+// RecipeCategoryTabs has been removed per project request.
+// Keep a no-op default export to avoid accidental import errors
+// in any leftover build artifacts or references.
+const RecipeCategoryTabs = () => null;
 
 export default RecipeCategoryTabs;

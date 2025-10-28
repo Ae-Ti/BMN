@@ -1,6 +1,6 @@
 // src/component/pages/RecipesList.jsx
 import React, { useEffect, useRef, useState, useCallback } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import "./recipeMain.css";
 import { onImgError } from "../lib/placeholder";
@@ -49,6 +49,12 @@ const thumbUrl = (r) =>
 
 export default function RecipesList() {
     const navigate = useNavigate();
+    const location = useLocation();
+
+    // parse query parameter `q` for search
+    const searchParams = new URLSearchParams(location.search);
+    const qRaw = String(searchParams.get("q") || "").trim();
+    const q = qRaw.toLowerCase();
 
     const [items, setItems] = useState([]);
     const [hasMore, setHasMore] = useState(true);
@@ -59,6 +65,12 @@ export default function RecipesList() {
     const loadingRef = useRef(false);
     const seenIdsRef = useRef(new Set());
     const loaderRef = useRef(null);
+    const initRef = useRef({ q: null, done: false });
+    const hasMoreRef = useRef(hasMore);
+
+    useEffect(() => {
+        hasMoreRef.current = hasMore;
+    }, [hasMore]);
 
     const appendUnique = (arr) => {
         const seen = seenIdsRef.current;
@@ -72,8 +84,14 @@ export default function RecipesList() {
         if (filtered.length) setItems((prev) => [...prev, ...filtered]);
     };
 
+    // When searching (q present), we still page through the same endpoints but
+    // only append items that match the query. This lets the client attempt to
+    // find matches across multiple pages even if the server doesn't provide a
+    // dedicated search API.
+    const MAX_SEARCH_PAGES = 20; // safety cap so we don't endlessly fetch
+
     const fetchTrendingPage = useCallback(async () => {
-        if (loadingRef.current || !hasMore) return;
+        if (loadingRef.current || !hasMoreRef.current) return;
         loadingRef.current = true;
         setLoading(true);
 
@@ -82,10 +100,19 @@ export default function RecipesList() {
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
 
         try {
-            const res = await axios.get("/recipe/api/trending", {
-                params: { page: p, size: PAGE_SIZE },
-                headers,
-            });
+            let res;
+            if (q) {
+                // server-side search endpoint returns PageEnvelope when page param provided
+                res = await axios.get("/recipe/api/search", {
+                    params: { q, page: p, size: PAGE_SIZE },
+                    headers,
+                });
+            } else {
+                res = await axios.get("/recipe/api/trending", {
+                    params: { page: p, size: PAGE_SIZE },
+                    headers,
+                });
+            }
 
             let list = [];
             let total = null;
@@ -118,12 +145,36 @@ export default function RecipesList() {
 
                 if (res2.data?.content && Array.isArray(res2.data.content)) {
                     const pageList = res2.data.content;
-                    appendUnique(pageList);
+                    if (q) {
+                        const lower = q;
+                        const matched = pageList.filter((r) => {
+                            try {
+                                return JSON.stringify(r).toLowerCase().includes(lower);
+                            } catch {
+                                return false;
+                            }
+                        });
+                        appendUnique(matched);
+                    } else {
+                        appendUnique(pageList);
+                    }
                     setHasMore(!res2.data.last);
                     if (pageList.length > 0) pageRef.current = p + 1;
                 } else if (Array.isArray(res2.data)) {
                     const list2 = res2.data;
-                    appendUnique(list2);
+                    if (q) {
+                        const lower = q;
+                        const matched = list2.filter((r) => {
+                            try {
+                                return JSON.stringify(r).toLowerCase().includes(lower);
+                            } catch {
+                                return false;
+                            }
+                        });
+                        appendUnique(matched);
+                    } else {
+                        appendUnique(list2);
+                    }
                     setHasMore(list2.length === PAGE_SIZE);
                     if (list2.length > 0) pageRef.current = p + 1;
                 } else {
@@ -137,26 +188,73 @@ export default function RecipesList() {
             loadingRef.current = false;
             setLoading(false);
         }
-    }, [hasMore]);
+    }, [q]);
 
+    // Infinite-scroll observer: call fetchTrendingPage when the bottom sentinel
+    // comes into view. Using an IntersectionObserver prevents accidental
+    // repeated immediate requests and centralizes the paging trigger.
     useEffect(() => {
-        fetchTrendingPage();
+        const el = loaderRef.current;
+        if (!el) return;
+
+        const obs = new IntersectionObserver(
+            (entries) => {
+                for (const entry of entries) {
+                    if (entry.isIntersecting) {
+                        // trigger load for next page
+                        fetchTrendingPage();
+                    }
+                }
+            },
+            {
+                root: null,
+                rootMargin: "200px",
+                threshold: 0.1,
+            }
+        );
+
+        obs.observe(el);
+        return () => {
+            try {
+                obs.disconnect();
+            } catch (e) {
+                // ignore
+            }
+        };
     }, [fetchTrendingPage]);
 
     useEffect(() => {
-        if (!loaderRef.current) return;
-        const io = new IntersectionObserver(
-            (entries) => {
-                const ent = entries[0];
-                if (ent.isIntersecting && !loadingRef.current && hasMore) {
-                    fetchTrendingPage();
-                }
-            },
-            { rootMargin: "200px 0px", threshold: 0 }
-        );
-        io.observe(loaderRef.current);
-        return () => io.disconnect();
-    }, [fetchTrendingPage, hasMore]);
+        // On mount or when query changes: reset pagination when searching.
+        pageRef.current = 0;
+        seenIdsRef.current.clear();
+        setItems([]);
+        setHasMore(true);
+        setErr(null);
+
+        // ensure we only prime once per q to avoid duplicate initial requests
+        initRef.current = { q, done: false };
+
+        let cancelled = false;
+
+        const primeSearch = async () => {
+            if (cancelled) return;
+            // guard: if already primed for this q, skip
+            if (initRef.current.done && initRef.current.q === q) return;
+            initRef.current.done = true;
+            try {
+                await fetchTrendingPage();
+            } catch (e) {
+                // swallow; fetchTrendingPage handles errors into state
+            }
+        };
+
+        // start initial load
+        primeSearch();
+
+        return () => {
+            cancelled = true;
+        };
+    }, [q]);
 
     const handleUploadClick = () => {
         const to = "/recipes/create";
@@ -218,8 +316,16 @@ export default function RecipesList() {
         );
     };
 
+    // Server now provides search results when q is present, so just display items
+    const displayed = items;
+
     return (
         <div className="recipe-main" style={{ paddingTop: 12 }}>
+            {qRaw ? (
+                <div style={{ marginBottom: 8 }}>
+                    검색어: <strong>{qRaw}</strong>
+                </div>
+            ) : null}
             <div className="section-header">
                 <h1 className="title" style={{ fontSize: 22, margin: 0 }}>
                     레시피 목록
@@ -228,7 +334,7 @@ export default function RecipesList() {
 
             {/* ✅ 4열 그리드 */}
             <div className="recipe-list grid-4">
-                {items.map((r) => (
+                {displayed.map((r) => (
                     <Card key={r.id} r={r} />
                 ))}
             </div>
