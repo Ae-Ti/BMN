@@ -6,6 +6,49 @@ import { onImgError } from "../lib/placeholder";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
+// ✅ 이미지 리사이징 헬퍼
+async function resizeImage(file, options) {
+    const { maxWidth, maxHeight, quality } = options;
+    return new Promise((resolve, reject) => {
+        const img = document.createElement("img");
+        img.src = URL.createObjectURL(file);
+        img.onload = () => {
+            const canvas = document.createElement("canvas");
+            let { width, height } = img;
+
+            if (width > height) {
+                if (width > maxWidth) {
+                    height = Math.round((height * maxWidth) / width);
+                    width = maxWidth;
+                }
+            } else {
+                if (height > maxHeight) {
+                    width = Math.round((width * maxHeight) / height);
+                    height = maxHeight;
+                }
+            }
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext("2d");
+            ctx.drawImage(img, 0, 0, width, height);
+
+            canvas.toBlob(
+                (blob) => {
+                    if (!blob) {
+                        reject(new Error("Canvas is empty"));
+                        return;
+                    }
+                    resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+                },
+                "image/jpeg",
+                quality
+            );
+        };
+        img.onerror = (err) => reject(err);
+    });
+}
+
+
 export default function RecipeForm() {
     const navigate = useNavigate();
     const { id } = useParams();
@@ -55,13 +98,25 @@ export default function RecipeForm() {
             });
     }, [id, isEdit]);
 
-    function handleThumbChange(e) {
+    async function handleThumbChange(e) {
         const f = e.target.files?.[0] || null;
         if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
             URL.revokeObjectURL(thumbnailPreview);
         }
-        setThumbnail(f);
-        setThumbnailPreview(f ? URL.createObjectURL(f) : null);
+        if (f) {
+            try {
+                const resizedFile = await resizeImage(f, { maxWidth: 500, maxHeight: 500, quality: 0.8 });
+                setThumbnail(resizedFile);
+                setThumbnailPreview(URL.createObjectURL(resizedFile));
+            } catch (error) {
+                console.error("Thumbnail resize failed:", error);
+                setThumbnail(f); // fallback to original
+                setThumbnailPreview(URL.createObjectURL(f));
+            }
+        } else {
+            setThumbnail(null);
+            setThumbnailPreview(null);
+        }
     }
 
     const addIngredient = () => setIngredients([...ingredients, { name: "", link: "" }]);
@@ -77,28 +132,46 @@ export default function RecipeForm() {
     };
 
     const addNewStep = () => setNewSteps([...newSteps, { file: null, description: "", previewUrl: null }]);
-    const updateNewStep = (idx, field, value) => {
-        setNewSteps((prev) => {
-            const copy = [...prev];
-            if (field === "file") {
-                if (copy[idx].previewUrl && copy[idx].previewUrl.startsWith("blob:")) {
-                    try { URL.revokeObjectURL(copy[idx].previewUrl); } catch {}
+    const updateNewStep = async (idx, field, value) => {
+        if (field === "file") {
+            const file = value || null;
+            let resizedFile = null;
+            let previewUrl = null;
+
+            if (file) {
+                try {
+                    resizedFile = await resizeImage(file, { maxWidth: 500, maxHeight: 500, quality: 0.8 });
+                    previewUrl = URL.createObjectURL(resizedFile);
+                } catch (error) {
+                    console.error(`Step ${idx} resize failed:`, error);
+                    resizedFile = file; // fallback to original
+                    previewUrl = URL.createObjectURL(file);
                 }
-                const file = value || null;
-                copy[idx].file = file;
-                copy[idx].previewUrl = file ? URL.createObjectURL(file) : null;
-            } else {
-                copy[idx][field] = value;
             }
-            return copy;
-        });
+
+            setNewSteps(prevSteps =>
+                prevSteps.map((step, i) => {
+                    if (i !== idx) return step;
+                    if (step.previewUrl && step.previewUrl.startsWith("blob:")) {
+                        URL.revokeObjectURL(step.previewUrl);
+                    }
+                    return { ...step, file: resizedFile, previewUrl: previewUrl };
+                })
+            );
+        } else {
+            setNewSteps(prevSteps =>
+                prevSteps.map((step, i) =>
+                    i === idx ? { ...step, [field]: value } : step
+                )
+            );
+        }
     };
     const removeNewStep = (idx) => {
         setNewSteps((prev) => {
             const copy = [...prev];
             const target = copy[idx];
             if (target?.previewUrl && target.previewUrl.startsWith("blob:")) {
-                try { URL.revokeObjectURL(target.previewUrl); } catch {}
+                try { URL.revokeObjectURL(target.previewUrl); } catch {} 
             }
             copy.splice(idx, 1);
             return copy;
@@ -114,11 +187,11 @@ export default function RecipeForm() {
     useEffect(() => {
         return () => {
             if (thumbnailPreview && thumbnailPreview.startsWith("blob:")) {
-                try { URL.revokeObjectURL(thumbnailPreview); } catch {}
+                try { URL.revokeObjectURL(thumbnailPreview); } catch {} 
             }
             newSteps.forEach((s) => {
                 if (s.previewUrl && s.previewUrl.startsWith("blob:")) {
-                    try { URL.revokeObjectURL(s.previewUrl); } catch {}
+                    try { URL.revokeObjectURL(s.previewUrl); } catch {} 
                 }
             });
         };
@@ -245,27 +318,6 @@ export default function RecipeForm() {
                     <button type="button" onClick={addIngredient}>재료 추가</button>
                 </div>
 
-                {/* 기존 스텝 */}
-                {isEdit && existingSteps.length > 0 && (
-                    <div className="sx-46 sx-4l"  >
-                        <h3>기존 단계</h3>
-                        {existingSteps.map((s) => (
-                            <div key={s.id} >
-                                <div>
-                                    <strong>Step {s.stepOrder ?? s.stepIndex}</strong> {s.description ?? s.caption}
-                                </div>
-                                {s.imageUrl && (
-                                    <img className="sx-4m"
-                                        src={s.imageUrl}
-                                        alt="step"
-                                         onError={onImgError}
-                                    />
-                                )}
-                                <button type="button" onClick={() => handleRemoveExistingStep(s.id)}>삭제</button>
-                            </div>
-                        ))}
-                    </div>
-                )}
 
                 {/* 새 스텝 */}
                 <div className="sx-46 sx-4n"  >
@@ -297,7 +349,29 @@ export default function RecipeForm() {
                     <button type="button" onClick={addNewStep}>단계 추가</button>
                 </div>
 
-                <button className="sx-46" type="submit"  >
+                {/* 기존 스텝 */}
+                {isEdit && existingSteps.length > 0 && (
+                    <div className="sx-46 sx-4l"  >
+                        <h3>기존 단계</h3>
+                        {existingSteps.map((s) => (
+                            <div key={s.id} >
+                                <div>
+                                    <strong>Step {s.stepOrder ?? s.stepIndex}</strong> {s.description ?? s.caption}
+                                </div>
+                                {s.imageUrl && (
+                                    <img className="sx-4m"
+                                        src={s.imageUrl}
+                                        alt="step"
+                                         onError={onImgError}
+                                    />
+                                )}
+                                <button type="button" onClick={() => handleRemoveExistingStep(s.id)}>삭제</button>
+                            </div>
+                        ))}
+                    </div>
+                )}
+
+                <button className="sx-submit" type="submit"  >
                     {isEdit ? "수정 완료" : "등록"}
                 </button>
             </form>

@@ -273,29 +273,12 @@ export default function RecipeDetail() {
         .filter((x) => x.name && x.name.trim().length > 0);
 
     return (
-        <div className="sx-3n sx-3o sx-3p"  >
+        <div className="recipe-detail-page"  >
             <div
                 >
                 <Link to="/recipes" >
                     ← 목록으로
                 </Link>
-
-                {canEditOrDelete && (
-                    <div className="sx-3q"  >
-                        <button className="sx-3r"
-                            type="button"
-                            onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
-                             >
-                            수정
-                        </button>
-                        <button className="sx-3s"
-                            type="button"
-                            onClick={handleDelete}
-                             >
-                            삭제
-                        </button>
-                    </div>
-                )}
             </div>
 
             {/* 우하단: 담기 + 즐겨찾기 */}
@@ -318,24 +301,14 @@ export default function RecipeDetail() {
                     onClick={handleToggleFavorite}
                     aria-label={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                     title={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
-                    style={{
-                        display: "inline-flex",
-                        alignItems: "center",
-                        gap: 6,
-                        padding: "10px 16px",
-                        borderRadius: 50,
-                        border: "1px solid #ddd",
-                        background: isFav ? "#ffe8ec" : "#ffffff",
-                        color: isFav ? "#d81b60" : "#222",
-                        cursor: "pointer",
-                    }}
+                    className={`favorite-btn ${isFav ? "favorited" : ""}`}
                 >
                     <span className="sx-3v sx-3w"  >{isFav ? "♥" : "♡"}</span>
                     <span >{favCount ?? 0}</span>
                 </button>
             </div>
 
-            {/* 제목 + 작성자 배지 */}
+            {/* 제목 + 작성자 배지 + 수정/삭제 버튼 */}
             <div className="sx-3x sx-3y"
                  >
                 <h1 >{recipe.subject ?? "(제목 없음)"}</h1>
@@ -371,6 +344,22 @@ export default function RecipeDetail() {
               </span>
                         </Link>
                     ))}
+                {canEditOrDelete && (
+                    <div className="sx-3q"  >
+                        <button className="sx-3r"
+                            type="button"
+                            onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
+                             >
+                            수정
+                        </button>
+                        <button className="sx-3s"
+                            type="button"
+                            onClick={handleDelete}
+                             >
+                            삭제
+                        </button>
+                    </div>
+                )}
             </div>
 
             {/* 메타 줄 */}
@@ -395,50 +384,54 @@ export default function RecipeDetail() {
                 />
             )}
 
-            {recipe.description && (
-                <>
-                    <h3 className="sx-46 sx-47"  >설명</h3>
-                    <p >{recipe.description}</p>
-                </>
-            )}
+            {(recipe.description || ingredientRows.length > 0 || (recipe.tools && recipe.tools.trim())) && (
+                <div className="content-card">
+                    {recipe.description && (
+                        <div className="card-section">
+                            <h3 className="sx-46 sx-47"  >설명</h3>
+                            <p >{recipe.description}</p>
+                        </div>
+                    )}
 
-            {ingredientRows.length > 0 && (
-                <>
-                    <h3>재료</h3>
-                    <ul className="sx-48"  >
-                        {ingredientRows.map((it) => {
-                            const hasLink = !!(it.link && it.link.trim());
-                            const href = hasLink ? normalizeLink(it.link.trim()) : null;
-                            return (
-                                <li className="sx-49"
-                                    key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
-                                     >
-                                    <span>{it.name}</span>
-                                    {hasLink && (
-                                        <>
-                                            <span className="sx-4a"  >·</span>
-                                            <a className="sx-4b"
-                                                href={href}
-                                                target="_blank"
-                                                rel="noreferrer"
-                                                 title={href}
-                                            >
-                                                구매링크
-                                            </a>
-                                        </>
-                                    )}
-                                </li>
-                            );
-                        })}
-                    </ul>
-                </>
-            )}
+                    {ingredientRows.length > 0 && (
+                        <div className="card-section">
+                            <h3>재료</h3>
+                            <ul className="sx-48"  >
+                                {ingredientRows.map((it) => {
+                                    const hasLink = !!(it.link && it.link.trim());
+                                    const href = hasLink ? normalizeLink(it.link.trim()) : null;
+                                    return (
+                                        <li className="sx-49"
+                                            key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
+                                             >
+                                            <span>{it.name}</span>
+                                            {hasLink && (
+                                                <>
+                                                    <span className="sx-4a"  >·</span>
+                                                    <a className="sx-4b"
+                                                        href={href}
+                                                        target="_blank"
+                                                        rel="noreferrer"
+                                                         title={href}
+                                                    >
+                                                        구매링크
+                                                    </a>
+                                                </>
+                                            )}
+                                        </li>
+                                    );
+                                })}
+                            </ul>
+                        </div>
+                    )}
 
-            {recipe.tools && recipe.tools.trim() && (
-                <>
-                    <h3>도구</h3>
-                    <p className="sx-4c"  >{recipe.tools}</p>
-                </>
+                    {recipe.tools && recipe.tools.trim() && (
+                        <div className="card-section">
+                            <h3>도구</h3>
+                            <p className="sx-4c"  >{recipe.tools}</p>
+                        </div>
+                    )}
+                </div>
             )}
 
             {Array.isArray(steps) && steps.length > 0 && (

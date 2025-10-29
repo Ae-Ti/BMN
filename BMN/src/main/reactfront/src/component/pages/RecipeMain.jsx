@@ -179,7 +179,7 @@ const RecipeMain = () => {
                 <div className="section-left">
                     <h2 className="title">베스트 레시피</h2>
                     <button type="button" className="more-btn" onClick={() => navigate("/recipes")}>
-                        더보기
+                        <span>더보기</span>
                         <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
                             <path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z" />
                         </svg>
@@ -211,7 +211,7 @@ const RecipeMain = () => {
 
             {/* 업로드 버튼 */}
             <button className="fab-upload" onClick={handleUploadClick}>
-                업로드
+                레시피 업로드 +
             </button>
         </div>
     );

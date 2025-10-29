@@ -107,7 +107,7 @@ export default function RecipesList() {
                     headers,
                 });
             } else {
-                res = await axios.get("/recipe/api/trending", {
+                res = await axios.get("/recipe/data", {
                     params: { page: p, size: PAGE_SIZE },
                     headers,
                 });
@@ -189,37 +189,19 @@ export default function RecipesList() {
         }
     }, [q]);
 
-    // Infinite-scroll observer: call fetchTrendingPage when the bottom sentinel
-    // comes into view. Using an IntersectionObserver prevents accidental
-    // repeated immediate requests and centralizes the paging trigger.
+    // Infinite scroll using a scroll event listener
     useEffect(() => {
-        const el = loaderRef.current;
-        if (!el) return;
-
-        const obs = new IntersectionObserver(
-            (entries) => {
-                for (const entry of entries) {
-                    if (entry.isIntersecting) {
-                        // trigger load for next page
-                        fetchTrendingPage();
-                    }
-                }
-            },
-            {
-                root: null,
-                rootMargin: "200px",
-                threshold: 0.1,
+        const handleScroll = () => {
+            // Fetch when the user has scrolled to 300px from the bottom
+            if (window.innerHeight + document.documentElement.scrollTop < document.documentElement.offsetHeight - 300) {
+                return;
             }
-        );
-
-        obs.observe(el);
-        return () => {
-            try {
-                obs.disconnect();
-            } catch (e) {
-                // ignore
-            }
+            // Call fetcher, it has its own guards for loading/hasMore
+            fetchTrendingPage();
         };
+
+        window.addEventListener('scroll', handleScroll, { passive: true });
+        return () => window.removeEventListener('scroll', handleScroll);
     }, [fetchTrendingPage]);
 
     useEffect(() => {
@@ -254,6 +236,29 @@ export default function RecipesList() {
             cancelled = true;
         };
     }, [q]);
+
+    // Effect to fetch more pages if the initial content does not fill the viewport
+    useEffect(() => {
+        // Only run this check when loading has just finished.
+        if (loading || !hasMore) {
+            return;
+        }
+
+        const checkAndLoad = () => {
+            if (loaderRef.current) {
+                const loaderTop = loaderRef.current.getBoundingClientRect().top;
+                // If the loader element is visible in the viewport, we need more content.
+                if (loaderTop < window.innerHeight) {
+                    fetchTrendingPage();
+                }
+            }
+        };
+
+        // Check after a short delay to allow the DOM to update.
+        const timer = setTimeout(checkAndLoad, 100);
+        return () => clearTimeout(timer);
+
+    }, [loading, hasMore, items, fetchTrendingPage]);
 
     const handleUploadClick = () => {
         const to = "/recipes/create";
@@ -354,7 +359,7 @@ export default function RecipesList() {
                 onClick={handleUploadClick}
                 aria-label="레시피 업로드"
             >
-                업로드
+                레시피 업로드 +
             </button>
         </div>
     );
