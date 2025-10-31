@@ -465,7 +465,9 @@ export default function RecipeDetail() {
                 </>
             )}
 
-            <RecipeComments recipeId={recipe.id} onAvgChange={setAvgRating} />
+            <div className="comment-section-card">
+                <RecipeComments recipeId={recipe.id} onAvgChange={setAvgRating} />
+            </div>
         </div>
     );
 }

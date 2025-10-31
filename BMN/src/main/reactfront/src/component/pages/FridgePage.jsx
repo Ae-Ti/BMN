@@ -163,9 +163,8 @@ const FridgePage = () => {
     );
 
     return (
-        <div className="sx-p sx-q sx-r sx-s"  >
-            <div
-                >
+        <div className="page-container">
+            <div className="fridge-header">
                 <h1 >냉장고</h1>
                 <div >
                     <button className="sx-t"
@@ -180,8 +179,7 @@ const FridgePage = () => {
             {tabUI}
 
             {/* 입력 폼 */}
-            <div className="sx-u"
-                 >
+            <div className="fridge-input-form">
                 <input
                     placeholder="이름"
                     value={form.name}
@@ -227,31 +225,22 @@ const FridgePage = () => {
             ) : items.length === 0 ? (
                 <p>해당 카테고리에 항목이 없습니다.</p>
             ) : (
-                <table className="sx-x sx-y"  >
-                    <thead>
-                    <tr >
-                        <th>이름</th>
-                        <th>카테고리</th>
-                        <th>수량</th>
-                        <th>유통기한</th>
-                        <th>관리</th>
-                    </tr>
-                    </thead>
-                    <tbody>
+                <div className="fridge-grid">
+
                     {items.map((it) => (
-                        <tr className="sx-z" key={it.id}  >
-                            <td>
+                        <div className="fridge-card" key={it.id}>
+                            <div className="fridge-card-name">
                                 {it.name}
                                 {it.unit ? ` (${it.unit})` : ""}
-                            </td>
-                            <td>
+                            </div>
+                            <div className="fridge-card-category">
                                 {it.category === "REFRIGERATED"
                                     ? "냉장"
                                     : it.category === "FROZEN"
                                         ? "냉동"
                                         : "상온"}
-                            </td>
-                            <td>
+                            </div>
+                            <div className="fridge-card-quantity">
                                 <button
                                     onClick={() =>
                                         handleChangeQty(it.id, Math.max(1, (it.quantity || 1) - 1))
@@ -259,25 +248,24 @@ const FridgePage = () => {
                                 >
                                     -
                                 </button>
-                                <span className="sx-10"  >{it.quantity || 1}</span>
+                                <span>{it.quantity || 1}</span>
                                 <button
                                     onClick={() => handleChangeQty(it.id, (it.quantity || 1) + 1)}
                                 >
                                     +
                                 </button>
-                            </td>
-                            <td>{it.expireDate || "-"}</td>
-                            <td>
-                                <button className="sx-11"
-                                    onClick={() => handleDelete(it.id)}
-                                     >
+                            </div>
+                            <div className="fridge-card-expire">
+                                {it.expireDate || "-"}
+                            </div>
+                            <div className="fridge-card-actions">
+                                <button className="sx-11" onClick={() => handleDelete(it.id)}>
                                     삭제
                                 </button>
-                            </td>
-                        </tr>
+                            </div>
+                        </div>
                     ))}
-                    </tbody>
-                </table>
+                </div>
             )}
 
             {/* ===== 추천 모달 ===== */}

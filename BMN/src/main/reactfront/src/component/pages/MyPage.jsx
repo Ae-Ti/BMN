@@ -2,18 +2,12 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { onImgError } from "../lib/placeholder";
+import "./ProfilePage.css"; // Import the new CSS file
 
 axios.defaults.baseURL = "http://localhost:8080";
 
 const TOKEN_KEY = "token";
-const placeHolder =
-    "data:image/svg+xml;utf8," +
-    encodeURIComponent(
-        `<svg xmlns='http://www.w3.org/2000/svg' width='640' height='480'>
-      <rect width='100%' height='100%' fill='#f1f1f1'/>
-      <text x='50%' y='50%' dominant-baseline='middle' text-anchor='middle' fill='#999' font-size='16'>No Image</text>
-    </svg>`
-    );
 
 /* ================= JWT / AUTH UTILS ================= */
 function b64urlDecode(str) {
@@ -46,71 +40,37 @@ function authHeaders() {
     return t ? { Authorization: `Bearer ${t}` } : {};
 }
 
-/* ================= COMMON STYLES ================= */
-const styles = {
-    pageWrap: {
-        padding: 16,
-        maxWidth: 1200,
-        margin: "0 auto",
-    },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(220px, 1fr))",
-        gap: 16,
-        marginTop: 12,
-    },
-    card: {
-        display: "flex",
-        flexDirection: "column",
-        border: "1px solid #e7e7e7",
-        borderRadius: 12,
-        overflow: "hidden",
-        background: "#fff",
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        textDecoration: "none",
-        color: "inherit",
-        transition: "transform .1s ease, box-shadow .1s ease",
-    },
-    thumb: { width: "100%", aspectRatio: "4 / 3", objectFit: "cover", background: "#f8f8f8" },
-    body: { padding: "10px 12px 12px", display: "flex", flexDirection: "column", gap: 6 },
-    meta: { fontSize: 12, color: "#666", display: "flex", gap: 8, flexWrap: "wrap" },
-    greenBtn: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 36,
-        padding: "0 14px",
-        maxWidth: 200,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        borderRadius: 999,
-        border: "1px solid #16a34a",
-        background: "#22c55e",
-        color: "#fff",
-        fontWeight: 700,
-        fontSize: 14,
-        cursor: "pointer",
-    },
-    greenBtnOutline: {
-        display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: 36,
-        padding: "0 14px",
-        maxWidth: 240,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-        borderRadius: 999,
-        border: "1px solid #16a34a",
-        background: "#fff",
-        color: "#16a34a",
-        fontWeight: 700,
-        fontSize: 14,
-        cursor: "pointer",
-    },
+/* ---------- format helpers (from RecipeMain) ---------- */
+const formatMinutes = (mins) => {
+    const n = Number(mins);
+    if (!Number.isFinite(n) || n <= 0) return "-";
+    if (n < 60) return `${n}분`;
+    const h = Math.floor(n / 60);
+    const m = n % 60;
+    return m ? `${h}시간 ${m}분` : `${h}시간`;
 };
+
+const formatCurrencyKRW = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n) || n < 0) return "-";
+    try {
+        return new Intl.NumberFormat("ko-KR", {
+            style: "currency",
+            currency: "KRW",
+            maximumFractionDigits: 0,
+        }).format(n);
+    } catch {
+        return `${Math.round(n).toLocaleString("ko-KR")}원`;
+    }
+};
+
+const round1 = (val) => {
+    const n = Number(val);
+    if (!Number.isFinite(n)) return null;
+    return Math.round(n * 10) / 10;
+};
+
+const thumbUrl = (r) => r?.thumbnailUrl || (r?.id ? `/recipe/thumbnail/${r.id}` : "");
 
 const MyPage = () => {
     const nav = useNavigate();
@@ -128,7 +88,6 @@ const MyPage = () => {
     });
     const [meLoading, setMeLoading] = useState(true);
 
-    /* ---------- 프로필 정보 로드 ---------- */
     useEffect(() => {
         (async () => {
             setMeLoading(true);
@@ -155,7 +114,6 @@ const MyPage = () => {
         })();
     }, []);
 
-    /* ---------- 레시피 데이터 로드 ---------- */
     const fetchMyRecipes = useCallback(async () => {
         const { data } = await axios.get("/user/profile/me/recipes", { headers: authHeaders() });
         return Array.isArray(data) ? data : [];
@@ -169,110 +127,113 @@ const MyPage = () => {
         (async () => {
             setLoading(true);
             try {
-                setMyRecipes(await fetchMyRecipes());
+                const [my, fav] = await Promise.all([
+                    fetchMyRecipes(),
+                    fetchFavRecipes(),
+                ]);
+                setMyRecipes(my);
+                setFavRecipes(fav);
             } catch (e) {
                 console.error(e);
-                alert("내 레시피를 불러오지 못했습니다.");
+                alert("레시피를 불러오지 못했습니다.");
             } finally {
                 setLoading(false);
             }
         })();
-    }, [fetchMyRecipes]);
-
-    useEffect(() => {
-        (async () => {
-            if (tab !== "fav" || favRecipes.length > 0) return;
-            setLoading(true);
-            try {
-                setFavRecipes(await fetchFavRecipes());
-            } catch (e) {
-                console.error(e);
-                alert("즐겨찾기한 레시피를 불러오지 못했습니다.");
-            } finally {
-                setLoading(false);
-            }
-        })();
-    }, [tab, favRecipes.length, fetchFavRecipes]);
+    }, [fetchMyRecipes, fetchFavRecipes]);
 
     const activeList = tab === "my" ? myRecipes : favRecipes;
     const hasItems = Array.isArray(activeList) && activeList.length > 0;
-    const totalCount = activeList?.length ?? 0;
-
-    const getThumbSrc = (r) =>
-        r?.thumbnailUrl || (r?.id ? `http://localhost:8080/recipe/thumbnail/${r.id}` : placeHolder);
 
     const initials = useMemo(() => {
         const base = (profile.nickname || profile.username || "").trim();
         return base ? base.slice(0, 2).toUpperCase() : "U";
     }, [profile]);
 
-    /* ---------- 팔로워/팔로잉 확인 페이지 이동 ---------- */
     const goFollowers = () => {
         const uname = profile.username || usernameFromToken();
         if (!uname) return;
         nav(`/profile/${encodeURIComponent(uname)}/followers`);
     };
 
-    /* ---------- RENDER ---------- */
+    const Card = ({ r, overrideAuthor }) => {
+        const ratingRounded = round1(r?.averageRating);
+        const ratingCount = r?.ratingCount ?? 0;
+        const views = r?.viewCount ?? 0;
+        const favCnt = r?.favoriteCount ?? 0;
+        const author = overrideAuthor || r?.authorDisplayName || r?.authorUsername || "익명";
+
+        return (
+            <Link
+                to={`/recipes/${r.id}`}
+                className="recipe-card"
+                aria-label={`${r.subject ?? r.title ?? "(제목 없음)"} 상세로 이동`}
+            >
+                <div className="thumb-wrap">
+                    <img
+                        src={thumbUrl(r)}
+                        alt={r.subject ?? r.title}
+                        className="thumb-img"
+                        loading="lazy"
+                        onError={onImgError}
+                    />
+                </div>
+                <div className="card-body">
+                    <p className="recipe-title">{r.subject ?? r.title ?? "(제목 없음)"}</p>
+
+                    <div className="recipe-meta-compact">
+                        <div className="line">
+                            ⏱ {formatMinutes(r?.cookingTimeMinutes)} · 💰 {formatCurrencyKRW(r?.estimatedPrice)} · ⭐{" "}
+                            {ratingRounded !== null ? `${ratingRounded.toFixed(1)} (${ratingCount})` : `- (0)`}
+                        </div>
+                        <div className="line">
+                            👁 {Number(views).toLocaleString("ko-KR")} · ❤ {Number(favCnt).toLocaleString("ko-KR")} · ✍️ {author}
+                        </div>
+                    </div>
+                </div>
+            </Link>
+        );
+    };
+
     return (
-        <div style={styles.pageWrap}>
+        <div className="page-container">
             <h1>마이페이지</h1>
 
-            {/* 프로필 카드 */}
-            <div className="sx-2e sx-2f sx-2g"
-                 >
-                {/* 상단 정보 */}
-                <div >
-                    <div
-                        aria-hidden
-                        >
-                        {initials}
-                    </div>
-
-                    <div className="sx-2h sx-2i"  >
-                        <div >
+            <div className="profile-card">
+                <div className="profile-header">
+                    <div className="profile-avatar" aria-hidden>{initials}</div>
+                    <div className="profile-info">
+                        <div className="profile-nickname">
                             {meLoading ? "정보 불러오는 중…" : profile.nickname || profile.username}
                         </div>
-                        <div className="sx-2j"  >
-                            <div>
-                                <b>아이디</b>: {profile.username || "-"}
-                            </div>
-                            <div>
-                                <b>닉네임</b>: {profile.nickname || "-"}
-                            </div>
-                            <div>
-                                <b>이메일</b>: {profile.email || "-"}
-                            </div>
-                            <div className="sx-2k"  >
-                                <b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}
-                            </div>
+                        <div className="profile-details">
+                            <div><b>아이디</b>: {profile.username || "-"}</div>
+                            <div><b>닉네임</b>: {profile.nickname || "-"}</div>
+                            <div><b>이메일</b>: {profile.email || "-"}</div>
+                            <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
                         </div>
                     </div>
                 </div>
 
-                {/* 좌하단: 팔로워/팔로잉 확인 */}
-                <div className="sx-2l"  >
-                    <button onClick={goFollowers} style={styles.greenBtnOutline} title="팔로워/팔로잉 확인">
-                        팔로워/팔로잉 확인
-                    </button>
-                </div>
-
-                {/* 우하단: 냉장고 관리 / 식단 페이지 이동 (여기 변경) */}
-                <div className="sx-2m"  >
-                    <button onClick={() => nav("/fridge")} style={styles.greenBtn}>
-                        🥕 냉장고 관리
-                    </button>
-                    {/* ▼ 변경: 레시피 목록 버튼 제거, 식단 페이지로 이동 버튼 추가 */}
-                    <button onClick={() => nav("/meal")} style={styles.greenBtn}>
-                        🍱 식단 페이지
-                    </button>
+                <div className="profile-actions">
+                    <div className="button-group">
+                        <button onClick={goFollowers} className="green-btn-outline" title="팔로워/팔로잉 확인">
+                            팔로워/팔로잉 확인
+                        </button>
+                    </div>
+                    <div className="button-group">
+                        <button onClick={() => nav("/fridge")} className="green-btn">
+                            🥕 냉장고 관리
+                        </button>
+                        <button onClick={() => nav("/meal")} className="green-btn">
+                            🍱 식단 페이지
+                        </button>
+                    </div>
                 </div>
             </div>
 
-            {/* 탭 */}
-            <div className="sx-2n sx-2o"  >
-                <div
-                    >
+            <div className="sx-2n sx-2o section-spacing-top button-group-spacing-bottom">
+                <div>
                     <button
                         type="button"
                         onClick={() => setTab("my")}
@@ -287,7 +248,7 @@ const MyPage = () => {
                         }}
                         aria-pressed={tab === "my"}
                     >
-                        내가 작성한 레시피
+                        내가 작성한 레시피 ({myRecipes.length})
                     </button>
                     <button
                         type="button"
@@ -304,59 +265,26 @@ const MyPage = () => {
                         }}
                         aria-pressed={tab === "fav"}
                     >
-                        즐겨찾기한 레시피
+                        즐겨찾기한 레시피 ({favRecipes.length})
                     </button>
                 </div>
-                <span className="sx-2p sx-2q"  >({totalCount.toLocaleString()}개)</span>
             </div>
 
-            {/* 레시피 리스트 */}
             {loading ? (
-                <p >불러오는 중...</p>
+                <p>불러오는 중...</p>
             ) : !hasItems ? (
-                <p className="sx-2r"  >
+                <p className="sx-2r">
                     {tab === "my" ? "작성한 레시피가 없습니다." : "즐겨찾기한 레시피가 없습니다."}
                 </p>
             ) : (
-                <div style={styles.grid}>
-                    {activeList.map((r) => {
-                        const created = r?.createdAt ? new Date(r.createdAt).toLocaleDateString() : "";
-                        const cookMin = r?.cookingTimeMinutes ?? r?.cookMinutes ?? null;
-                        const estPrice = r?.estimatedPrice ?? null;
-                        const subject = r?.title ?? r?.subject ?? "(제목 없음)";
-                        const to = `/recipes/${r.id}`;
-                        return (
-                            <Link
-                                to={to}
-                                key={r.id}
-                                style={styles.card}
-                                onMouseEnter={(e) => {
-                                    e.currentTarget.style.transform = "translateY(-2px)";
-                                    e.currentTarget.style.boxShadow = "0 6px 18px rgba(0,0,0,0.08)";
-                                }}
-                                onMouseLeave={(e) => {
-                                    e.currentTarget.style.transform = "none";
-                                    e.currentTarget.style.boxShadow = "0 2px 10px rgba(0,0,0,0.05)";
-                                }}
-                            >
-                                <img
-                                    src={getThumbSrc(r)}
-                                    alt="thumbnail"
-                                    style={styles.thumb}
-                                    loading="lazy"
-                                    onError={(e) => (e.currentTarget.src = placeHolder)}
-                                />
-                                <div style={styles.body}>
-                                    <div className="sx-2s"  >{subject}</div>
-                                    <div style={styles.meta}>
-                                        {cookMin != null && <span>⏱ {cookMin}분</span>}
-                                        {estPrice != null && <span>💰 {Number(estPrice).toLocaleString()}원</span>}
-                                        {created && <span>🗓 {created}</span>}
-                                    </div>
-                                </div>
-                            </Link>
-                        );
-                    })}
+                <div className="recipe-list">
+                    {activeList.map((r) => (
+                        <Card
+                            key={r.id}
+                            r={r}
+                            overrideAuthor={tab === "my" ? (profile.username || profile.nickname) : undefined}
+                        />
+                    ))}
                 </div>
             )}
         </div>

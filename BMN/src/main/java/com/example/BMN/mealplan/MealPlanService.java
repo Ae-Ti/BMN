@@ -98,6 +98,22 @@ public class MealPlanService {
         return toDTO(m);
     }
 
+    @Transactional
+    public MealPlanDTO update(String username, Long id, MealPlanUpdateRequest req) {
+        SiteUser user = userRepo.findByUserName(username)
+                .orElseThrow(() -> new IllegalArgumentException("user not found: " + username));
+        MealPlan m = mealPlanRepo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("meal not found: " + id));
+        if (!m.getUser().getId().equals(user.getId()))
+            throw new IllegalArgumentException("forbidden");
+
+        if (req.getTitle() != null) m.setTitle(req.getTitle());
+        if (req.getQuantity() != null) m.setQuantity(req.getQuantity());
+        if (req.getNote() != null) m.setNote(req.getNote());
+
+        return toDTO(m);
+    }
+
     /* ===================== Delete ===================== */
     @Transactional
     public void deleteHard(String username, Long id) {

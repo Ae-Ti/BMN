@@ -42,6 +42,11 @@ export default function MealMain() {
   const [monthList, setMonthList] = useState([]);
   const [dayMeals, setDayMeals] = useState([]);
 
+  const [editingId, setEditingId] = useState(null);
+  const [editTitle, setEditTitle] = useState("");
+  const [editQuantity, setEditQuantity] = useState(1);
+  const [editNote, setEditNote] = useState("");
+
   // ✅ 달력 타일 데이터 매핑
   const tileMap = useMemo(() => {
     const m = new Map();
@@ -78,6 +83,40 @@ export default function MealMain() {
     const list = Array.isArray(data) ? data : [];
     list.sort((a, b) => slotIndex(a.title) - slotIndex(b.title));
     setDayMeals(list);
+  };
+
+  const refreshDay = async () => {
+    await fetchDay(selectedDate);
+  };
+
+  const startEdit = (mp) => {
+    setEditingId(mp.id);
+    setEditTitle(mp.title);
+    setEditQuantity(mp.quantity ?? 1);
+    setEditNote(mp.note ?? "");
+  };
+
+  const cancelEdit = () => {
+    setEditingId(null);
+  };
+
+  const saveEdit = async () => {
+    if (!editingId) return;
+    await api.patch(`/mealplan/${editingId}`, {
+      title: editTitle,
+      quantity: Number(editQuantity),
+      note: editNote,
+    });
+    setEditingId(null);
+    await refreshDay();
+    await fetchRange(selectedDate); // Also refresh month view
+  };
+
+  const deleteMeal = async (id) => {
+    if (!window.confirm("삭제할까요?")) return;
+    await api.delete(`/mealplan/${id}`);
+    await refreshDay();
+    await fetchRange(selectedDate); // Also refresh month view
   };
 
   // ✅ 초기 로드
@@ -150,7 +189,27 @@ export default function MealMain() {
                 <li className="empty">등록된 식단이 없습니다.</li>
             )}
 
-            {dayMeals.map((mp) => (
+            {dayMeals.map((mp) => {
+              const isEditing = editingId === mp.id;
+              if (isEditing) {
+                return (
+                  <li key={mp.id} className="meal-card">
+                    <div className="row edit">
+                      <select value={editTitle} onChange={(e) => setEditTitle(e.target.value)}>
+                        {SLOT_ORDER.map(s => <option key={s} value={s}>{s}</option>)}
+                      </select>
+                      <input type="number" value={editQuantity} onChange={(e) => setEditQuantity(e.target.value)} min="1" />
+                      <input type="text" value={editNote} onChange={(e) => setEditNote(e.target.value)} placeholder="메모" />
+                      <div className="actions">
+                        <button onClick={saveEdit}>저장</button>
+                        <button onClick={cancelEdit}>취소</button>
+                      </div>
+                    </div>
+                  </li>
+                );
+              }
+
+              return (
                 <li key={mp.id} className="meal-card">
                   <div className="row">
                     <img
@@ -170,14 +229,19 @@ export default function MealMain() {
                       {mp.note && <div className="note">{mp.note}</div>}
                     </div>
 
-                    {mp.recipeId && (
-                        <a className="btn-link" href={`/recipes/${mp.recipeId}`}>
-                          레시피 상세
-                        </a>
-                    )}
+                    <div className="actions">
+                        {mp.recipeId && (
+                            <a className="btn-link" href={`/recipes/${mp.recipeId}`}>
+                              레시피 상세
+                            </a>
+                        )}
+                        <button onClick={() => startEdit(mp)}>수정</button>
+                        <button className="danger" onClick={() => deleteMeal(mp.id)}>삭제</button>
+                    </div>
                   </div>
                 </li>
-            ))}
+              );
+            })}
           </ul>
         </div>
       </div>

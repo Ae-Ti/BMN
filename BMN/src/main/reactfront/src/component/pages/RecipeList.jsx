@@ -324,7 +324,7 @@ export default function RecipesList() {
     const displayed = items;
 
     return (
-        <div className="recipe-main sx-4r sx-4s" >
+        <div className="page-container">
             {qRaw ? (
                 <div >
                     검색어: <strong>{qRaw}</strong>

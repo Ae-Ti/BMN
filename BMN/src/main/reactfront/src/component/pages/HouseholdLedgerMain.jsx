@@ -174,6 +174,7 @@ const HouseholdLedgerMain = () => {
                     onClickDay={handleDateClick}
                     value={selectedDate}
                     locale="ko-KR"
+                    onActiveStartDateChange={({ activeStartDate }) => fetchMonthTotals(activeStartDate)}
                     tileContent={({ date }) => {
                         const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
                         if (!d) return null;

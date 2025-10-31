@@ -338,23 +338,25 @@ const Ingredient = () => {
                         onChange={(e)=> setMealNote(e.target.value)}
                          />
 
-                    {/* 가계부 반영 */}
-                    <button className="sx-1p"
-                         onClick={openConfirm}
-                        disabled={Object.keys(checked).length === 0}
-                        title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
-                    >
-                        가계부 반영
-                    </button>
+                    <div className="button-group-horizontal">
+                        {/* 가계부 반영 */}
+                        <button
+                            onClick={openConfirm}
+                            disabled={Object.keys(checked).length === 0}
+                            title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
+                        >
+                            💰 가계부 반영하기
+                        </button>
 
-                    {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
-                    <button className="sx-1q"
-                         onClick={applyMealAndGo}
-                        title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
-                        disabled={!recipeIdFromState}
-                    >
-                        🍱 식단 반영하고 보기
-                    </button>
+                        {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
+                        <button
+                            onClick={applyMealAndGo}
+                            title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
+                            disabled={!recipeIdFromState}
+                        >
+                            🍱 식단 반영하기
+                        </button>
+                    </div>
                 </div>
             </div>
 

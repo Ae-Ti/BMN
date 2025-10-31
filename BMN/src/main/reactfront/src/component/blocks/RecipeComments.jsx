@@ -156,7 +156,7 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
 
     return (
         <div className="sx-3 sx-4"  >
-            <h3>댓글</h3>
+
 
             {/* ✅ 작성 폼 */}
             <form

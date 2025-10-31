@@ -166,7 +166,7 @@ const RecipeMain = () => {
     };
 
     return (
-        <div className="recipe-main sx-4v">
+        <div className="page-container">
             {/* 에러 노출(선택) */}
             {err && (
                 <div >
@@ -187,7 +187,7 @@ const RecipeMain = () => {
                 </div>
             </div>
 
-            <div className="recipe-list grid-4">
+            <div className="recipe-list">
                 {bestRecipes.length > 0 ? (
                     bestRecipes.map((r) => <Card key={r.id} r={r} />)
                 ) : (
@@ -199,7 +199,7 @@ const RecipeMain = () => {
             <h2 className="title sx-3" >
                 내 즐겨찾기
             </h2>
-            <div className="recipe-list grid-4">
+            <div className="recipe-list">
                 {!loggedIn ? (
                     <p>로그인하면 이용할 수 있습니다.</p>
                 ) : favoriteRecipes.length > 0 ? (

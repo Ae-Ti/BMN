@@ -39,6 +39,17 @@ public class MealPlanController {
         return ResponseEntity.ok(mealService.listByDay(principal.getName(), date));
     }
 
+    @PatchMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<MealPlanDTO> update(
+            Principal principal,
+            @PathVariable Long id,
+            @RequestBody MealPlanUpdateRequest req
+    ) {
+        MealPlanDTO updated = mealService.update(principal.getName(), id, req);
+        return ResponseEntity.ok(updated);
+    }
+
     /** 삭제 */
     @DeleteMapping("/{id}")
     @PreAuthorize("isAuthenticated()")
