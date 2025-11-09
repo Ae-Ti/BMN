@@ -2,6 +2,7 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
+import logo from '../assets/Salty_logo.png';
 
 const TOKEN_KEY = "token";
 const isTokenValid = (raw) => {
@@ -52,10 +53,12 @@ const Layout = () => {
         <div className="layout">
             <header className="header">
                 <div className="logo-group">
-                    <div className="logo">My Logo</div>
+                    <div className="logo" onClick={() => navigate("/main")} style={{ cursor: 'pointer' }}>
+                        <img src={logo} alt="My Logo" style={{ height: '40px' }} />
+                    </div>
 
                     <div className="button-group">
-                        <button className="button" onClick={() => navigate("/")}>🍽요리</button>
+                        <button className="button" onClick={() => navigate("/")}>🍽레시피</button>
                         <button className="button" onClick={() => navigate("/household-ledger")}>💰가계부</button>
                     </div>
 

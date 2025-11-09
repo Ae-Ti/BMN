@@ -129,16 +129,33 @@ code {
 .signup-box button:hover { background-color:#ff6347; }
 
 /* ------------------ HouseholdMain.css ------------------ */
-.ledger-container { display:flex; justify-content:space-between; align-items:flex-start; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; }
-.calendar-container { flex: 2; background-color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 70vh; }
-.react-calendar__tile { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; min-height: 6em; padding: 5px; text-align: left; }
+.ledger-container { display:flex; justify-content:space-between; align-items:stretch; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; height: 101vh; min-height: 101vh; }
+.calendar-container { flex: 2; background-color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 100%; }
+.react-calendar__tile { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 5px; text-align: left; }
 .react-calendar__month-view__days { flex-grow: 1; display: grid !important; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); row-gap: 8px; }
 .react-calendar__month-view__weekdays { text-align:center; font-weight:bold; color:black; }
 .react-calendar__month-view__weekdays__weekday:nth-child(7) { color:blue; }
 .react-calendar__month-view__weekdays__weekday:nth-child(1) { color:red; }
 .react-calendar__month-view__days__day--neighboringMonth { opacity:0.5; color:black !important; }
 .react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
-.details-container { flex: 1; background-color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 70vh; overflow-y: auto; }
+
+.details-section {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+    height: 100%;
+}
+
+.details-container {
+    flex-grow: 1; /* Allow it to grow */
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    overflow-y: auto;
+    /* REMOVED fixed height: height: 70vh; */
+}
 .input-group { display:flex; flex-direction:column; gap:10px; padding:10px; background:#f9f9f9; border-radius:10px; margin-bottom:20px; }
 .input-group select, .input-group input { padding:8px; border:1px solid #ccc; border-radius:5px; font-size:16px; }
 .input-group button { background:#ecea63; color:rgb(255,255,255); padding:8px; border:none; border-radius:5px; font-size:16px; cursor:pointer; }
@@ -150,7 +167,7 @@ code {
 .react-calendar__navigation { background-color:transparent; }
 .react-calendar__navigation__label { font-size: 24px !important; font-weight: bold; }
 .react-calendar__navigation button { color:black; font-weight:bold; }
-.react-calendar__tile--active { background-color:#f0f0f0; color:black !important; }
+.react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
 .react-calendar__month-view__weekdays { color:black; font-weight:bold; }
 
 /* ------------------ Ingredient.css ------------------ */
@@ -223,9 +240,9 @@ code {
 .ingredient-link a:hover { text-decoration:underline; }
 
 /* ------------------ MealMain.css ------------------ */
-.meal-container { display:flex; justify-content:space-between; align-items:flex-start; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; }
+.meal-container { display:flex; justify-content:space-between; align-items:stretch; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; height: calc(100vh - 72px); }
 .calendar-container { flex: 2; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 70vh; }
-.details-container { flex: 1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 70vh; overflow-y: auto; }
+.details-container { flex: 1; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); overflow-y: auto; height: 70vh; }
 .react-calendar { width:100% !important; max-width:none !important; background:transparent; padding:20px; font-size:18px; color:black; height: 100%; border: none; box-shadow: none; display: flex; flex-direction: column; }
 .react-calendar__viewContainer { flex-grow: 1; }
 .react-calendar__month-view { height: 100%; display: flex; flex-direction: column; }
@@ -235,8 +252,8 @@ code {
 .react-calendar__month-view__weekdays__weekday:nth-child(7) { color:blue; }
 .react-calendar__month-view__weekdays__weekday:nth-child(1) { color:red; }
 .react-calendar__month-view__days__day--neighboringMonth { opacity:0.5; color:black !important; }
-.react-calendar__tile--active { background:#f0f0f0; color:black !important; border-radius:5px; }
-.react-calendar__navigation { background:transparent; }
+.react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
+.react-calendar__navigation { background-color:transparent; }
 .react-calendar__navigation__label { font-size: 24px !important; font-weight: bold; }
 .react-calendar__navigation button { color:black; font-weight:bold; }
 .calendar-tile { text-align:center; font-size:13px; margin-top:4px; line-height:1.1; }
@@ -732,7 +749,7 @@ html, body, #root {
 .sx-12 {
   position: fixed;
   inset: 0;
-  background: rgba(0,0,0,0.45);
+  background: rgba(0,0,0,0.35);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -1022,10 +1039,11 @@ html, body, #root {
 /* extracted from src/component/pages/Ingredient.jsx */
 .sx-27 {
   width: min(560px, 92vw);
+  max-width: 500px; /* Added max-width for better control on large screens */
   background: #fff;
   border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  padding: 24px; /* Increased padding */
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Adjusted shadow */
 }
 
 /* extracted from src/component/pages/Ingredient.jsx */
@@ -1580,10 +1598,12 @@ html, body, #root {
 /* extracted from src/component/pages/RecipeDetail.jsx */
 .sx-45 {
   width: 100%;
-  max-width: 860px;
+  max-width: 500px;
+  max-height: 500px;
   border-radius: 12px;
   display: block;
-  margin-bottom: 16px;
+  margin: 0 auto 16px auto; /* Centered with bottom margin */
+  object-fit: cover; /* Ensure image covers the area while maintaining aspect ratio */
 }
 
 /* extracted from src/component/pages/RecipeDetail.jsx */
@@ -1596,12 +1616,12 @@ html, body, #root {
   line-height: 1.7px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-48 {
   line-height: 1.9;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-49 {
   display: flex;
   align-items: center;
@@ -1610,12 +1630,12 @@ html, body, #root {
   margin-bottom: 4px; /* Added for spacing */
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4a {
   color: #999;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4b {
   display: inline-flex;
   align-items: center;
@@ -1627,38 +1647,41 @@ html, body, #root {
   font-size: 13px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4c {
   white-space: pre-line;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4d {
   padding-left: 20px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4e {
   margin-bottom: 24px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4f {
   font-weight: 600px;
   margin-bottom: 6px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4g {
   margin-bottom: 8px;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
+/* extracted from src/component/pages/Ingredient.jsx */
 .sx-4h {
   width: 100%;
-  max-width: 860px;
+  max-width: 500px;
+  max-height: 500px;
   border-radius: 12px;
   display: block;
+  margin: 0 auto; /* Centered */
+  object-fit: cover; /* Ensure image covers the area while maintaining aspect ratio */
 }
 
 /* extracted from src/component/pages/RecipeForm.jsx */
@@ -1971,11 +1994,12 @@ html, body, #root {
   align-self: flex-start; /* Align category badge to start */
 }
 
-.fridge-card-quantity {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 16px;
+.summary-card {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
 }
 
 .fridge-card-quantity button {
@@ -1995,6 +2019,47 @@ html, body, #root {
   background-color: #e0e0e0;
 }
 
+.fridge-card-delete {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  cursor: pointer;
+  font-weight: 700;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.fridge-card-delete:hover {
+  background: #cc0000;
+}
+
+/* ------------------ HouseholdLedgerMain Summary Card ------------------ */
+.summary-card {
+    margin-top: 20px;
+    padding: 15px;
+    border: 1px solid #eee;
+    border-radius: 10px;
+    background-color: #fdfdfd;
+}
+.summary-card > div {
+    display: flex;
+    justify-content: space-between;
+    font-size: 16px;
+    padding: 4px 0;
+}
+.summary-card hr {
+    border: 0;
+    border-top: 1px solid #eee;
+    margin: 8px 0;
+}
+
 .fridge-card-expire {
   font-size: 14px;
   color: #888;
@@ -2006,4 +2071,51 @@ html, body, #root {
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   margin-top: 24px; /* Add some space from the previous section */
+}
+
+.prominent-text {
+  font-weight: bold;
+  font-size: 1.1em; /* Slightly larger than default */
+  color: #333; /* A bit darker for prominence */
+  margin-bottom: 8px; /* Add some space below */
+}
+
+/* Styles for Naver Shopping search results table */
+.sx-20 { /* This is the table itself */
+  table-layout: fixed; /* Ensures column widths are respected */
+  width: 100%;
+}
+
+.sx-20 th {
+  text-align: center;
+}
+
+.sx-20 th, .sx-20 td {
+  padding: 8px;
+  border-bottom: 1px solid #eee;
+  vertical-align: top; /* Align content to the top */
+}
+
+.sx-20 th:nth-child(1), .sx-20 td:nth-child(1) { /* Checkbox column */
+  width: 40px;
+  text-align: center;
+}
+
+.sx-20 th:nth-child(2), .sx-20 td:nth-child(2) { /* 상품명 (Product Name) column */
+  width: 45%; /* Adjust as needed */
+  word-wrap: break-word; /* Break long words */
+}
+
+.sx-20 th:nth-child(3), .sx-20 td:nth-child(3) { /* 가격 (Price) column */
+  width: 15%;
+  text-align: right;
+}
+
+.sx-20 th:nth-child(4), .sx-20 td:nth-child(4) { /* 몰 (Mall) column */
+  width: 20%;
+}
+
+.sx-20 th:nth-child(5), .sx-20 td:nth-child(5) { /* 바로가기 (Link) column */
+  width: 10%;
+  text-align: center;
 }

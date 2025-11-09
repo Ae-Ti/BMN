@@ -68,11 +68,19 @@ public class LedgerService {
         var end   = ym.atEndOfMonth();
         var all   = repo.findAllByAuthorAndDateBetween(me, start, end);
 
+        long totalMonthIncome = 0;
+        long totalMonthExpense = 0;
+
         Map<LocalDate, long[]> agg = new HashMap<>();
         for (var t : all) {
             var arr = agg.computeIfAbsent(t.getDate(), d -> new long[2]);
-            if (t.getType() == TransactionType.INCOME) arr[0] += t.getAmount();
-            else                                       arr[1] += t.getAmount();
+            if (t.getType() == TransactionType.INCOME) {
+                arr[0] += t.getAmount();
+                totalMonthIncome += t.getAmount();
+            } else {
+                arr[1] += t.getAmount();
+                totalMonthExpense += t.getAmount();
+            }
         }
 
         List<Map<String, Object>> days = new ArrayList<>();
@@ -81,7 +89,13 @@ public class LedgerService {
             var arr = agg.getOrDefault(cur, new long[]{0,0});
             days.add(Map.of("date", cur.toString(), "totalIncome", arr[0], "totalExpense", arr[1]));
         }
-        return Map.of("year", year, "month", month, "days", days);
+        return Map.of(
+                "year", year,
+                "month", month,
+                "days", days,
+                "totalIncome", totalMonthIncome,
+                "totalExpense", totalMonthExpense
+        );
     }
 
     public LedgerTransaction patch(Long id, TransactionType type, String name, Long amount, LocalDate date) {

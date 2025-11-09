@@ -193,6 +193,15 @@ export default function RecipeDetail() {
         return false;
     }, [recipe, currentUsername, currentUserIdFromToken]);
 
+    // ✅ 단계 슬라이더 상태/핸들러 (반드시 return 위에 위치)
+    const [currentStepIndex, setCurrentStepIndex] = useState(0);
+    const goToNextStep = () => {
+        setCurrentStepIndex((prevIndex) => Math.min(prevIndex + 1, Math.max(steps.length - 1, 0)));
+    };
+    const goToPreviousStep = () => {
+        setCurrentStepIndex((prevIndex) => Math.max(prevIndex - 1, 0));
+    };
+
     async function handleDelete() {
         if (!recipe?.id) return;
         if (!canEditOrDelete) {
@@ -242,10 +251,10 @@ export default function RecipeDetail() {
     }
 
     if (loading)
-        return <div className="sx-3l sx-3m"  >불러오는 중…</div>;
+        return <div className="sx-3l sx-3m">불러오는 중…</div>;
     if (err)
         return (
-            <div >
+            <div>
                 에러: {String(err)}
             </div>
         );
@@ -273,18 +282,17 @@ export default function RecipeDetail() {
         .filter((x) => x.name && x.name.trim().length > 0);
 
     return (
-        <div className="recipe-detail-page"  >
-            <div
-                >
-                <Link to="/recipes" >
+        <div className="recipe-detail-page">
+            <div>
+                <Link to="/recipes">
                     ← 목록으로
                 </Link>
             </div>
 
             {/* 우하단: 담기 + 즐겨찾기 */}
-            <div className="sx-3t"
-                 >
-                <Link className="sx-3u"
+            <div className="sx-3t">
+                <Link
+                    className="sx-3u"
                     to="/ingredient"
                     state={{
                         recipeId: recipe.id,          // ✅ 식단 반영을 위해 반드시 전달
@@ -293,7 +301,7 @@ export default function RecipeDetail() {
                         ingredients: ingredientPayload,
                         thumbnail: thumbSrc,
                     }}
-                     >
+                >
                     담기
                 </Link>
 
@@ -303,59 +311,58 @@ export default function RecipeDetail() {
                     title={isFav ? "즐겨찾기 해제" : "즐겨찾기 추가"}
                     className={`favorite-btn ${isFav ? "favorited" : ""}`}
                 >
-                    <span className="sx-3v sx-3w"  >{isFav ? "♥" : "♡"}</span>
-                    <span >{favCount ?? 0}</span>
+                    <span className="sx-3v sx-3w">{isFav ? "♥" : "♡"}</span>
+                    <span>{favCount ?? 0}</span>
                 </button>
             </div>
 
             {/* 제목 + 작성자 배지 + 수정/삭제 버튼 */}
-            <div className="sx-3x sx-3y"
-                 >
-                <h1 >{recipe.subject ?? "(제목 없음)"}</h1>
+            <div className="sx-3x sx-3y">
+                <h1>{recipe.subject ?? "(제목 없음)"}</h1>
 
                 {(authorName || authorUsername) &&
                     (isOwnAuthor ? (
-                        <a className="sx-3z"
+                        <a
+                            className="sx-3z"
                             href={authorTo}
                             title="내 마이페이지로 이동"
-                             >
-              <span className="sx-40 sx-41"
-                  aria-hidden
-                   >
-                {authorInitials}
-              </span>
-                            <span >
-                {authorName || authorUsername}
-              </span>
-                            <span className="sx-42"  >(내 프로필)</span>
+                        >
+                            <span className="sx-40 sx-41" aria-hidden>
+                                {authorInitials}
+                            </span>
+                            <span>
+                                {authorName || authorUsername}
+                            </span>
+                            <span className="sx-42">(내 프로필)</span>
                         </a>
                     ) : (
-                        <Link className="sx-43"
-                            to={authorTo}
+                        <Link
+                            className="sx-43"
+                            to={authorTo || "#"}
                             title="작성자 프로필로 이동"
-                             >
-              <span className="sx-40 sx-41"
-                  aria-hidden
-                   >
-                {authorInitials}
-              </span>
-                            <span >
-                {authorName || authorUsername}
-              </span>
+                        >
+                            <span className="sx-40 sx-41" aria-hidden>
+                                {authorInitials}
+                            </span>
+                            <span>
+                                {authorName || authorUsername}
+                            </span>
                         </Link>
                     ))}
                 {canEditOrDelete && (
-                    <div className="sx-3q"  >
-                        <button className="sx-3r"
+                    <div className="sx-3q">
+                        <button
+                            className="sx-3r"
                             type="button"
                             onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
-                             >
+                        >
                             수정
                         </button>
-                        <button className="sx-3s"
+                        <button
+                            className="sx-3s"
                             type="button"
                             onClick={handleDelete}
-                             >
+                        >
                             삭제
                         </button>
                     </div>
@@ -363,7 +370,7 @@ export default function RecipeDetail() {
             </div>
 
             {/* 메타 줄 */}
-            <div className="sx-44"  >
+            <div className="sx-44">
                 {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
                 {cookMinutes != null && estPrice != null ? " · " : null}
                 {estPrice != null && <>예상비용 {estPrice}원</>}
@@ -376,10 +383,11 @@ export default function RecipeDetail() {
             </div>
 
             {thumbSrc && (
-                <img className="sx-45"
+                <img
+                    className="sx-45"
                     src={thumbSrc}
                     alt="thumbnail"
-                     loading="lazy"
+                    loading="lazy"
                     onError={onImgError}
                 />
             )}
@@ -388,31 +396,33 @@ export default function RecipeDetail() {
                 <div className="content-card">
                     {recipe.description && (
                         <div className="card-section">
-                            <h3 className="sx-46 sx-47"  >설명</h3>
-                            <p >{recipe.description}</p>
+                            <h3 className="sx-46 sx-47">설명</h3>
+                            <p>{recipe.description}</p>
                         </div>
                     )}
 
                     {ingredientRows.length > 0 && (
                         <div className="card-section">
                             <h3>재료</h3>
-                            <ul className="sx-48"  >
+                            <ul className="sx-48">
                                 {ingredientRows.map((it) => {
                                     const hasLink = !!(it.link && it.link.trim());
                                     const href = hasLink ? normalizeLink(it.link.trim()) : null;
                                     return (
-                                        <li className="sx-49"
+                                        <li
+                                            className="sx-49"
                                             key={it.id ?? `${it.name}-${it.position ?? it.order ?? 0}`}
-                                             >
+                                        >
                                             <span>{it.name}</span>
                                             {hasLink && (
                                                 <>
-                                                    <span className="sx-4a"  >·</span>
-                                                    <a className="sx-4b"
+                                                    <span className="sx-4a">·</span>
+                                                    <a
+                                                        className="sx-4b"
                                                         href={href}
                                                         target="_blank"
                                                         rel="noreferrer"
-                                                         title={href}
+                                                        title={href}
                                                     >
                                                         구매링크
                                                     </a>
@@ -428,41 +438,55 @@ export default function RecipeDetail() {
                     {recipe.tools && recipe.tools.trim() && (
                         <div className="card-section">
                             <h3>도구</h3>
-                            <p className="sx-4c"  >{recipe.tools}</p>
+                            <p className="sx-4c">{recipe.tools}</p>
                         </div>
                     )}
                 </div>
             )}
 
             {Array.isArray(steps) && steps.length > 0 && (
-                <>
-                    <h3>조리 단계</h3>
-                    <ol className="sx-4d"  >
-                        {steps.map((s, idx) => {
-                            const order = s?.stepOrder ?? s?.stepIndex ?? idx + 1;
+                <div className="content-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                        <button onClick={goToPreviousStep} disabled={currentStepIndex === 0}>
+                            ← 이전 단계
+                        </button>
+                        <h3>Step {currentStepIndex + 1} / {steps.length}</h3>
+                        <button onClick={goToNextStep} disabled={currentStepIndex === steps.length - 1}>
+                            다음 단계 →
+                        </button>
+                    </div>
+                    <ol className="sx-4d" style={{ listStyle: 'none', padding: 0 }}>
+                        {(() => {
+                            const s = steps[currentStepIndex];
+                            const order = s?.stepOrder ?? s?.stepIndex ?? currentStepIndex + 1;
                             const src =
                                 s?.imageUrl ||
                                 (s?.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
                             const caption = s?.description ?? s?.caption ?? "";
                             return (
-                                <li className="sx-4e sx-4f" key={`${order}-${s?.id ?? idx}`}  >
-                                    <div >
+                                <li
+                                    className="sx-4e sx-4f"
+                                    key={`${order}-${s?.id ?? currentStepIndex}`}
+                                    style={{ marginBottom: '24px' }}
+                                >
+                                    <div style={{ fontWeight: '600', marginBottom: '6px' }}>
                                         Step {order}
                                     </div>
-                                    {caption && <div className="sx-4g"  >{caption}</div>}
+                                    {caption && <div className="sx-4g" style={{ marginBottom: '8px' }}>{caption}</div>}
                                     {src && (
-                                        <img className="sx-4h"
+                                        <img
+                                            className="sx-4h"
                                             src={src}
                                             alt={`step-${order}`}
-                                             loading="lazy"
+                                            loading="lazy"
                                             onError={onImgError}
                                         />
                                     )}
                                 </li>
                             );
-                        })}
+                        })()}
                     </ol>
-                </>
+                </div>
             )}
 
             <div className="comment-section-card">

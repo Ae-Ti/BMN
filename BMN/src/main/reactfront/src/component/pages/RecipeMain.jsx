@@ -3,6 +3,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
+import "./recipeMain.css";
+import RecipeCategoryTabs from "./RecipeCategoryTabs";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
@@ -174,19 +176,15 @@ const RecipeMain = () => {
                 </div>
             )}
 
-            {/* 베스트 섹션 */}
-            <div className="section-header">
-                <div className="section-left">
-                    <h2 className="title">베스트 레시피</h2>
-                    <button type="button" className="more-btn" onClick={() => navigate("/recipes")}>
-                        <span>더보기</span>
-                        <svg className="icon" viewBox="0 0 24 24" aria-hidden="true">
-                            <path d="M8.59 16.59 13.17 12 8.59 7.41 10 6l6 6-6 6z" />
-                        </svg>
-                    </button>
-                </div>
-            </div>
+            <RecipeCategoryTabs />
 
+            {/* 베스트 섹션 */}
+            <div className="recipe-main-header">
+                <h2 className="title sx-3" >
+                    베스트 레시피
+                </h2>
+                <button onClick={() => navigate('/recipes')} className="more-button">더보기</button>
+            </div>
             <div className="recipe-list">
                 {bestRecipes.length > 0 ? (
                     bestRecipes.map((r) => <Card key={r.id} r={r} />)

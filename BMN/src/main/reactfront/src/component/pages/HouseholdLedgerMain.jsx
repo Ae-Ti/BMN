@@ -188,57 +188,79 @@ const HouseholdLedgerMain = () => {
                 />
             </div>
 
-            {/* 오른쪽 상세내역 입력/목록 */}
-            <div className="details-container">
-                <h2>{selectedDate.toDateString()}</h2>
+            {/* 오른쪽 상세내역 및 요약 */}
+            <div className="details-section">
+                {/* 상세내역 입력/목록 */}
+                <div className="details-container">
+                    <h2>{selectedDate.toDateString()}</h2>
 
-                {/* 입력 행 */}
-                <div className="input-group">
-                    <select value={type} onChange={(e) => setType(e.target.value)}>
-                        <option value="income">수입</option>
-                        <option value="expense">지출</option>
-                    </select>
-                    <input type="text" placeholder="항목명" value={name} onChange={(e) => setName(e.target.value)} />
-                    <input type="number" placeholder="금액" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                    <button onClick={handleAddTransaction}>추가</button>
-                </div>
+                    {/* 입력 행 */}
+                    <div className="input-group">
+                        <select value={type} onChange={(e) => setType(e.target.value)}>
+                            <option value="income">수입</option>
+                            <option value="expense">지출</option>
+                        </select>
+                        <input type="text" placeholder="항목명" value={name} onChange={(e) => setName(e.target.value)} />
+                        <input type="number" placeholder="금액" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                        <button onClick={handleAddTransaction}>추가</button>
+                    </div>
 
-                {/* 목록 */}
-                <ul className="transaction-list">
-                    {dayTransactions.length === 0 && <li className="empty">내역이 없습니다</li>}
-                    {dayTransactions.map((t) => {
-                        const isEditing = editingId === t.id;
-                        if (!isEditing) {
+                    {/* 목록 */}
+                    <ul className="transaction-list">
+                        {dayTransactions.length === 0 && <li className="empty">내역이 없습니다</li>}
+                        {dayTransactions.map((t) => {
+                            const isEditing = editingId === t.id;
+                            if (!isEditing) {
+                                return (
+                                    <li key={t.id} className={t.type === "INCOME" ? "income row" : "expense row"}>
+                                        <span className="name">{t.name}</span>
+                                        <span className="amount">
+                        {t.type === "INCOME" ? "+" : "-"}
+                                            {Number(t.amount).toLocaleString()}
+                      </span>
+                                        <div className="actions">
+                                            <button onClick={() => startEdit(t)}>수정</button>
+                                            <button className="danger" onClick={() => deleteTx(t.id)}>삭제</button>
+                                        </div>
+                                    </li>
+                                );
+                            }
                             return (
-                                <li key={t.id} className={t.type === "INCOME" ? "income row" : "expense row"}>
-                                    <span className="name">{t.name}</span>
-                                    <span className="amount">
-                    {t.type === "INCOME" ? "+" : "-"}
-                                        {Number(t.amount).toLocaleString()}
-                  </span>
+                                <li key={t.id} className="edit row">
+                                    <select value={editType} onChange={(e) => setEditType(e.target.value)}>
+                                        <option value="income">수입</option>
+                                        <option value="expense">지출</option>
+                                    </select>
+                                    <input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                    <input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
                                     <div className="actions">
-                                        <button onClick={() => startEdit(t)}>수정</button>
-                                        <button className="danger" onClick={() => deleteTx(t.id)}>삭제</button>
+                                        <button onClick={saveEdit}>저장</button>
+                                        <button onClick={cancelEdit}>취소</button>
                                     </div>
                                 </li>
                             );
-                        }
-                        return (
-                            <li key={t.id} className="edit row">
-                                <select value={editType} onChange={(e) => setEditType(e.target.value)}>
-                                    <option value="income">수입</option>
-                                    <option value="expense">지출</option>
-                                </select>
-                                <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                                <input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
-                                <div className="actions">
-                                    <button onClick={saveEdit}>저장</button>
-                                    <button onClick={cancelEdit}>취소</button>
-                                </div>
-                            </li>
-                        );
-                    })}
-                </ul>
+                        })}
+                    </ul>
+                </div>
+
+                {/* 월별 요약 */}
+                {monthData && (
+                    <div className="summary-card">
+                        <div>
+                            <span>총 수입:</span>
+                            <span>{Number(monthData.totalIncome ?? 0).toLocaleString()}원</span>
+                        </div>
+                        <div>
+                            <span>총 지출:</span>
+                            <span>{Number(monthData.totalExpense ?? 0).toLocaleString()}원</span>
+                        </div>
+                        <hr />
+                        <div>
+                            <span>손익:</span>
+                            <span>{Number((monthData.totalIncome ?? 0) - (monthData.totalExpense ?? 0)).toLocaleString()}원</span>
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -179,8 +179,6 @@ const Ingredient = () => {
         return /^https?:\/\//i.test(link) ? link : `http://${link}`;
     }, [selectedIngredient]);
 
-    const renderTitleHTML = (html) => <span dangerouslySetInnerHTML={{ __html: html || '' }} />;
-
     const noIngredients = ingredients.length === 0;
 
     // 유틸: HTML 태그 제거 + 길이 제한
@@ -237,10 +235,8 @@ const Ingredient = () => {
 
             setSubmitMsg('가계부에 반영되었습니다.');
             setChecked({});
-            setTimeout(() => {
-                setConfirmOpen(false);
-                setSubmitMsg('');
-            }, 700);
+            navigate('/household-ledger'); // Navigate to the meal page
+
         } catch (e) {
             setSubmitMsg(e.message || '반영 중 오류가 발생했습니다.');
         } finally {
@@ -428,7 +424,7 @@ const Ingredient = () => {
 
                                         {/* 사용자 업로드 링크 (자동 가격반영 안됨) */}
                                         <div className="sx-1w sx-1x"  >
-                                            <div >사용자 등록 구매링크</div>
+                                            <h4 className="prominent-text">사용자 등록 구매링크</h4>
                                             {userLink ? (
                                                 <div>
                                                     <a href={userLink} target="_blank" rel="noreferrer">{userLink}</a>
@@ -441,48 +437,65 @@ const Ingredient = () => {
                                             )}
                                         </div>
 
+                                        {/* 쿠팡 검색 링크 */}
+                                        <div className="sx-1w sx-1x">
+                                            <h4 className="prominent-text">쇼핑몰 검색</h4>
+                                            {selectedName ? (
+                                                <div>
+                                                    <a href={`https://www.coupang.com/np/search?q=${encodeURIComponent(selectedName)}`} target="_blank" rel="noreferrer">
+                                                        {`https://www.coupang.com/np/search?q=${selectedName}`}
+                                                    </a>
+                                                </div>
+                                            ) : (
+                                                <div className="sx-1z">재료를 선택해주세요.</div>
+                                            )}
+                                        </div>
+
                                         {/* 네이버 검색 결과 (체크박스로 최종 비용 반영) */}
                                         {!priceMap || !matchedKey || !priceMap[matchedKey] || priceMap[matchedKey].length === 0 ? (
                                             <p>네이버 쇼핑 검색 결과가 없습니다.</p>
                                         ) : (
-                                            <table className="sx-20 sx-21"  >
-                                                <thead>
-                                                <tr>
-                                                    <th ></th>
-                                                    <th className="sx-22 sx-23 sx-22"  >상품명</th>
-                                                    <th >가격</th>
-                                                    <th >몰</th>
-                                                    <th>바로가기</th>
-                                                </tr>
-                                                </thead>
-                                                <tbody>
-                                                {priceMap[matchedKey].map((it, idx) => {
-                                                    const rowKey = `${matchedKey}-${idx}`;
-                                                    const price = Number(it.lprice) || 0;
-                                                    const isChecked = !!checked[rowKey];
-                                                    return (
-                                                        <tr className="sx-24 sx-25" key={rowKey}  >
-                                                            <td >
-                                                                <input
-                                                                    type="checkbox"
-                                                                    checked={isChecked}
-                                                                    onChange={() => toggleCheck(rowKey, price, it.title)}
-                                                                    aria-label="가격 반영"
-                                                                />
-                                                            </td>
-                                                            <td>{renderTitleHTML(it.title)}</td>
-                                                            <td className="sx-23"  >
-                                                                {price.toLocaleString()}원
-                                                            </td>
-                                                            <td>{it.mallName}</td>
-                                                            <td>
-                                                                <a href={it.link} target="_blank" rel="noreferrer">열기</a>
-                                                            </td>
+                                            <>
+                                                <h4 className="prominent-text">네이버 검색결과</h4>
+                                                <table className="sx-20"  >
+                                                    <thead>
+                                                        <tr>
+                                                            <th ></th>
+                                                            <th className="sx-22 sx-23 sx-22"  >상품명</th>
+                                                            <th >가격</th>
+                                                            <th >몰</th>
+                                                            <th>바로가기</th>
                                                         </tr>
-                                                    );
-                                                })}
-                                                </tbody>
-                                            </table>
+                                                    </thead>
+                                                    <tbody>
+                                                        {priceMap[matchedKey].map((it, idx) => {
+                                                            const rowKey = `${matchedKey}-${idx}`;
+                                                            const price = Number(it.lprice) || 0;
+                                                            const isChecked = !!checked[rowKey];
+                                                            return (
+                                                                <tr className="sx-24 sx-25" key={rowKey}  >
+                                                                    <td >
+                                                                        <input
+                                                                            type="checkbox"
+                                                                            checked={isChecked}
+                                                                            onChange={() => toggleCheck(rowKey, price, it.title)}
+                                                                            aria-label="가격 반영"
+                                                                        />
+                                                                    </td>
+                                                                    <td>{plain(it.title, 50)}</td>
+                                                                    <td className="sx-23"  >
+                                                                        {price.toLocaleString()}원
+                                                                    </td>
+                                                                    <td>{it.mallName}</td>
+                                                                    <td>
+                                                                        <a href={it.link} target="_blank" rel="noreferrer">열기</a>
+                                                                    </td>
+                                                                </tr>
+                                                            );
+                                                        })}
+                                                    </tbody>
+                                                </table>
+                                            </>
                                         )}
                                     </div>
                                 ) : (
@@ -496,10 +509,10 @@ const Ingredient = () => {
 
             {/* ✅ 확인 모달 (최종비용만 표시) */}
             {confirmOpen && (
-                <div className="sx-26 sx-27"
+                <div className="sx-26"
                      onClick={() => !submitting && setConfirmOpen(false)}
                 >
-                    <div
+                    <div className="sx-27"
                         onClick={(e) => e.stopPropagation()}
                     >
                         <h3 className="sx-28 sx-29 sx-2a"  >가계부에 반영할까요?</h3>
@@ -508,18 +521,18 @@ const Ingredient = () => {
                         <div >
                             <table >
                                 <thead>
-                                <tr>
-                                    <th className="sx-22 sx-23"  >항목</th>
-                                    <th >금액</th>
-                                </tr>
+                                    <tr>
+                                        <th className="sx-22 sx-23"  >항목</th>
+                                        <th >금액</th>
+                                    </tr>
                                 </thead>
                                 <tbody>
-                                {Object.entries(checked).map(([k, v]) => (
-                                    <tr className="sx-2b sx-23" key={k}  >
-                                        <td>{plain(v.title)}</td>
-                                        <td >{Number(v.price).toLocaleString()}원</td>
-                                    </tr>
-                                ))}
+                                    {Object.entries(checked).map(([k, v]) => (
+                                        <tr className="sx-2b sx-23" key={k}  >
+                                            <td>{plain(v.title)}</td>
+                                            <td >{Number(v.price).toLocaleString()}원</td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         </div>

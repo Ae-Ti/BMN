@@ -20,6 +20,28 @@ import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
 import FollowListPage from "./component/pages/FollowListPage";
 import MealMain from "./component/pages/MealMain";
+import MainPage from "./component/pages/MainPage";
+import axios from 'axios';
+
+// Add a response interceptor
+axios.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      const token = localStorage.getItem("token");
+      if (token) { // Only run if a token was present
+        localStorage.removeItem("token");
+        if (window.location.pathname !== '/user/login') {
+          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+          window.location.href = '/user/login';
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 const App = () => {
     return (
@@ -28,6 +50,7 @@ const App = () => {
                 <Route path="/" element={<Layout />}>
                     {/* 공개 페이지 */}
                     <Route index element={<RecipeMain />} />
+                    <Route path="main" element={<MainPage />} />
                     <Route path="recipes" element={<RecipesList />} />
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
