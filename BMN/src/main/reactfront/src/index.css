@@ -1,3 +1,13 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+:root {
+  --header-height: 60px;
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -5,6 +15,7 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background-color: #EEEEEE;
 }
 
 code {
@@ -22,19 +33,30 @@ code {
 /* ------------------ ProfilePage.css ------------------ */
 @import url('./component/pages/ProfilePage.css');
 
+/* ------------------ Sidebar.css ------------------ */
+@import url('./component/Sidebar.css');
+
 /* ------------------ Layout.css ------------------ */
 .layout {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  background-color: #f8f2e5;
+  background-color: #EEEEEE;
+}
+main {
+  flex: 1; /* Grow to fill available space */
+  display: flex;
+  flex-direction: column;
 }
 /* Consolidated header style */
 .header {
-  background: linear-gradient(90deg, #fffaf0, #fff);
-  padding: 12px 24px; /* Added horizontal padding */
+  position: sticky;
+  top: 0;
+  z-index: 1000;
+  background: linear-gradient(90deg, #fce8e8, #fff);
+  padding: 0 24px; /* Use padding only for horizontal spacing */
+  height: var(--header-height); /* Set a fixed height */
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
-  border-bottom: 1px solid #e6e6e6;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -42,14 +64,41 @@ code {
   box-sizing: border-box;
 }
 .logo-group { display: flex; align-items: center; gap: 24px; }
+.hamburger-button {
+    background: transparent;
+    border: none;
+    font-size: 30px;
+    cursor: pointer;
+    padding: 0 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+}
+.hamburger-button:hover {
+    background-color: rgba(0, 0, 0, 0.05);
+}
 .logo { font-size: 24px; font-weight: bold; }
-.button-group { display: flex; gap: 10px; }
+.button-group {
+    display: flex;
+}
+.button-group .button {
+    border-radius: 0;
+}
+.button-group .button:not(:first-child) {
+    border-left: 1px solid rgba(0,0,0,0.1);
+}
+.button-group .button:first-child {
+    border-top-left-radius: 8px;
+    border-bottom-left-radius: 8px;
+}
+.button-group .button:last-child {
+    border-top-right-radius: 8px;
+    border-bottom-right-radius: 8px;
+}
 .button { background-color: transparent; white-space: nowrap; color: #0c0901; font-weight: bold; padding: 8px 15px; border-radius: 8px; text-align: center; font-size: 17px; cursor: pointer; transition: all 0.3s ease; }
 .button:hover { background-color: transparent; }
-.my-page { margin-left: 24px; }
-.my-page-button { background: linear-gradient(to right, #c2a31c, #cea842); color: white; font-weight: bold; padding: 10px 20px; border-radius: 9999px; box-shadow: 0 8px 12px rgba(0,0,0,0.1); font-size: 18px; cursor: pointer; transition: all 0.3s ease; border: 2px solid white; }
-.my-page-button:hover { background: linear-gradient(to right, #caa914, #dfdd60); }
-.my-page-button:active { background: linear-gradient(to right, #d1ba37, #e4cc8a); }
 
 /* Auth & Search Group */
 .auth-group { display: flex; align-items: center; gap: 16px; }
@@ -60,15 +109,15 @@ code {
   border-right: none; /* Connect to button */
   border-radius: 8px 0 0 8px; /* Rounded corners on the left */
   color: #9b6f1e;
+  width: 240px;
 }
 .search-button {
-  background-color: #cebe30;
+  background-color: #F23051;
   color: white;
-  border: 1px solid #cebe30;
+  border: 1px solid #F23051;
   border-radius: 0 8px 8px 0; /* Rounded corners on the right */
-  padding: 8px 12px;
+  padding: 8px 12px 8px 12px;
   cursor: pointer;
-  margin-left: -1px; /* Overlap border */
 }
 .auth-button { background: transparent; white-space: nowrap; color: rgb(0,0,0); font-size: 14px; padding: 8px 16px; border-radius: 8px; cursor: pointer; transition: color 0.3s ease; }
 .auth-button:hover { background-color: transparent; }
@@ -87,7 +136,7 @@ code {
   /* Ensure header remains visible — avoid negative heights/margins that overlap the header */
   min-height: calc(100vh - 72px);
   padding-top: 72px; /* offset for header height */
-  background-color: #f8f2e5;
+  background-color: var(--bg);
   box-sizing: border-box;
 }
 .login-box {
@@ -275,10 +324,9 @@ code {
 .row.edit input, .row.edit select { padding: 8px; border: 1px solid #ccc; border-radius: 5px; font-size: 16px; }
 
 /* ------------------ recipeDetail.css ------------------ */
+
 .recipe-detail-page {
-  max-width: 920px;
-  margin: 2rem auto;
-  padding: 1rem;
+  margin: 0 300px;
 }
 
 .content-card {
@@ -341,7 +389,7 @@ code {
 
 /* ------------------ Design tokens & base components ------------------ */
 :root {
-  --bg: #ffffff;
+  --bg: #EEEEEE;
   --surface: #ffffff;
   --muted: #6b7280;
   --text: #111827;
@@ -354,7 +402,7 @@ code {
 
 html, body, #root {
   height: 100%;
-  background: var(--bg);
+  background-color: #EEEEEE;
   color: var(--text);
 }
 
@@ -417,8 +465,26 @@ html, body, #root {
 /* Recipe card */
 .recipe-list {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
   gap: 16px;
+  grid-template-columns: repeat(1, 1fr);
+}
+
+@media (min-width: 600px) {
+  .recipe-list {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (min-width: 840px) {
+  .recipe-list {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (min-width: 1100px) {
+  .recipe-list {
+    grid-template-columns: repeat(4, 1fr);
+  }
 }
 .recipe-card {
   background: var(--surface);
@@ -429,7 +495,6 @@ html, body, #root {
   color: inherit;
   display: flex;
   flex-direction: column;
-  height: 250px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Subtle shadow */
   transition: all 0.2s ease-in-out;
 }
@@ -1958,6 +2023,12 @@ html, body, #root {
 .fridge-input-form button:hover {
   background-color: #bb954d;
   border-color: #bb954d;
+}
+
+.content-wrapper {
+  max-width: 1800px; /* A generous max-width for content */
+  margin: 0 auto; /* Center the content wrapper */
+  padding: 0 2rem; /* Consistent horizontal padding */
 }
 
 .fridge-grid {

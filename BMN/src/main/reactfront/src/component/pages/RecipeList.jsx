@@ -337,7 +337,7 @@ export default function RecipesList() {
             </div>
 
             {/* ✅ 4열 그리드 */}
-            <div className="recipe-list grid-4">
+            <div className="recipe-list">
                 {displayed.map((r) => (
                     <Card key={r.id} r={r} />
                 ))}

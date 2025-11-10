@@ -2,7 +2,10 @@
 import React, { useEffect, useState, useCallback } from "react";
 import { Outlet, useNavigate, useLocation } from "react-router-dom";
 import LogoutButton from "./LogoutButton";
+import Sidebar from './Sidebar'; // Import Sidebar
 import logo from '../assets/Salty_logo.png';
+import Footer from './Footer'; // Import Footer
+import './Layout.css'; // Import Layout.css
 
 const TOKEN_KEY = "token";
 const isTokenValid = (raw) => {
@@ -23,6 +26,7 @@ const Layout = () => {
     const navigate = useNavigate();
     const location = useLocation();
     const [searchText, setSearchText] = useState("");
+    const [isSidebarOpen, setSidebarOpen] = useState(false); // State for sidebar
 
     // Keep header search input in sync with URL q when on /recipes
     useEffect(() => {
@@ -48,29 +52,26 @@ const Layout = () => {
     }, []);
 
     const handleLoggedOut = useCallback(() => setAuthed(false), []);
+    const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
 
     return (
         <div className="layout">
+            <Sidebar isOpen={isSidebarOpen} onClose={() => setSidebarOpen(false)} />
             <header className="header">
                 <div className="logo-group">
+                    <button className="hamburger-button" onClick={toggleSidebar}>
+                        &#9776;
+                    </button>
                     <div className="logo" onClick={() => navigate("/main")} style={{ cursor: 'pointer' }}>
-                        <img src={logo} alt="My Logo" style={{ height: '40px' }} />
+                        <img src={logo} alt="My Logo" style={{ height: '30px' }} />
                     </div>
 
                     <div className="button-group">
-                        <button className="button" onClick={() => navigate("/")}>🍽레시피</button>
-                        <button className="button" onClick={() => navigate("/household-ledger")}>💰가계부</button>
+                        <button className="button" onClick={() => navigate("/")}>레시피</button>
+                        <button className="button" onClick={() => navigate("/household-ledger")}>가계부</button>
                     </div>
 
-                    <div className="my-page">
-                        {/* ✅ onClick 추가! */}
-                        <button
-                            className="my-page-button"
-                            onClick={() => navigate("/mypage")}
-                        >
-                            My Page
-                        </button>
-                    </div>
+
                 </div>
 
                 <div className="auth-group">
@@ -111,9 +112,10 @@ const Layout = () => {
             </header>
 
             
-            <main>
+            <main className="main-content">
                 <Outlet />
             </main>
+            <Footer />
         </div>
     );
 };

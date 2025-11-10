@@ -26,7 +26,7 @@ const MainPage = () => {
                 <div className="welcome-section">
                     <h1 className={`welcome-text ${visible ? 'text-fade-in' : ''}`}>
                         환영합니다,<br />
-                        당신을 위한 라이프 매니저. 솔티
+                        당신을 위한 라이프 매니저. <span className="highlight-text">솔티</span>
                     </h1>
                 </div>
 
@@ -47,13 +47,7 @@ const MainPage = () => {
                     </div>
                 </div>
             </div>
-            <footer className={`main-page-footer ${visible ? 'visible' : ''}`}>
-                <div className="footer-content">
-                    <p className="team-name">가보자IT</p>
-                    <p>당신의 이야기를 귀담아 듣겠습니다.</p>
-                    <p>문의: contact@gaboja-it.com</p>
-                </div>
-            </footer>
+
         </div>
     );
 };
