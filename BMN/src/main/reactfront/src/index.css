@@ -53,7 +53,7 @@ main {
   position: sticky;
   top: 0;
   z-index: 1000;
-  background: linear-gradient(90deg, #fce8e8, #fff);
+  background: linear-gradient(90deg, #fff, #fff);
   padding: 0 24px; /* Use padding only for horizontal spacing */
   height: var(--header-height); /* Set a fixed height */
   box-shadow: 0 4px 6px rgba(0,0,0,0.05);
@@ -62,6 +62,7 @@ main {
   align-items: center;
   width: 100%;
   box-sizing: border-box;
+  margin-bottom: 20px;
 }
 .logo-group { display: flex; align-items: center; gap: 24px; }
 .hamburger-button {
@@ -326,7 +327,8 @@ main {
 /* ------------------ recipeDetail.css ------------------ */
 
 .recipe-detail-page {
-  margin: 0 300px;
+  margin: 0 16.666667%;
+  
 }
 
 .content-card {
@@ -346,13 +348,14 @@ main {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 10px 16px;
+  padding: 14px 24px; /* Adjusted padding */
   border-radius: 50px;
   border: 1px solid #ddd;
   background: #ffffff;
   color: #222;
   cursor: pointer;
   transition: all 0.2s ease-in-out;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Add shadow */
 }
 .favorite-btn.favorited {
     background: #ffe8ec;
@@ -377,8 +380,30 @@ main {
 .recipe-comments { margin-top:20px; }
 .recipe-comments h2 { font-size:18px; border-bottom:2px solid #ddd; padding-bottom:5px; }
 .comment { padding:10px; border-bottom:1px solid #ddd; }
-.cook-button { display:block; width:100%; background-color:#ff9800; color:white; padding:10px; font-size:16px; border:none; border-radius:5px; margin-top:20px; cursor:pointer; }
-.cook-button:hover { background-color:#e68900; }
+.cook-button {
+  background-color:#f2536d;
+  color:white;
+  padding:14px 24px; /* Adjusted padding */
+  font-size:16px;
+  border:none;
+  border-radius:50px; /* Make it round */
+  cursor:pointer;
+  box-shadow: 0 8px 20px rgba(0,0,0,0.15); /* Add shadow */
+  transition: all 0.2s ease-in-out;
+  text-decoration: none; /* Remove underline */
+}
+.cook-button:hover { background-color: #dd3e58; }
+
+.recipe-action-buttons-container {
+  position: fixed;
+  bottom: 24px;
+  right: 24px;
+  z-index: 1000;
+  display: flex;
+  flex-direction: row;
+  gap: 12px;
+  align-items: center;
+}
 .loading-text { text-align:center; font-size:18px; color:#666; }
 
 /* ------------------ postCreate.css ------------------ */
@@ -415,7 +440,8 @@ html, body, #root {
 }
 
 .page-container {
-  max-width: 1100px; /* A common max-width */
+  width: 100%;
+  max-width: 2200px; /* A common max-width */
   margin: 32px auto; /* Center with vertical spacing */
   padding: 0 16px; /* Consistent horizontal padding */
 }
@@ -445,8 +471,8 @@ html, body, #root {
       position: fixed;
       right: 24px;
       bottom: 24px;
-      background: linear-gradient(90deg,#d8b84a,#e7c555);
-      color: #111;
+      background: linear-gradient(90deg,#F23051,#F23051);
+      color: #fff;
       border: none;
       border-radius: 999px;
       padding: 14px 22px;
@@ -529,29 +555,6 @@ html, body, #root {
     align-items: baseline; /* Aligns title and button text */
     gap: 16px; /* Adds space between title and button */
 }
-.more-btn {
-    background-color: #cebe30; /* Prominent yellow color */
-    color: white;
-    border: none;
-    border-radius: 8px;
-    padding: 10px 18px; /* Increased padding */
-    font-size: 16px; /* Increased font size */
-    font-weight: 700; /* Bold text */
-    cursor: pointer;
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    text-decoration: none;
-    transition: background-color 0.2s;
-}
-.more-btn:hover {
-    background-color: #bb954d;
-}
-.more-btn .icon {
-    width: 20px; /* Slightly larger icon */
-    height: 20px;
-    fill: currentColor;
-}
 
 /* Responsive: stack calendar and details on narrow screens */
 @media (max-width: 900px) {
@@ -600,8 +603,8 @@ html, body, #root {
 
 /* extracted from src/component/blocks/RecipeComments.jsx */
 .sx-7 {
-  background: #007bff;
-  color: white;
+  background: #ffe176;
+  color: #111;
   padding: 6px 12px;
   border: none;
   border-radius: 6px;
@@ -623,10 +626,7 @@ html, body, #root {
   box-shadow: 0 2px 8px rgba(0,0,0,0.05); /* Subtle shadow */
   transition: all 0.2s ease-in-out;
 }
-.sx-9:hover {
-  transform: translateY(-2px); /* Lift effect */
-  box-shadow: 0 4px 12px rgba(0,0,0,0.1); /* Enhanced shadow on hover */
-}
+
 
 /* extracted from src/component/blocks/RecipeComments.jsx */
 .sx-a {
@@ -691,20 +691,23 @@ html, body, #root {
 
 /* extracted from src/component/blocks/RecipeComments.jsx */
 .sx-j {
-  background: #4caf50;
-  color: white;
+  background: transparent;
+  color: #111;
   padding: 4px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
+  cursor: pointer;
 }
 
 /* extracted from src/component/blocks/RecipeComments.jsx */
 .sx-k {
-  background: #f44336;
-  color: white;
+  background: transparent;
+  color: #111;
   padding: 4px 10px;
   border: none;
-  border-radius: 6px;
+  border-radius: 0;
+  border-left: 1px solid #111;
+  cursor: pointer;
 }
 
 /* extracted from src/component/pages/FollowListPage.jsx */
@@ -810,134 +813,6 @@ html, body, #root {
   color: crimson;
 }
 
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-12 {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.35);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-  z-index: 9999px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-13 {
-  position: relative;
-  width: min(100%, 980px);
-  max-height: 85vh;
-  overflow: auto;
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
-  padding: 16px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-14 {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  width: 36px;
-  height: 36px;
-  border-radius: 9999px;
-  border: 1px solid #eee;
-  background: #fff;
-  font-size: 18px;
-  font-weight: 700px;
-  line-height: 34px;
-  text-align: center;
-  cursor: pointer;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-15 {
-  margin: 4px 40px 12px 4px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-16 {
-  padding: 16px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-17 {
-  padding: 16px;
-  color: crimson;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-18 {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 16px;
-  padding: 4px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-19 {
-  border: 1px solid #eee;
-  border-radius: 12px;
-  overflow: hidden;
-  cursor: pointer;
-  background: #fff;
-  display: flex;
-  flex-direction: column;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1a {
-  position: relative;
-  aspect-ratio: 4 / 3;
-  background: #f6f6f6;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1b {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  display: block;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1c {
-  position: absolute;
-  top: 8px;
-  left: 8px;
-  background: #111;
-  color: #fff;
-  font-size: 12px;
-  padding: 2px 8px;
-  border-radius: 999px;
-  opacity: 0.9px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1d {
-  padding: 12px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1e {
-  font-weight: 700px;
-  margin-bottom: 6px;
-  line-height: 1.3px;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1f {
-  font-size: 13px;
-  color: #666;
-}
-
-/* extracted from src/component/pages/FridgePage.jsx */
-.sx-1g {
-  font-size: 12px;
-  color: #999;
-  margin-top: 6px;
-}
 
 /* extracted from src/component/pages/Ingredient.jsx */
 .sx-1h {
@@ -1255,7 +1130,7 @@ html, body, #root {
 
 /* extracted from src/component/pages/PostCreate.jsx */
 .sx-2t {
-  max-width: 860px;
+  width: 66.67%;
   margin: 24px auto;
   padding: 20px;
   background: #ffffff;
@@ -1390,9 +1265,12 @@ html, body, #root {
 
 /* extracted from src/component/pages/PostCreate.jsx */
 .sx-33 {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 8px;
+  display: flex;
+  justify-content: space-between;
+}
+
+.sx-33 > div {
+  width: 50%;
 }
 
 /* extracted from src/component/pages/PostCreate.jsx */
@@ -1531,53 +1409,77 @@ html, body, #root {
   text-decoration: none;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
-.sx-3q {
-  display: flex;
-  gap: 8px;
+
+
+/* Styles for the three-dots button and dropdown menu */
+.relative {
+  position: relative;
+  display: inline-block; /* To make sure the dropdown positions correctly relative to the button */
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
-.sx-3r {
-  padding: 8px 12px;
-  border-radius: 8px;
+.three-dots-button {
+  background: none;
   border: none;
-  background: #4caf50;
-  color: #fff;
-  font-weight: 600px;
+  font-size: 24px;
   cursor: pointer;
+  padding: 0 8px;
+  color: #333; /* Darker color for visibility */
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
-.sx-3s {
-  padding: 8px 12px;
+.three-dots-button:hover {
+  color: #000;
+}
+
+.dropdown-menu {
+  position: absolute;
+  left: 100%; /* Position to the right of the parent */
+  margin-left: 10px; /* Add some spacing */
+  background-color: #fff;
+  min-width: 120px;
+  box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+  z-index: 1;
   border-radius: 8px;
-  border: none;
-  background: #ffe9e9;
-  color: #b00020;
-  font-weight: 600px;
-  cursor: pointer;
-}
-
-/* extracted from src/component/pages/RecipeDetail.jsx */
-.sx-3t {
-  position: fixed;
-  bottom: 20px;
-  right: 20px;
+  overflow: hidden; /* Ensures rounded corners apply to children */
   display: flex;
-  gap: 12px;
-  align-items: center;
-  z-index: 1000px;
+  flex-direction: column;
 }
 
-/* extracted from src/component/pages/RecipeDetail.jsx */
-.sx-3u {
-  background: #007bff;
-  color: #fff;
-  padding: 10px 20px;
-  border-radius: 50px;
+.dropdown-item {
+  color: black;
+  padding: 12px 16px;
   text-decoration: none;
+  display: block;
+  border: none; /* Remove button default border */
+  background: none; /* Remove button default background */
+  width: 100%; /* Make dropdown items fill the width */
+  text-align: left; /* Align text to the left */
+  cursor: pointer;
 }
+
+.dropdown-item:hover {
+  background-color: #f1f1f1;
+}
+
+/* Specific colors for edit and delete dropdown items */
+.dropdown-item:nth-child(1) { /* Edit button */
+  background-color: transparent;
+  color: #111;
+}
+
+.dropdown-item:nth-child(1):hover {
+  background-color: #ffe0b2; /* Lighter orange on hover */
+}
+
+.dropdown-item:nth-child(2) { /* Delete button */
+  background-color: transparent;
+  color: #111;
+}
+
+.dropdown-item:nth-child(2):hover {
+  background-color: #ffcdd2; /* Lighter red on hover */
+}
+
+
 
 /* extracted from src/component/pages/RecipeDetail.jsx */
 .sx-3v {
@@ -1751,7 +1653,7 @@ html, body, #root {
 
 /* extracted from src/component/pages/RecipeForm.jsx */
 .sx-4i {
-  max-width: 880px;
+  width: 50%;
   margin: 28px auto;
   padding: 20px;
   background: #ffffff;
@@ -1818,18 +1720,15 @@ html, body, #root {
   color: #222;
 }
 
-.sx-4i input[type="text"], .sx-4i input[type="number"], .sx-4i textarea {
+.sx-4i > form > div > input:not([type="file"]), .sx-4i > form > div > textarea {
   width: 100%;
+  height: 40px;
   padding: 10px;
-  border: 1px solid #e7e3d9;
+  border: 1px solid #dcdcdc;
   border-radius: 8px;
   box-sizing: border-box;
   background: #fff;
-}
-
-/* Ensure title input (no explicit type) also matches width */
-.sx-4i input {
-  width: 100%;
+  resize: none;
 }
 
 .sx-4j, .sx-4o, .sx-4m {
@@ -1845,11 +1744,44 @@ html, body, #root {
 }
 
 /* stack each new-step item vertically */
-.sx-4n > div {
+.sx-4n > div.recipe-step-item {
   display: flex;
   flex-direction: column;
   gap: 8px;
   margin-bottom: 8px;
+}
+
+.recipe-step-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px; /* Space between image upload and controls */
+}
+
+.recipe-step-image-upload input[type="file"] {
+  margin-left: 10px;
+}
+
+.recipe-step-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%; /* Ensure it takes full width */
+}
+
+.recipe-step-controls input[type="text"] {
+  flex: 1; /* Allow description input to grow */
+  height: 40px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  padding: 10px; /* Add padding for better appearance */
+  box-sizing: border-box; /* Include padding in element's total width and height */
+}
+
+.recipe-step-controls span {
+  font-weight: bold;
+  min-width: 20px; /* Give some minimum width for numbers */
+  text-align: right;
 }
 
 .sx-46 {
@@ -1858,9 +1790,19 @@ html, body, #root {
   align-items: center;
 }
 
-.sx-46 button, .sx-3f {
-  background: linear-gradient(90deg,#d8b84a,#e7c555);
+.sx-46 .recipe-add-button, .sx-3f {
+  background-color: #ffe176;
   color: #111;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sx-46 .recipe-delete-button {
+  background-color: #f2536d;
+  color: white;
   padding: 10px 14px;
   border-radius: 10px;
   border: none;
@@ -1898,6 +1840,9 @@ html, body, #root {
 .sx-46.sx-4k > div input {
   flex: 1 1 0;
   min-width: 0;
+  height: 40px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
 }
 .sx-46.sx-4k > div input:nth-of-type(2) {
   flex: 2 1 0;
@@ -1912,21 +1857,39 @@ html, body, #root {
 
 /* prominent submit button */
 .sx-submit {
-  display: inline-block;
-  width: 100%;
+  display: block;
+  width: 50%;
   padding: 14px 18px;
   font-size: 18px;
   font-weight: 800;
   border-radius: 12px;
-  color: #111;
-  background: linear-gradient(90deg,#caa21a,#e7c555);
+  color: #ede4e7;
+  background-color: #f23051;
   border: none;
-  box-shadow: 0 12px 30px rgba(167,132,30,0.18);
+  box-shadow: 0 6px 15px rgba(0,0,0,0.18);
   cursor: pointer;
+  margin: 0 auto;
 }
 .sx-submit:hover {
   transform: translateY(-2px);
-  box-shadow: 0 18px 36px rgba(167,132,30,0.22);
+  box-shadow: 0 9px 18px rgba(0,0,0,0.22);
+}
+
+.form-group-horizontal {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.form-group-horizontal > div {
+  flex: 1;
+}
+
+.sx-4i > form > .form-group-horizontal input {
+  width: 100%;
+  border: 1px solid #dcdcdc;
+  height: 40px;
+  border-radius: 8px;
 }
 
 
@@ -1973,8 +1936,15 @@ html, body, #root {
 }
 
 .fridge-header button:hover {
-  background-color: #f0f0f0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.06);
 }
+
+.comment-actions {
+  text-align: right;
+  margin-top: 12px;
+}
+
 
 .fridge-input-form {
   display: flex;
@@ -2026,10 +1996,12 @@ html, body, #root {
 }
 
 .content-wrapper {
-  max-width: 1800px; /* A generous max-width for content */
-  margin: 0 auto; /* Center the content wrapper */
-  padding: 0 2rem; /* Consistent horizontal padding */
 }
+
+.separator {
+  border-bottom: 2px solid #eee;
+  margin-bottom: 40px;
+}  
 
 .fridge-grid {
   display: grid;
@@ -2190,3 +2162,17 @@ html, body, #root {
   width: 10%;
   text-align: center;
 }
+
+/* In RecipeForm, align cooking time and estimated cost horizontally */
+.form-group-horizontal {
+  
+  display: flex;
+  gap: 1rem;
+  align-items: flex-end; /* Align items to the bottom */
+}
+
+.form-group-horizontal > div {
+  
+  flex: 1;
+}
+

@@ -248,6 +248,7 @@ export default function RecipeForm() {
     return (
         <div className="sx-4i"  >
             <h2>{isEdit ? "레시피 수정" : "새 레시피 작성"}</h2>
+            <div className="separator"></div>
             <form onSubmit={handleSubmit}>
                 <div>
                     <label>제목</label>
@@ -264,22 +265,24 @@ export default function RecipeForm() {
                     <textarea value={tools} onChange={(e) => setTools(e.target.value)} />
                 </div>
 
-                <div>
-                    <label>조리 시간(분)</label>
-                    <input
-                        type="number"
-                        value={cookingTimeMinutes}
-                        onChange={(e) => setCookingTimeMinutes(e.target.value)}
-                    />
-                </div>
+                <div className="form-group-horizontal">
+                    <div>
+                        <label>조리 시간(분)</label>
+                        <input
+                            type="number"
+                            value={cookingTimeMinutes}
+                            onChange={(e) => setCookingTimeMinutes(e.target.value)}
+                        />
+                    </div>
 
-                <div>
-                    <label>예상 비용(원)</label>
-                    <input
-                        type="number"
-                        value={estimatedPrice}
-                        onChange={(e) => setEstimatedPrice(e.target.value)}
-                    />
+                    <div>
+                        <label>예상 비용(원)</label>
+                        <input
+                            type="number"
+                            value={estimatedPrice}
+                            onChange={(e) => setEstimatedPrice(e.target.value)}
+                        />
+                    </div>
                 </div>
 
                 {/* 썸네일 업로드 + 미리보기 */}
@@ -306,47 +309,54 @@ export default function RecipeForm() {
                                 placeholder="재료명"
                                 value={ing.name ?? ""}
                                 onChange={(e) => updateIngredient(idx, "name", e.target.value)}
+                                className="recipe-ingredient-input"
                             />
                             <input
                                 placeholder="구매 링크"
                                 value={ing.link ?? ""}
                                 onChange={(e) => updateIngredient(idx, "link", e.target.value)}
+                                className="recipe-ingredient-input"
                             />
-                            <button type="button" onClick={() => removeIngredient(idx)}>삭제</button>
+                            <button type="button" onClick={() => removeIngredient(idx)} className="recipe-delete-button">삭제</button>
                         </div>
                     ))}
-                    <button type="button" onClick={addIngredient}>재료 추가</button>
+                    <button type="button" onClick={addIngredient} className="recipe-add-button">재료 추가</button>
                 </div>
 
 
                 {/* 새 스텝 */}
                 <div className="sx-46 sx-4n"  >
-                    <h3>새 단계 추가</h3>
+                    <h3>요리 순서</h3>
                     {newSteps.map((s, idx) => (
-                        <div key={idx} >
-                            <input
-                                type="file"
-                                accept="image/*"
-                                onChange={(e) => updateNewStep(idx, "file", e.target.files?.[0] || null)}
-                            />
-                            {s.previewUrl && (
-                                <div className="sx-32"  >
-                                    <img className="sx-4o"
-                                        src={s.previewUrl}
-                                        alt={`new-step-${idx}`}
-                                         />
-                                </div>
-                            )}
-                            <input className="sx-4p"
-                                type="text"
-                                placeholder="설명"
-                                value={s.description}
-                                onChange={(e) => updateNewStep(idx, "description", e.target.value)}
-                                 />
-                            <button className="sx-3f" type="button" onClick={() => removeNewStep(idx)}  >삭제</button>
+                        <div key={idx} className="recipe-step-item">
+                            <div className="recipe-step-controls">
+                                <span>{idx + 1}. </span>
+                                <input className="sx-4p recipe-ingredient-input"
+                                    type="text"
+                                    placeholder="설명"
+                                    value={s.description}
+                                    onChange={(e) => updateNewStep(idx, "description", e.target.value)}
+                                />
+                                <button type="button" onClick={() => removeNewStep(idx)} className="recipe-delete-button">삭제</button>
+                            </div>
+                            <div className="recipe-step-image-upload">
+                                <input
+                                    type="file"
+                                    accept="image/*"
+                                    onChange={(e) => updateNewStep(idx, "file", e.target.files?.[0] || null)}
+                                />
+                                {s.previewUrl && (
+                                    <div className="sx-32">
+                                        <img className="sx-4o"
+                                            src={s.previewUrl}
+                                            alt={`new-step-${idx}`}
+                                        />
+                                    </div>
+                                )}
+                            </div>
                         </div>
                     ))}
-                    <button type="button" onClick={addNewStep}>단계 추가</button>
+                    <button type="button" onClick={addNewStep} className="recipe-add-button">단계 추가</button>
                 </div>
 
                 {/* 기존 스텝 */}
@@ -365,14 +375,14 @@ export default function RecipeForm() {
                                          onError={onImgError}
                                     />
                                 )}
-                                <button type="button" onClick={() => handleRemoveExistingStep(s.id)}>삭제</button>
+                                <button type="button" onClick={() => handleRemoveExistingStep(s.id)} className="recipe-delete-button">삭제</button>
                             </div>
                         ))}
                     </div>
                 )}
 
                 <button className="sx-submit" type="submit"  >
-                    {isEdit ? "수정 완료" : "등록"}
+                    {isEdit ? "수정 완료" : "레시피 등록"}
                 </button>
             </form>
         </div>

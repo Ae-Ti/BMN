@@ -255,7 +255,7 @@ export default function RecipeComments({ recipeId, onAvgChange }) {
                                     <div >{c.content}</div>
 
                                     {isMine && (
-                                        <div >
+                                        <div className="comment-actions">
                                             <button className="sx-j"
                                                 onClick={() => {
                                                     setEditingId(c.id);

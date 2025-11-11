@@ -1,16 +1,16 @@
 {
   "files": {
-    "main.css": "/static/css/main.eba37405.css",
-    "main.js": "/static/js/main.20172a63.js",
+    "main.css": "/static/css/main.0e314ddb.css",
+    "main.js": "/static/js/main.7dca0a9f.js",
     "static/js/453.fbae8f6c.chunk.js": "/static/js/453.fbae8f6c.chunk.js",
     "static/media/Salty_logo.png": "/static/media/Salty_logo.9b66e71eeffe6551a8e5.png",
     "index.html": "/index.html",
-    "main.eba37405.css.map": "/static/css/main.eba37405.css.map",
-    "main.20172a63.js.map": "/static/js/main.20172a63.js.map",
+    "main.0e314ddb.css.map": "/static/css/main.0e314ddb.css.map",
+    "main.7dca0a9f.js.map": "/static/js/main.7dca0a9f.js.map",
     "453.fbae8f6c.chunk.js.map": "/static/js/453.fbae8f6c.chunk.js.map"
   },
   "entrypoints": [
-    "static/css/main.eba37405.css",
-    "static/js/main.20172a63.js"
+    "static/css/main.0e314ddb.css",
+    "static/js/main.7dca0a9f.js"
   ]
 }

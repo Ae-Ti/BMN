@@ -1,6 +1,9 @@
 /* /src/component/pages/ProfilePage.css */
 
-.profile-card {
+.page-container .profile-card {
+  width: 66.666667%;
+  min-width: 66.666667%;
+  margin: 16px auto;
   display: flex;
   flex-direction: column;
   gap: 16px;
@@ -9,7 +12,6 @@
   border-radius: 12px;
   background: #fff;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  margin: 16px 0;
 }
 
 .profile-header {
@@ -83,8 +85,4 @@
     justify-content: center;
     width: 100%;
   }
-}
-
-.recipe-list.grid-4 .recipe-card {
-    max-width: 270px;
 }

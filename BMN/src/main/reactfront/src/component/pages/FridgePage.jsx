@@ -3,6 +3,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
+import RecommendedRecipeModal from "../blocks/RecommendedRecipeModal";
 
 const TOKEN_KEY = "token";
 const CATEGORIES = [
@@ -268,134 +269,16 @@ const FridgePage = () => {
                 </div>
             )}
 
-            {/* ===== 추천 모달 ===== */}
-            {showRec && (
-                <div className="sx-12"
-                    onClick={closeRecommendations}
-                     >
-                    <div className="sx-13"
-                        role="dialog"
-                        aria-modal="true"
-                        onClick={(e) => e.stopPropagation()}
-                         >
-                        {/* 닫기 X 버튼 */}
-                        <button className="sx-14"
-                            onClick={closeRecommendations}
-                            aria-label="닫기"
-                            title="닫기"
-                             >
-                            ×
-                        </button>
-
-                        <h2 className="sx-15 sx-16"  >맞춤 추천 레시피</h2>
-
-                        {recLoading ? (
-                            <div >추천 불러오는 중…</div>
-                        ) : recErr ? (
-                            <div className="sx-17 sx-16"  >
-                                오류: {String(recErr)}
-                            </div>
-                        ) : recs.length === 0 ? (
-                            <div >추천 결과가 없습니다.</div>
-                        ) : (
-                            <div className="sx-18"
-                                 >
-                                {recs.map((r) => {
-                                    const rid =
-                                        r?.id ?? r?.recipeId ?? r?.recipe_id ?? r?.recipeID ?? null;
-
-                                    const go = () => {
-                                        if (!rid) {
-                                            alert("이 레시피는 id 정보가 없어 이동할 수 없습니다.");
-                                            return;
-                                        }
-                                        closeRecommendations();
-                                        nav(`/recipes/${rid}`);
-                                    };
-
-                                    const thumb =
-                                        r?.thumbnailUrl || "/placeholder-recipe.png" /* 폴백 */;
-
-                                    const matchPct =
-                                        typeof r?.matchPercent === "number"
-                                            ? r.matchPercent
-                                            : Math.round(
-                                                ((r?.matchedIngredients && r?.totalIngredients
-                                                    ? r.matchedIngredients / r.totalIngredients
-                                                    : 0) || 0) * 100
-                                            );
-
-                                    const soonLabel =
-                                        typeof r?.soonestExpiryDays === "number"
-                                            ? r.soonestExpiryDays <= 0
-                                                ? "D-day"
-                                                : `D-${r.soonestExpiryDays}`
-                                            : null;
-
-                                    return (
-                                        <div className="sx-19"
-                                            key={rid ?? r?.subject}
-                                            onClick={go}
-                                            role="button"
-                                            tabIndex={0}
-                                            onKeyDown={(e) => (e.key === "Enter" ? go() : null)}
-                                             >
-                                            <div className="sx-1a"  >
-                                                <img className="sx-1b"
-                                                    src={thumb}
-                                                    alt={r?.subject}
-                                                     onError={onImgError}
-                                                />
-                                                {soonLabel && (
-                                                    <div className="sx-1c"
-                                                         >
-                                                        {soonLabel}
-                                                    </div>
-                                                )}
-                                            </div>
-                                            <div className="sx-1d sx-1e"  >
-                                                <div
-                                                    >
-                                                    {r?.subject ?? "(제목 없음)"}
-                                                </div>
-
-                                                {/* 매칭/임박 메타 */}
-                                                <div className="sx-1f"  >
-                                                    {matchPct}% 일치
-                                                    {typeof r?.matchedIngredients === "number" &&
-                                                    typeof r?.totalIngredients === "number"
-                                                        ? ` (${r.matchedIngredients}/${r.totalIngredients})`
-                                                        : ""}
-                                                    {typeof r?.expireSoonCount === "number"
-                                                        ? ` · 임박 ${r.expireSoonCount}개`
-                                                        : ""}
-                                                    {soonLabel ? ` · ${soonLabel}` : ""}
-                                                </div>
-
-                                                {/* 보조 정보 */}
-                                                <div className="sx-1g"  >
-                                                    {r?.cookingTimeMinutes != null
-                                                        ? `조리 ${r.cookingTimeMinutes}분`
-                                                        : ""}
-                                                    {r?.cookingTimeMinutes != null &&
-                                                    r?.estimatedPrice != null
-                                                        ? " · "
-                                                        : ""}
-                                                    {r?.estimatedPrice != null
-                                                        ? `예상 ${r.estimatedPrice}원`
-                                                        : ""}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    );
-                                })}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <RecommendedRecipeModal
+                show={showRec}
+                onClose={closeRecommendations}
+                loading={recLoading}
+                error={recErr}
+                recipes={recs}
+            />
         </div>
     );
 };
+
 
 export default FridgePage;

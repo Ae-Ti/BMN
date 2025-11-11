@@ -4,6 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 import "./ProfilePage.css"; // Import the new CSS file
+import "./recipeMain.css";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
@@ -197,7 +198,7 @@ const MyPage = () => {
 
     return (
         <div className="page-container">
-            <h1>마이페이지</h1>
+            <h1 className="ml-16-67pct">마이페이지</h1>
 
             <div className="profile-card">
                 <div className="profile-header">
@@ -232,7 +233,7 @@ const MyPage = () => {
                 </div>
             </div>
 
-            <div className="sx-2n sx-2o section-spacing-top button-group-spacing-bottom">
+            <div className="sx-2n sx-2o section-spacing-top button-group-spacing-bottom ml-16-67pct">
                 <div>
                     <button
                         type="button"

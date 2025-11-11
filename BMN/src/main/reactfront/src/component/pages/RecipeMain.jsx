@@ -209,7 +209,7 @@ const RecipeMain = () => {
 
             {/* 업로드 버튼 */}
             <button className="fab-upload" onClick={handleUploadClick}>
-                레시피 업로드 +
+                + 레시피 업로드
             </button>
         </div>
     );

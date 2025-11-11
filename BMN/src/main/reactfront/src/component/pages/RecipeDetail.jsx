@@ -61,6 +61,7 @@ export default function RecipeDetail() {
     // 즐겨찾기
     const [isFav, setIsFav] = useState(false);
     const [favCount, setFavCount] = useState(0);
+    const [showDropdown, setShowDropdown] = useState(false);
 
     const { username: currentUsername, userId: currentUserIdFromToken } =
         getCurrentUserFromToken();
@@ -281,18 +282,25 @@ export default function RecipeDetail() {
         .map((it) => ({ name: it?.name ?? "", link: it?.link ?? "" }))
         .filter((x) => x.name && x.name.trim().length > 0);
 
+    const metaItems = [
+        recipe.viewCount != null && `조회수 ${recipe.viewCount}`,
+        cookMinutes != null && `조리시간 ${cookMinutes}분`,
+        estPrice != null && `예상비용 ${estPrice}원`,
+        avgRating != null && `⭐ 평균평점 ${avgRating}/5`,
+    ].filter(Boolean);
+
     return (
         <div className="recipe-detail-page">
             <div>
-                <Link to="/recipes">
+                <Link to="/recipes" className="btn-link">
                     ← 목록으로
                 </Link>
             </div>
 
             {/* 우하단: 담기 + 즐겨찾기 */}
-            <div className="sx-3t">
+            <div className="recipe-action-buttons-container">
                 <Link
-                    className="sx-3u"
+                    className="cook-button"
                     to="/ingredient"
                     state={{
                         recipeId: recipe.id,          // ✅ 식단 반영을 위해 반드시 전달
@@ -350,36 +358,45 @@ export default function RecipeDetail() {
                         </Link>
                     ))}
                 {canEditOrDelete && (
-                    <div className="sx-3q">
+                    <div className="relative">
                         <button
-                            className="sx-3r"
+                            className="three-dots-button"
                             type="button"
-                            onClick={() => navigate(`/recipes/edit/${recipe.id}`)}
+                            onClick={() => setShowDropdown(!showDropdown)}
                         >
-                            수정
+                            •••
                         </button>
-                        <button
-                            className="sx-3s"
-                            type="button"
-                            onClick={handleDelete}
-                        >
-                            삭제
-                        </button>
+                        {showDropdown && (
+                            <div className="dropdown-menu">
+                                <button
+                                    className="dropdown-item"
+                                    type="button"
+                                    onClick={() => {
+                                        setShowDropdown(false);
+                                        navigate(`/recipes/edit/${recipe.id}`);
+                                    }}
+                                >
+                                    수정
+                                </button>
+                                <button
+                                    className="dropdown-item"
+                                    type="button"
+                                    onClick={() => {
+                                        setShowDropdown(false);
+                                        handleDelete();
+                                    }}
+                                >
+                                    삭제
+                                </button>
+                            </div>
+                        )}
                     </div>
                 )}
             </div>
 
             {/* 메타 줄 */}
             <div className="sx-44">
-                {cookMinutes != null && <>조리시간 {cookMinutes}분</>}
-                {cookMinutes != null && estPrice != null ? " · " : null}
-                {estPrice != null && <>예상비용 {estPrice}원</>}
-                {avgRating != null && (
-                    <>
-                        {(cookMinutes != null || estPrice != null) ? " · " : null}
-                        ⭐ 평균평점 {avgRating}/5
-                    </>
-                )}
+                {metaItems.join(" · ")}
             </div>
 
             {thumbSrc && (

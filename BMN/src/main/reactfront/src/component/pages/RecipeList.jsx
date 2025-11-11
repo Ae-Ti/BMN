@@ -3,6 +3,7 @@ import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
+import "./recipeMain.css";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
@@ -331,7 +332,7 @@ export default function RecipesList() {
                 </div>
             ) : null}
             <div className="section-header">
-                <h1 className="title sx-4t" >
+                <h1 className="title sx-4t ml-16-67pct" >
                     레시피 목록
                 </h1>
             </div>
@@ -359,7 +360,7 @@ export default function RecipesList() {
                 onClick={handleUploadClick}
                 aria-label="레시피 업로드"
             >
-                레시피 업로드 +
+                + 레시피 업로드
             </button>
         </div>
     );

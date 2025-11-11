@@ -14,9 +14,9 @@ const Sidebar = ({ isOpen, onClose }) => {
         <>
             <div className={`sidebar ${isOpen ? 'open' : ''}`}>
                 <nav className="sidebar-nav">
-                    <button className="nav-button" onClick={() => handleNavigate("/mypage")}>👤 마이페이지</button>
-                    <button className="nav-button" onClick={() => handleNavigate("/fridge")}>🧊 냉장고 관리</button>
-                    <button className="nav-button" onClick={() => handleNavigate("/meal")}>📅 식단 관리</button>
+                    <button className="nav-button" onClick={() => handleNavigate("/mypage")}>마이페이지</button>
+                    <button className="nav-button" onClick={() => handleNavigate("/fridge")}>냉장고 관리</button>
+                    <button className="nav-button" onClick={() => handleNavigate("/meal")}>식단 관리</button>
                 </nav>
             </div>
             {isOpen && <div className="sidebar-backdrop" onClick={onClose}></div>}

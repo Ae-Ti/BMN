@@ -41,7 +41,7 @@ const MainPage = () => {
                     <div className="nav-card" onClick={() => handleCardClick('/household-ledger')}>
                         <div>
                             <h2 className="card-title">가계부 페이지</h2>
-                            <p className="card-description">솔티와 함께, 한 단계 더 빠른 가계부!</p>
+                            <p className="card-description">솔티와 함께, 한층 더 빠른 가계부!</p>
                         </div>
                         <span className="card-arrow">→</span>
                     </div>
