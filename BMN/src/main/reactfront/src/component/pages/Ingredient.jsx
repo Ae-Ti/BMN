@@ -47,6 +47,11 @@ const Ingredient = () => {
 
     // ✅ 레시피 연결 정보(필수)
     const recipeIdFromState = Number(location.state?.recipeId) || null;
+    // Recipe title (if provided via location.state) — fallbacks to other common keys
+    // Accept common naming conventions used across the app: recipeTitle, title,
+    // subject (used by RecipeDetail), or name.
+    const initialRecipeTitle = location.state?.recipeTitle || location.state?.title || location.state?.subject || location.state?.name || null;
+    const [recipeTitleState, setRecipeTitleState] = useState(initialRecipeTitle);
 
     // 이름 배열
     const ingredientNames = useMemo(
@@ -81,6 +86,27 @@ const Ingredient = () => {
         }
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [ingredients]);
+
+    // If recipe title wasn't provided in navigation state but we have a recipeId,
+    // try to fetch the recipe metadata so we can display a proper title.
+    useEffect(() => {
+        let abort = false;
+        (async () => {
+            if (recipeTitleState) return; // already have title
+            if (!recipeIdFromState) return;
+            try {
+                const res = await fetch(`/recipe/api/${recipeIdFromState}`);
+                if (!res.ok) return;
+                const json = await res.json();
+                if (abort) return;
+                const t = json?.title || json?.recipeTitle || json?.name || null;
+                if (t) setRecipeTitleState(t);
+            } catch (e) {
+                // ignore network errors; leave placeholder
+            }
+        })();
+        return () => { abort = true; };
+    }, [recipeIdFromState, recipeTitleState]);
 
     // 냉장고 재료 불러오기
     useEffect(() => {
@@ -289,11 +315,15 @@ const Ingredient = () => {
         <div className="ingredient-page">
             <div className="ingredient-top-box">
                 <div className="thumbnail">
-                    <img
-                        src={resolvedThumb}
-                        alt="썸네일"
-                        onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
-                    />
+                    <div className="thumb-box">
+                        <img
+                            src={resolvedThumb}
+                            alt="썸네일"
+                            onError={(e) => { e.currentTarget.src = PLACEHOLDER; }}
+                        />
+                    </div>
+                    {/* show recipe title if present, otherwise show a placeholder label */}
+                    <div className="recipe-title">{recipeTitleState || "(레시피 제목 없음)"}</div>
                 </div>
 
                 {/* 예상비용(고정) */}
@@ -341,7 +371,7 @@ const Ingredient = () => {
                             disabled={Object.keys(checked).length === 0}
                             title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
                         >
-                            💰 가계부 반영하기
+                            가계부 반영하기
                         </button>
 
                         {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
@@ -350,7 +380,7 @@ const Ingredient = () => {
                             title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
                             disabled={!recipeIdFromState}
                         >
-                            🍱 식단 반영하기
+                            식단 반영하기
                         </button>
                     </div>
                 </div>
@@ -380,7 +410,7 @@ const Ingredient = () => {
                                         style={{ display: 'flex', gap: 6, alignItems: 'center' }}
                                     >
                                         <span>{name}</span>
-                                        {exists && <span className="sx-1s"  >이미 있음</span>}
+                                        {exists && <span className="sx-1s"  >이미 냉장고에 있는 재료예요!</span>}
                                     </li>
                                 );
                             })}
@@ -420,7 +450,10 @@ const Ingredient = () => {
                             <>
                                 {selectedName ? (
                                     <div>
-                                        <h3>{selectedName} 구매처</h3>
+                                        <h3>
+                                            <span className="ing-name">{selectedName}</span>
+                                            <span className="purchase-label">구매처</span>
+                                        </h3>
 
                                         {/* 사용자 업로드 링크 (자동 가격반영 안됨) */}
                                         <div className="sx-1w sx-1x"  >

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 import RecommendedRecipeModal from "../blocks/RecommendedRecipeModal";
+import EditIngredientModal from "../blocks/EditIngredientModal";
 
 const TOKEN_KEY = "token";
 const CATEGORIES = [
@@ -107,6 +108,36 @@ const FridgePage = () => {
         }
     };
 
+    // Edit modal state & handlers
+    const [editShow, setEditShow] = useState(false);
+    const [editIngredient, setEditIngredient] = useState(null);
+
+    const openEdit = (ingredient) => {
+        setEditIngredient(ingredient);
+        setEditShow(true);
+    };
+    const closeEdit = () => {
+        setEditShow(false);
+        setEditIngredient(null);
+    };
+
+    const handleSaveEdit = async (data) => {
+        try {
+            await axios.patch(`/api/fridge/ingredients/${data.id}`, {
+                name: data.name,
+                quantity: Number(data.quantity) || 1,
+                unit: data.unit || null,
+                category: data.category,
+                expireDate: data.expireDate || null,
+            });
+            await load(active);
+            closeEdit();
+        } catch (e) {
+            console.error(e);
+            alert("수정 실패");
+        }
+    };
+
     // ===== 추천 모달 =====
     const openRecommendations = async () => {
         setShowRec(true);
@@ -141,19 +172,12 @@ const FridgePage = () => {
 
     const tabUI = useMemo(
         () => (
-            <div className="sx-o"  >
+            <div className="sx-o">
                 {CATEGORIES.map((c) => (
                     <button
                         key={c.key}
                         onClick={() => setActive(c.key)}
-                        style={{
-                            padding: "6px 10px",
-                            borderRadius: 8,
-                            border: "1px solid #ddd",
-                            background: active === c.key ? "#222" : "#fff",
-                            color: active === c.key ? "#fff" : "#222",
-                            cursor: "pointer",
-                        }}
+                        className={`fridge-tab ${active === c.key ? "active" : ""}`}
                     >
                         {c.label}
                     </button>
@@ -166,7 +190,7 @@ const FridgePage = () => {
     return (
         <div className="page-container">
             <div className="fridge-header">
-                <h1 >냉장고</h1>
+                <h1 >우리 집 냉장고</h1>
                 <div >
                     <button className="sx-t"
                         onClick={openRecommendations}
@@ -177,9 +201,7 @@ const FridgePage = () => {
                 </div>
             </div>
 
-            {tabUI}
-
-            {/* 입력 폼 */}
+            {/* Input form stays outside the visual outer card per UX request */}
             <div className="fridge-input-form">
                 <input
                     placeholder="이름"
@@ -192,17 +214,15 @@ const FridgePage = () => {
                     placeholder="수량"
                     value={form.qty}
                     onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
-                     />
+                />
                 <input className="sx-w"
                     placeholder="단위(예: 개, g, 묶음)"
                     value={form.unit}
                     onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}
-                     />
+                />
                 <select
                     value={form.category}
-                    onChange={(e) =>
-                        setForm((f) => ({ ...f, category: e.target.value }))
-                    }
+                    onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
                 >
                     {CATEGORIES.filter((c) => c.key !== "ALL").map((c) => (
                         <option key={c.key} value={c.key}>
@@ -213,61 +233,52 @@ const FridgePage = () => {
                 <input
                     type="date"
                     value={form.expireDate}
-                    onChange={(e) =>
-                        setForm((f) => ({ ...f, expireDate: e.target.value }))
-                    }
+                    onChange={(e) => setForm((f) => ({ ...f, expireDate: e.target.value }))}
                 />
-                <button onClick={handleAdd}>추가</button>
+                <button className="add-button" onClick={handleAdd}>추가</button>
             </div>
 
-            {/* 목록 */}
-            {loading ? (
-                <p>불러오는 중...</p>
-            ) : items.length === 0 ? (
-                <p>해당 카테고리에 항목이 없습니다.</p>
-            ) : (
-                <div className="fridge-grid">
+            {/* Outer card now only contains the category tabs and the ingredient cards */}
+            <div className="fridge-outer-card">
+                {tabUI}
 
-                    {items.map((it) => (
-                        <div className="fridge-card" key={it.id}>
-                            <div className="fridge-card-name">
-                                {it.name}
-                                {it.unit ? ` (${it.unit})` : ""}
-                            </div>
-                            <div className="fridge-card-category">
-                                {it.category === "REFRIGERATED"
-                                    ? "냉장"
-                                    : it.category === "FROZEN"
-                                        ? "냉동"
-                                        : "상온"}
-                            </div>
-                            <div className="fridge-card-quantity">
-                                <button
-                                    onClick={() =>
-                                        handleChangeQty(it.id, Math.max(1, (it.quantity || 1) - 1))
-                                    }
-                                >
-                                    -
-                                </button>
-                                <span>{it.quantity || 1}</span>
-                                <button
-                                    onClick={() => handleChangeQty(it.id, (it.quantity || 1) + 1)}
-                                >
-                                    +
-                                </button>
-                            </div>
-                            <div className="fridge-card-expire">
-                                {it.expireDate || "-"}
-                            </div>
-                            <div className="fridge-card-actions">
-                                <button className="sx-11" onClick={() => handleDelete(it.id)}>
-                                    삭제
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-                </div>
-            )}
+                {/* 목록 (ingredient cards) */}
+                {loading ? (
+                    <p>불러오는 중...</p>
+                ) : items.length === 0 ? (
+                    <p>해당 카테고리에 항목이 없습니다.</p>
+                ) : (
+                    <div className="fridge-grid">
+                        {items.map((it) => (
+                                    <div className="fridge-card" key={it.id}>
+                                        {/* edit button top-right */}
+                                        <button className="fridge-card-edit" onClick={() => openEdit(it)} aria-label="수정">
+                                            ✎
+                                        </button>
+
+                                        <div className="fridge-card-top">
+                                            <div className="fridge-card-name">{it.name}</div>
+                                            <div className="fridge-card-badge">
+                                                {it.category === "REFRIGERATED"
+                                                    ? "냉장"
+                                                    : it.category === "FROZEN"
+                                                        ? "냉동"
+                                                        : "상온"}
+                                            </div>
+                                        </div>
+
+                                        <div className="fridge-card-qty">{(it.quantity || 1)} {it.unit || ''}</div>
+
+                                        <div className="fridge-card-expire">{it.expireDate ? `${it.expireDate}까지` : "-"}</div>
+
+                                        <div className="fridge-card-complete">
+                                            <button className="sx-11" onClick={() => handleDelete(it.id)}>사용완료</button>
+                                        </div>
+                                    </div>
+                        ))}
+                    </div>
+                )}
+            </div>
 
             <RecommendedRecipeModal
                 show={showRec}
@@ -275,6 +286,13 @@ const FridgePage = () => {
                 loading={recLoading}
                 error={recErr}
                 recipes={recs}
+            />
+            <EditIngredientModal
+                show={editShow}
+                onClose={closeEdit}
+                ingredient={editIngredient}
+                onSave={handleSaveEdit}
+                categories={CATEGORIES.filter((c) => c.key !== "ALL")}
             />
         </div>
     );

@@ -1,5 +1,5 @@
 // HouseholdLedgerMain.jsx
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
@@ -66,6 +66,115 @@ const HouseholdLedgerMain = () => {
         if (monthData?.days) for (const d of monthData.days) map.set(d.date, d);
         return map;
     }, [monthData]);
+
+    // responsive calendar font sizing: we write a CSS variable on the calendar container
+    // so CSS can use it for smooth scaling. This uses ResizeObserver to update the
+    // variable based on the container's current size.
+    const calendarRef = useRef(null);
+    useEffect(() => {
+        const el = calendarRef.current;
+        if (!el) return;
+        // parameters for linear mapping
+        const minBasis = 240; // px -> minimum basis for scaling
+        const maxBasis = 900; // px -> maximum basis for scaling
+        const minFont = 12; // px
+        const maxFont = 18; // px
+
+        let raf = 0;
+        const compute = () => {
+            const rect = el.getBoundingClientRect();
+            const basis = Math.min(rect.width, rect.height);
+            let t = (basis - minBasis) / (maxBasis - minBasis);
+            t = Math.max(0, Math.min(1, t));
+            const font = minFont + t * (maxFont - minFont);
+            // set both the CSS variable and an inline font-size with important priority
+            // to ensure JS-driven sizing wins over any remaining stylesheet rules
+            el.style.setProperty("--calendar-font-size", `${font}px`);
+            try {
+                el.style.setProperty('font-size', `${font}px`, 'important');
+            } catch (e) {
+                // some older browsers may not accept the priority param; fall back to plain set
+                el.style.fontSize = `${font}px`;
+            }
+            // Also set the font-size directly on the generated .react-calendar element
+            // so that rules like `.react-calendar { font-size: 18px; }` do not override.
+            const inner = el.querySelector('.react-calendar');
+            if (inner) {
+                try {
+                    inner.style.setProperty('--calendar-font-size', `${font}px`);
+                    inner.style.setProperty('font-size', `${font}px`, 'important');
+                } catch (e) {
+                    inner.style.fontSize = `${font}px`;
+                }
+            }
+        };
+
+        // initial
+        compute();
+
+        // ResizeObserver with rAF to avoid layout thrash
+        const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(() => {
+            cancelAnimationFrame(raf);
+            raf = requestAnimationFrame(compute);
+        }) : null;
+        if (ro) ro.observe(el);
+        window.addEventListener('resize', compute);
+
+        return () => {
+            if (ro) ro.disconnect();
+            window.removeEventListener('resize', compute);
+            cancelAnimationFrame(raf);
+        };
+    }, []);
+
+    // Mark which weekday column corresponds to Sunday/Saturday and add classes
+    // so CSS can color them correctly regardless of week-start ordering.
+    useEffect(() => {
+        const el = calendarRef.current;
+        if (!el) return;
+
+        const markWeekendCols = () => {
+            try {
+                const headerAbbrs = Array.from(el.querySelectorAll('.react-calendar__month-view__weekdays__weekday abbr'));
+                let sunIdx = -1, satIdx = -1;
+                headerAbbrs.forEach((abbr, i) => {
+                    const t = (abbr.title || abbr.textContent || '').trim().toLowerCase();
+                    if (t.startsWith('일') || t.startsWith('sun')) sunIdx = i;
+                    if (t.startsWith('토') || t.startsWith('sat')) satIdx = i;
+                });
+
+                // Apply classes to weekday headers
+                headerAbbrs.forEach((abbr, i) => {
+                    const parent = abbr.closest('.react-calendar__month-view__weekdays__weekday');
+                    if (!parent) return;
+                    parent.classList.remove('weekday-sun', 'weekday-sat');
+                    if (i === sunIdx) parent.classList.add('weekday-sun');
+                    if (i === satIdx) parent.classList.add('weekday-sat');
+                });
+
+                // Apply classes to day cells according to their column index
+                const dayCells = Array.from(el.querySelectorAll('.react-calendar__month-view__days > *'));
+                dayCells.forEach((cell, i) => {
+                    cell.classList.remove('weekday-sun', 'weekday-sat');
+                    const col = i % 7;
+                    if (col === sunIdx) cell.classList.add('weekday-sun');
+                    if (col === satIdx) cell.classList.add('weekday-sat');
+                });
+            } catch (e) {
+                // non-fatal
+                // console.debug('markWeekendCols failed', e);
+            }
+        };
+
+        markWeekendCols();
+        const mo = new MutationObserver(() => markWeekendCols());
+        mo.observe(el, { childList: true, subtree: true });
+        window.addEventListener('resize', markWeekendCols);
+        return () => {
+            mo.disconnect();
+            window.removeEventListener('resize', markWeekendCols);
+        };
+    }, [selectedDate]);
 
     const handleDateClick = (date) => setSelectedDate(date);
 
@@ -168,25 +277,34 @@ const HouseholdLedgerMain = () => {
 
     return (
         <div className="ledger-container">
+            <div className="ledger-top-row">
             {/* 왼쪽 달력 */}
-            <div className="calendar-container">
+            <div className="calendar-container" ref={calendarRef}>
                 <Calendar
                     onClickDay={handleDateClick}
                     value={selectedDate}
                     locale="ko-KR"
                     onActiveStartDateChange={({ activeStartDate }) => fetchMonthTotals(activeStartDate)}
                     tileContent={({ date }) => {
-                        const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
-                        if (!d) return null;
-                        return (
-                            <div className="calendar-tile">
-                                {d.totalIncome > 0 && <div className="income">+{Number(d.totalIncome).toLocaleString()}</div>}
-                                {d.totalExpense > 0 && <div className="expense">-{Number(d.totalExpense).toLocaleString()}</div>}
-                            </div>
-                        );
+                    const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
+                    if (!d) return null;
+                    const income = Number(d.totalIncome ?? 0);
+                    const expense = Number(d.totalExpense ?? 0);
+                    const net = income - expense;
+                    return (
+                        <div className="calendar-tile calendar-net">
+                            {net > 0 ? (
+                                <div className="income">+{net.toLocaleString()}</div>
+                            ) : net < 0 ? (
+                                <div className="expense">-{Math.abs(net).toLocaleString()}</div>
+                            ) : (
+                                <div className="neutral">0</div>
+                            )}
+                        </div>
+                    );
                     }}
                 />
-            </div>
+                </div>
 
             {/* 오른쪽 상세내역 및 요약 */}
             <div className="details-section">
@@ -206,6 +324,13 @@ const HouseholdLedgerMain = () => {
                     </div>
 
                     {/* 목록 */}
+                    <div className="transaction-list-header">
+                        <span className="col type" aria-hidden="true"></span>
+                        <span className="col name">항목명</span>
+                        <span className="col amount">금액</span>
+                        <span className="col actions" aria-hidden="true"></span>
+                    </div>
+
                     <ul className="transaction-list">
                         {dayTransactions.length === 0 && <li className="empty">내역이 없습니다</li>}
                         {dayTransactions.map((t) => {
@@ -231,8 +356,8 @@ const HouseholdLedgerMain = () => {
                                         <option value="income">수입</option>
                                         <option value="expense">지출</option>
                                     </select>
-                                    <input value={editName} onChange={(e) => setEditName(e.target.value)} />
-                                    <input type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
+                                    <input className="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                    <input className="edit-amount" type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
                                     <div className="actions">
                                         <button onClick={saveEdit}>저장</button>
                                         <button onClick={cancelEdit}>취소</button>
@@ -243,25 +368,27 @@ const HouseholdLedgerMain = () => {
                     </ul>
                 </div>
 
-                {/* 월별 요약 */}
-                {monthData && (
-                    <div className="summary-card">
-                        <div>
-                            <span>총 수입:</span>
-                            <span>{Number(monthData.totalIncome ?? 0).toLocaleString()}원</span>
-                        </div>
-                        <div>
-                            <span>총 지출:</span>
-                            <span>{Number(monthData.totalExpense ?? 0).toLocaleString()}원</span>
-                        </div>
-                        <hr />
-                        <div>
-                            <span>손익:</span>
-                            <span>{Number((monthData.totalIncome ?? 0) - (monthData.totalExpense ?? 0)).toLocaleString()}원</span>
-                        </div>
+                {/* 월별 요약은 상세 섹션 외부에 렌더링합니다 (DOM에서 분리) */}
+                </div>
+                </div>
+            {/* 월별 요약: details-section 외부에 렌더링하여 카드 높이에 영향을 주지 않음 */}
+            {monthData && (
+                <div className="summary-card">
+                    <div>
+                        <span>총 수입:</span>
+                        <span>{Number(monthData.totalIncome ?? 0).toLocaleString()}원</span>
                     </div>
-                )}
-            </div>
+                    <div>
+                        <span>총 지출:</span>
+                        <span>{Number(monthData.totalExpense ?? 0).toLocaleString()}원</span>
+                    </div>
+                    <hr />
+                    <div>
+                        <span>손익:</span>
+                        <span>{Number((monthData.totalIncome ?? 0) - (monthData.totalExpense ?? 0)).toLocaleString()}원</span>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

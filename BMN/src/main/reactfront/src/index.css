@@ -6,6 +6,7 @@
 
 :root {
   --header-height: 60px;
+  --ledger-gap: 20px;
 }
 
 body {
@@ -179,22 +180,114 @@ main {
 .signup-box button:hover { background-color:#ff6347; }
 
 /* ------------------ HouseholdMain.css ------------------ */
-.ledger-container { display:flex; justify-content:space-between; align-items:stretch; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; height: 101vh; min-height: 101vh; }
+.ledger-container { display: flex; flex-direction: column; width:100%; padding:20px 40px; box-sizing:border-box; gap: var(--ledger-gap); min-height: calc(100vh - var(--header-height)); }
 .calendar-container { flex: 2; background-color:white; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 100%; }
+
+/* Ledger-specific: ensure the calendar/details ratio (2:1) is applied only for the ledger page
+   so other pages (MealMain, etc.) with the same class names don't override it. */
+.ledger-top-row {
+  display: flex;
+  gap: var(--ledger-gap);
+  align-items: stretch;
+  height: 70vh; /* top row height: calendar + details */
+}
+
+.ledger-top-row > .calendar-container {
+  flex: 2 1 0%;
+  height: 100%;
+}
+
+.ledger-top-row > .details-section {
+  flex: 1 1 0%;
+  height: 100%;
+}
+
+/* Ensure the left and right grid cells are fully used by their child cards */
+.ledger-container > .calendar-container,
+.ledger-container > .details-section {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Remove any unexpected outer margins inside the right column and make sure
+   the details card stretches to the full width of its grid cell. This prevents
+   mysterious left/right gaps around the details card. */
+.ledger-container > .details-section {
+  margin: 0 !important;
+  padding: 0 !important; /* details-container provides inner padding */
+  align-self: stretch !important;
+  justify-self: stretch !important;
+}
+
+.ledger-container > .details-section > .details-container {
+  margin: 0 !important;
+  width: 100% !important;
+  box-sizing: border-box !important;
+}
+.ledger-container > .details-section,
+.ledger-container > .details-container {
+  /* details stack in the right column on the top row */
+  grid-column: 2 / 3;
+  grid-row: 1 / 2;
+}
+.ledger-container > .calendar-container,
+.ledger-container > .details-section,
+.ledger-container > .details-container {
+  /* Ensure calendar and details have the same minimum height (account for ledger padding) */
+  min-height: calc(100vh - var(--header-height) - 40px);
+}
+
+/* Place the summary card in the right column second row so it doesn't affect
+   the top row heights. The summary-card is rendered as a direct child of
+   .ledger-container in the JSX. */
+.ledger-container > .summary-card {
+  /* Right-aligned summary card: take approximately the same width as the
+     details column (1 of 3 parts when top row is 2fr 1fr). Use calc to
+     account for the gap between columns. */
+  /* slightly reduce width so it doesn't feel too wide next to the details card */
+  width: calc((100% - var(--ledger-gap)) / 3 - 15px);
+  margin: 0;
+  /* In the flex-column .ledger-container the cross axis is horizontal; use
+     align-self to push the summary card to the right side of the container. */
+  align-self: flex-end !important;
+  margin-left: auto; /* keep auto margin as a fallback to ensure right alignment */
+  box-sizing: border-box;
+}
+
+/* Ledger-specific: force the visible card heights to 70vh so calendar and details
+   visually match the user's requested card height. The details container remains
+   scrollable; the summary card will sit below the details container inside
+   the details column. */
+.ledger-container > .calendar-container,
+.ledger-container > .details-section > .details-container {
+  /* Fill the grid top row (grid-auto-rows sets the top row to 70vh); let
+     the children occupy 100% of that row so heights match exactly. */
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+/* Let the details-section itself size to its content so the summary-card appears
+   below the details container (stacked), rather than forcing the section to fill
+   the full available height. */
+.ledger-container > .details-section {
+  height: auto;
+}
 .react-calendar__tile { display: flex; flex-direction: column; align-items: stretch; justify-content: flex-start; padding: 5px; text-align: left; }
 .react-calendar__month-view__days { flex-grow: 1; display: grid !important; grid-template-columns: repeat(7, 1fr); grid-template-rows: repeat(6, 1fr); row-gap: 8px; }
 .react-calendar__month-view__weekdays { text-align:center; font-weight:bold; color:black; }
-.react-calendar__month-view__weekdays__weekday:nth-child(7) { color:blue; }
-.react-calendar__month-view__weekdays__weekday:nth-child(1) { color:red; }
+.react-calendar__month-view__weekdays__weekday:nth-child(7) { color: #2563eb; }
+.react-calendar__month-view__weekdays__weekday:nth-child(1) { color: #ef4444; }
 .react-calendar__month-view__days__day--neighboringMonth { opacity:0.5; color:black !important; }
 .react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
 
 .details-section {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 20px;
-    height: 100%;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: var(--ledger-gap);
+  /* Let the section size to its content so the summary card stacks under the
+     details container. The details container itself has an enforced 70vh. */
+  height: auto !important;
 }
 
 .details-container {
@@ -206,19 +299,449 @@ main {
     overflow-y: auto;
     /* REMOVED fixed height: height: 70vh; */
 }
+
+/* Make the details-container fill the grid cell height so it matches the calendar card */
+.ledger-container > .details-section > .details-container {
+  height: 100% !important;
+  max-height: 100% !important;
+}
+
+/* Remove default top/bottom margins from headings inside the details card so
+   the card edge aligns nicely with other cards. */
+.details-container > h2 {
+  margin: 0 0 12px 0;
+  font-size: 20px;
+}
 .input-group { display:flex; flex-direction:column; gap:10px; padding:10px; background:#f9f9f9; border-radius:10px; margin-bottom:20px; }
 .input-group select, .input-group input { padding:8px; border:1px solid #ccc; border-radius:5px; font-size:16px; }
 .input-group button { background:#ecea63; color:rgb(255,255,255); padding:8px; border:none; border-radius:5px; font-size:16px; cursor:pointer; }
 .input-group button:hover { background:#e2be47; }
+/* Ledger-specific: make the main "추가" button a prominent red */
+.ledger-container .input-group > button {
+  background: #f23051; /* requested color */
+  color: #ffffff;
+  border: none;
+}
+.ledger-container .input-group > button:hover {
+  background: #d61d45; /* slightly darker on hover */
+}
 .transaction-list { margin-top:15px; list-style:none; padding:0; min-height:200px; }
-.transaction-list li { font-size:16px; padding:8px; border-bottom:1px solid #ddd; }
-.income { color:blue; font-weight:bold; }
-.expense { color:red; font-weight:bold; }
+
+/* Header row for transaction list (acts like thead) */
+.transaction-list-header {
+  display: grid;
+  /* Left type col + slightly narrower name and amount to fit inside details card */
+  /* Remove the left type column so the name starts at the card edge */
+  grid-template-columns: 0px minmax(160px, 1fr) 90px 100px; /* type | item | amount | actions */
+  gap: 6px;
+  padding: 6px 8px;
+  font-weight: 700;
+  color: #333;
+  border-bottom: 1px solid #ddd ; 
+  background: #fafafa;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+}
+.transaction-list-header .name { grid-column: 2; padding-left: 0; min-width: 0; }
+.transaction-list-header .amount { grid-column: 3; text-align: right; padding-right: 8px; }
+
+/* Align each transaction as grid columns so names/amounts line up */
+.transaction-list { width: 100%; box-sizing: border-box; }
+
+.transaction-list li {
+  display: grid;
+  /* Remove the left type column so the name starts at the card edge */
+  grid-template-columns: 0px minmax(160px, 1fr) 90px 100px; /* type | item | amount | actions */
+  gap: 6px;
+  align-items: start; /* allow name to wrap to two lines vertically */
+  font-size: 15px;
+  padding: 6px 8px;
+  border-bottom: 1px solid #eee;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Name: allow up to 2 lines, then ellipsis; ensure it doesn't force the grid to overflow */
+.transaction-list li .name {
+  grid-column: 2;
+  padding-left: 0;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2; /* show up to 2 lines */
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: normal;
+  word-break: break-word;
+  min-width: 0; /* allow it to shrink inside the grid without causing overflow */
+}
+.transaction-list li .amount { grid-column: 3; text-align: right; padding-right: 6px; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.transaction-list li .actions { grid-column: 4; justify-self: end; display: flex; gap: 6px; }
+.transaction-list li .actions button { flex: 0 0 auto; white-space: nowrap; }
+.income { color: blue; font-weight: bold; }
+.expense { color: red; font-weight: bold; }
+
+/* Center the empty list message */
+.transaction-list li.empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 12px 8px;
+  color: #666;
+  grid-column: 1 / -1; /* span the full grid */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Edit row: inputs/selects placed into respective columns */
+.transaction-list li.edit select { grid-column: 1; }
+.transaction-list li.edit .edit-name { grid-column: 2; }
+.transaction-list li.edit .edit-amount { grid-column: 3; text-align: right; }
 .react-calendar__navigation { background-color:transparent; }
 .react-calendar__navigation__label { font-size: 24px !important; font-weight: bold; }
 .react-calendar__navigation button { color:black; font-weight:bold; }
+
+/* Ledger-scoped: enlarge calendar navigation buttons for better touch/visibility */
+.ledger-container .calendar-container .react-calendar__navigation button {
+  padding: 10px 14px !important;
+  font-size: 16px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+}
+.ledger-container .calendar-container .react-calendar__navigation button:hover {
+  background: rgba(44,62,80,0.06) !important;
+}
+
+/* If the calendar nav uses inline SVGs, increase their size too */
+.ledger-container .calendar-container .react-calendar__navigation button svg {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+}
+
+/* Scale calendar text elements by 1.3x for improved readability in the ledger view */
+.ledger-container .calendar-container .react-calendar__tile abbr,
+.ledger-container .calendar-container .react-calendar__tile time,
+.ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+  font-size: calc(var(--calendar-font-size, 14px) * 1.3) !important;
+  line-height: 1 !important;
+}
+.ledger-container .calendar-container .react-calendar__navigation__label {
+  font-size: calc(24px * 1.3) !important;
+}
+
+/* Ensure the month label (navigation label) is consistently black for ledger and meal calendars */
+.ledger-container .calendar-container .react-calendar__navigation__label {
+  color: #111 !important;
+}
+.meal-container .calendar-container .react-calendar__navigation__label {
+  color: #111 #f1bac3 !important;
+}
+.ledger-container .calendar-container .react-calendar__navigation button svg {
+  width: calc(18px * 1.3) !important;
+  height: calc(18px * 1.3) !important;
+}
+
+/* Mirror the same scaling for the Meal calendar so visuals match */
+.meal-container .calendar-container .react-calendar__tile abbr,
+.meal-container .calendar-container .react-calendar__tile time,
+.meal-container .calendar-container .react-calendar__tile .calendar-tile {
+  font-size: calc(var(--calendar-font-size, 14px) * 1.3) !important;
+  line-height: 1 !important;
+}
+.meal-container .calendar-container .react-calendar__navigation__label {
+  font-size: calc(24px * 1.3) !important;
+}
+.meal-container .calendar-container .react-calendar__navigation button svg {
+  width: calc(18px * 1.3) !important;
+  height: calc(18px * 1.3) !important;
+}
+
+/* Stronger selectors to catch library-specific markup (direct children, first/last nav buttons) */
+.ledger-container .calendar-container .react-calendar__navigation > button,
+.ledger-container .calendar-container .react-calendar__navigation > button:first-child,
+.ledger-container .calendar-container .react-calendar__navigation > button:last-child,
+.ledger-container .calendar-container .react-calendar__navigation button.react-calendar__navigation__prev-button,
+.ledger-container .calendar-container .react-calendar__navigation button.react-calendar__navigation__next-button {
+  padding: 10px 14px !important;
+  font-size: 16px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* ensure any inner icon/font inherits larger size */
+.ledger-container .calendar-container .react-calendar__navigation > button * {
+  font-size: 16px !important;
+}
 .react-calendar__tile--active { background:#e2af8d; color:white; border-radius:5px; }
 .react-calendar__month-view__weekdays { color:black; font-weight:bold; }
+
+/* Ledger-scoped: prevent calendar tile text from overflowing the calendar card */
+.ledger-container .calendar-container {
+  overflow: hidden; /* ensure the calendar as a whole doesn't let children overflow */
+}
+.ledger-container .calendar-container {
+  /* enable container queries so font-size can respond to calendar container width and height */
+  container-type: size; /* allows queries on inline-size and block-size */
+}
+.ledger-container .calendar-container .react-calendar {
+  box-sizing: border-box;
+  overflow: hidden;
+  /* Make the react-calendar element fill the calendar card vertically so
+     its month view (days grid) can stretch to match the details card height. */
+  height: 100% !important;
+  display: flex !important;
+  flex-direction: column !important;
+}
+.ledger-container .calendar-container .react-calendar__month-view__days,
+.ledger-container .calendar-container .react-calendar__month-view__weeks {
+  box-sizing: border-box;
+}
+
+/* Ensure the month-view itself participates in the flex layout and can grow
+   so the days grid expands to fill the card height (together with nav and
+   weekday header heights) */
+.ledger-container .calendar-container .react-calendar__month-view {
+  display: flex !important;
+  flex-direction: column !important;
+  flex: 1 1 auto !important;
+}
+.ledger-container .calendar-container .react-calendar__month-view__days {
+  /* the days grid already uses grid; allow it to grow to occupy remaining
+     vertical space inside the month-view */
+  flex: 1 1 auto !important;
+}
+.ledger-container .calendar-container .react-calendar__tile {
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important; /* allow flex/grid children to shrink */
+}
+.ledger-container .calendar-container .react-calendar__tile abbr,
+.ledger-container .calendar-container .react-calendar__tile time,
+.ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+  display: block !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  max-width: 100% !important;
+}
+
+/* Make date text scale with calendar size and keep tiles centered */
+.ledger-container .calendar-container .react-calendar__tile {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px !important;
+  box-sizing: border-box !important;
+}
+.ledger-container .calendar-container .react-calendar__tile abbr,
+.ledger-container .calendar-container .react-calendar__tile time,
+.ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+  line-height: 1 !important;
+  max-width: 100% !important;
+  text-align: center !important;
+}
+
+/* Fallback responsive sizing: if container queries don't apply immediately on first
+   render in some environments, this clamp gives a reasonable, viewport-relative
+   fallback. Container-query rules below (with !important) will override this
+   when available. */
+.ledger-container .calendar-container .react-calendar__tile abbr,
+.ledger-container .calendar-container .react-calendar__tile time,
+.ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+  /* Prefer the JS-updated CSS variable for smooth scaling; fallback to a viewport-based clamp */
+  font-size: var(--calendar-font-size, clamp(12px, 1.2vw + 8px, 18px)) !important;
+  transition: font-size 160ms ease;
+}
+
+/* Color day numbers inside the month grid according to weekday column: 
+   Sundays (1st column) red, Saturdays (7th column) blue, others black. */
+.ledger-container .calendar-container .react-calendar__month-view__days > * {
+  color: #111; /* default Mon-Fri */
+}
+
+/* Prefer class-based coloring: more robust against week-start variations.
+   We add classes `weekday-sun` and `weekday-sat` on both weekday headers and
+   day cells via a small JS helper so we always color the proper columns. */
+.react-calendar__month-view__weekdays__weekday.weekday-sun { color: #ef4444 !important; }
+.react-calendar__month-view__weekdays__weekday.weekday-sat { color: #2563eb !important; }
+
+/* Ensure Monday header and day cells are explicitly black (in case other
+  rules override default colors). We add weekday-mon so JS can tag Monday
+  and the style will be applied consistently across ledger and meal views. */
+.react-calendar__month-view__weekdays__weekday.weekday-mon { color: #111 !important; }
+.react-calendar__month-view__days > *.weekday-mon { color: #111 !important; }
+
+.react-calendar__month-view__days > *.weekday-sun { color: #ef4444 !important; }
+.react-calendar__month-view__days > *.weekday-sat { color: #2563eb !important; }
+
+/* Ensure inner elements inherit color */
+.react-calendar__month-view__days > *.weekday-sun .calendar-tile,
+.react-calendar__month-view__days > *.weekday-sat .calendar-tile,
+.react-calendar__month-view__days > *.weekday-sun abbr,
+.react-calendar__month-view__days > *.weekday-sat abbr,
+.react-calendar__month-view__days > *.weekday-sun time,
+.react-calendar__month-view__days > *.weekday-sat time {
+  color: inherit !important;
+}
+
+/* Ensure the inner text elements inherit the color */
+.ledger-container .calendar-container .react-calendar__month-view__days > * .calendar-tile,
+.ledger-container .calendar-container .react-calendar__month-view__days > * abbr,
+.ledger-container .calendar-container .react-calendar__month-view__days > * time {
+  color: inherit !important;
+}
+
+/* Styling for the calendar-net tile we render: neutral color and spacing */
+.ledger-container .calendar-container .calendar-net { display:flex; align-items:center; justify-content:center; width:100%; }
+.ledger-container .calendar-container .calendar-net .income { color: #1f8a50; font-weight:700; } /* positive in green */
+.ledger-container .calendar-container .calendar-net .expense { color: #ef4444; font-weight:700; } /* negative in red */
+.ledger-container .calendar-container .calendar-net .neutral { color: #666; font-weight:600; }
+
+/* Today's date and selected date colors (ledger calendar) */
+.ledger-container .calendar-container .react-calendar__tile--now {
+  background: #95caff !important; /* 오늘 날짜 배경색 */
+  color: #042735 !important; /* 어두운 텍스트로 가독성 확보 */
+  border-radius: 5px !important;
+}
+.ledger-container .calendar-container .react-calendar__tile--active {
+  background: #c3e9ff !important; /* 선택된 날짜 배경색 (updated) */
+  color: #042735 !important;
+  border-radius: 5px !important;
+}
+
+/* Same styles for Meal calendar so visuals match */
+.meal-container .calendar-container .react-calendar__tile--now {
+  background: #95caff !important;
+  color: #042735 !important;
+  border-radius: 5px !important;
+}
+.meal-container .calendar-container .react-calendar__tile--active {
+  background: #c3e9ff !important;
+  color: #042735 !important;
+  border-radius: 5px !important;
+}
+
+/* Container-query based scaling: font-size steps tied to the calendar container's width */
+@container (max-width: 300px) {
+  .ledger-container .calendar-container .react-calendar__tile abbr,
+  .ledger-container .calendar-container .react-calendar__tile time,
+  .ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 12px;
+  }
+}
+@container (min-width: 301px) and (max-width: 420px) {
+  .ledger-container .calendar-container .react-calendar__tile abbr,
+  .ledger-container .calendar-container .react-calendar__tile time,
+  .ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 14px;
+  }
+}
+@container (min-width: 421px) and (max-width: 640px) {
+  .ledger-container .calendar-container .react-calendar__tile abbr,
+  .ledger-container .calendar-container .react-calendar__tile time,
+  .ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 16px;
+  }
+}
+@container (min-width: 641px) {
+  .ledger-container .calendar-container .react-calendar__tile abbr,
+  .ledger-container .calendar-container .react-calendar__tile time,
+  .ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 18px;
+  }
+}
+
+/* Also scale based on calendar container height so text responds vertically */
+@container (max-height: 220px) {
+  /* font-size handled by --calendar-font-size (JS). Keep vertical spacing rules below. */
+}
+@container (min-height: 221px) and (max-height: 320px) {
+  /* font-size handled by --calendar-font-size (JS). */
+}
+@container (min-height: 321px) and (max-height: 480px) {
+  /* font-size handled by --calendar-font-size (JS). */
+}
+@container (min-height: 481px) {
+  /* font-size handled by --calendar-font-size (JS). */
+}
+
+/* Vertical scaling: adjust tile padding and max-height so vertical spacing scales with calendar height */
+@container (max-height: 220px) {
+  .ledger-container .calendar-container .react-calendar__tile {
+    padding-block: 3px !important;
+    min-height: 21px !important;
+    max-height: 25.5px !important;
+  }
+  .ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+    max-height: 100% !important;
+    display: block !important;
+    overflow: hidden !important;
+  }
+}
+@container (min-height: 221px) and (max-height: 320px) {
+  .ledger-container .calendar-container .react-calendar__tile {
+    padding-block: 4.5px !important;
+    min-height: 27px !important;
+    max-height: 36px !important;
+  }
+}
+@container (min-height: 321px) and (max-height: 480px) {
+  .ledger-container .calendar-container .react-calendar__tile {
+    padding-block: 6px !important;
+    min-height: 36px !important;
+    max-height: 48px !important;
+  }
+}
+@container (min-height: 481px) {
+  .ledger-container .calendar-container .react-calendar__tile {
+    /* User-requested sizing for taller calendar containers */
+    padding-block: 5px !important;
+    min-height: 40px !important;
+    max-height: 50px !important;
+  }
+}
+
+/* Ensure inner text doesn't overflow vertically: allow up to 2 lines and clamp if needed */
+.ledger-container .calendar-container .react-calendar__tile .calendar-tile {
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Ensure calendar and details keep their previous desktop widths (2:1 ratio).
+   On desktop, allow them to flex to fill available space (no hard max-width to avoid right-side gaps). */
+@media (min-width: 901px) {
+  /* Force a strict 2:1 width split for ledger page to avoid 1:1 layout issues.
+     Use flex-basis percentages so other global rules won't override the ratio. */
+  .ledger-container > .calendar-container {
+    flex: 0 0 66.666666%;
+    max-width: 66.666666%;
+  }
+  .ledger-container > .details-section,
+  .ledger-container > .details-container {
+    flex: 0 0 33.333333%;
+    max-width: 33.333333%;
+  }
+}
 
 /* ------------------ Ingredient.css ------------------ */
 .ingredient-page { width: 80%; margin: 2rem auto; font-family: Arial, sans-serif; }
@@ -232,12 +755,63 @@ main {
     background: white;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
-.thumbnail img { width:150px; height:150px; object-fit:cover; border-radius:8px; }
+.thumbnail {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+/* thumb-box holds the image and enforces a 1:0.7 (width:height) aspect ratio.
+   We size by width with a clamped responsive value, and let aspect-ratio
+   determine the height so the box is predictable across layouts. */
+.thumb-box {
+  --thumb-width: clamp(140px, 28vw, 360px);
+  width: var(--thumb-width);
+  aspect-ratio: 1 / 0.7; /* width : height = 1 : 0.7 */
+  overflow: hidden;
+  border-radius: 8px;
+}
+.thumb-box > img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+.thumbnail .recipe-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #222;
+  text-align: center;
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  line-clamp: 2;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  white-space: normal;
+}
+
+/* Purchase card title coloring: ingredient name in brand color, label in dark */
+.ingredient-link h3 { font-size: 18px; margin: 0 0 8px 0; }
+.ingredient-link h3 .ing-name { color: #f2536d; font-weight: 800; }
+.ingredient-link h3 .purchase-label { color: #111; margin-left: 8px; font-weight: 600; }
 .cost-section { flex:1; text-align:center; }
 .cost-section input { width:100px; margin-left:10px; }
 .ingredient-top-box > .reflect-button {
-    flex: 0.7;
-    align-items: stretch;
+  /* Column layout so controls stack vertically and can share the same width */
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex: 0.7;
+  align-items: flex-start;
+  box-sizing: border-box;
+  /* Slightly narrower preferred width (reduce '범위' a bit). Use a CSS variable so
+     child controls can all share the same width. The value clamps between
+     a viewport-relative width and a reasonable max pixel width. */
+  /* Slightly narrower reflect area than before to reduce visual range */
+  --reflect-width: min(380px, 34vw);
 }
 .reflect-button button {
     background-color: #cebe30; /* Prominent yellow color */
@@ -260,13 +834,86 @@ main {
     cursor: not-allowed;
 }
 .button-group-horizontal {
-    display: flex;
-    gap: 12px;
-    margin-top: 12px;
-    width: 100%;
+  display: flex;
+  gap: 12px;
+  margin-top: 12px;
+  width: 100%;
 }
 .button-group-horizontal > button {
-    flex: 1; /* This will make them equal width */
+  flex: 1; /* This will make them equal width */
+  background: transparent; /* reset default; specific colors set below */
+  color: #fff;
+  border: none;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* Specific colors for the two action buttons in the reflect panel */
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child {
+  /* 가계부 반영하기 */
+  background: #f1bac3;
+}
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child:hover:not(:disabled) {
+  background: #e6a7b3;
+}
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child:disabled {
+  background: #f6d7dc;
+  color: #ffffffcc;
+  cursor: not-allowed;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child {
+  /* 식단 반영하기 */
+  background: #f2536d;
+}
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child:hover:not(:disabled) {
+  background: #d9415e;
+}
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child:disabled {
+  background: #f9a1ad;
+  color: #ffffffcc;
+  cursor: not-allowed;
+}
+
+/* Make the final total, meal-slot controls, memo input, and button group
+   share the same width so their visual widths are identical. We use the
+   variable defined on the parent; on narrow screens fall back to 100%. */
+.ingredient-top-box > .reflect-button > div:first-child,
+.ingredient-top-box > .reflect-button .sx-1l,
+.ingredient-top-box > .reflect-button .sx-1o,
+.ingredient-top-box > .reflect-button .button-group-horizontal {
+  width: var(--reflect-width);
+}
+
+/* Layout the final total row so the label (left) and amount (right) align
+   precisely with the memo and buttons below. Also make the meal-slot row
+   push the radios to the right edge so its right edge matches the buttons. */
+.ingredient-top-box > .reflect-button > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.ingredient-top-box > .reflect-button .sx-1l {
+  /* push the radio buttons to the far right while keeping the label on
+     the left; allow wrapping on small widths as previously configured */
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+/* On very small screens let the controls expand to the available width */
+@media (max-width: 640px) {
+  .ingredient-page { width: 94%; }
+  .ingredient-top-box { padding: 16px; }
+  .ingredient-top-box > .reflect-button { --reflect-width: 100%; }
+  .ingredient-top-box > .reflect-button > div:first-child,
+  .ingredient-top-box > .reflect-button .sx-1l,
+  .ingredient-top-box > .reflect-button .sx-1o,
+  .ingredient-top-box > .reflect-button .button-group-horizontal {
+    width: 100%;
+  }
 }
 .ingredient-bottom-box { display:flex; gap:24px; }
 .ingredient-list {
@@ -289,6 +936,79 @@ main {
 .ingredient-link a { color:#007BFF; text-decoration:none; }
 .ingredient-link a:hover { text-decoration:underline; }
 
+/* Divider above Naver search results table */
+.ingredient-link .sx-20 {
+  border-top: 1px solid #eee;
+  margin-top: 12px;
+  padding-top: 10px; /* give a little breathing room between heading and table */
+}
+
+/* Card title underline for ingredient list and purchase card */
+.ingredient-list h3,
+.ingredient-link h3,
+.ingredient-link .prominent-text,
+.ingredient-list h4,
+.ingredient-link h4 {
+  padding-bottom: 8px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid #eee;
+}
+
+/* Strong ledger-scoped overrides to ensure transaction name uses two lines and no leading gap */
+.ledger-container .transaction-list-header .name {
+  padding-left: 0 !important;
+  min-width: 0 !important;
+}
+
+/* Calendar and details header color */
+.react-calendar__navigation__label {
+  color: #2c3e50 !important;
+}
+
+.ledger-container .details-container h2 {
+  color: #2c3e50;
+}
+.ledger-container .transaction-list li .name {
+  padding-left: 0 !important;
+  display: -webkit-box !important;
+  -webkit-box-orient: vertical !important;
+  -webkit-line-clamp: 2 !important;
+  line-clamp: 2 !important;
+  overflow: hidden !important;
+  text-overflow: ellipsis !important;
+  white-space: normal !important;
+  min-width: 0 !important;
+}
+
+/* Color and button styling for ledger transaction rows */
+.ledger-container .transaction-list-header .name {
+  color: #706266 !important;
+}
+.ledger-container .transaction-list li .name {
+  color: #706266 !important;
+}
+
+.ledger-container .transaction-list li .actions button {
+  /* edit/save/cancel buttons default style */
+  color: #2c3e50;
+  border: 1px solid #2c3e50;
+  background: transparent;
+  padding: 6px 8px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.ledger-container .transaction-list li .actions button.danger,
+.ledger-container .transaction-list li .actions button[class~="danger"] {
+  /* delete button */
+  color: #fff;
+  background: #2c3e50;
+  border: 1px solid #2c3e50;
+}
+
+.ledger-container .transaction-list li .actions button:hover {
+  opacity: 0.95;
+}
+
 /* ------------------ MealMain.css ------------------ */
 .meal-container { display:flex; justify-content:space-between; align-items:stretch; width:100%; padding:20px 40px; box-sizing:border-box; gap: 20px; height: calc(100vh - 72px); }
 .calendar-container { flex: 2; background:#fff; padding:20px; border-radius:10px; box-shadow:0 0 10px rgba(0,0,0,0.1); height: 70vh; }
@@ -309,6 +1029,142 @@ main {
 .calendar-tile { text-align:center; font-size:13px; margin-top:4px; line-height:1.1; }
 .calendar-tile .mini-recipe { white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
 .calendar-tile .mini-more { color:#666; font-size:12px; }
+
+/* ------------------------------------------------------------ */
+/* Make Meal calendar use the same visual style as Ledger calendar */
+/* This duplicates ledger-scoped calendar rules but scoped to .meal-container */
+/* ------------------------------------------------------------ */
+.meal-container .calendar-container {
+  overflow: hidden;
+  /* enable container queries for meal calendar too */
+  container-type: size;
+}
+.meal-container .calendar-container .react-calendar {
+  box-sizing: border-box;
+  overflow: hidden;
+}
+.meal-container .calendar-container .react-calendar__navigation__label {
+  color: #2c3e50 !important;
+}
+.meal-container .calendar-container .react-calendar__navigation button {
+  padding: 10px 14px !important;
+  font-size: 16px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  line-height: 44px !important;
+  border-radius: 8px !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  background: transparent !important;
+  border: 1px solid transparent !important;
+  cursor: pointer !important;
+}
+.meal-container .calendar-container .react-calendar__navigation button:hover {
+  background: rgba(44,62,80,0.06) !important;
+}
+.meal-container .calendar-container .react-calendar__navigation button svg {
+  width: 18px !important;
+  height: 18px !important;
+  display: block !important;
+}
+
+.meal-container .calendar-container .react-calendar__tile {
+  box-sizing: border-box !important;
+  overflow: hidden !important;
+  white-space: nowrap !important;
+  text-overflow: ellipsis !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 6px !important;
+  box-sizing: border-box !important;
+}
+.meal-container .calendar-container .react-calendar__tile abbr,
+.meal-container .calendar-container .react-calendar__tile time,
+.meal-container .calendar-container .react-calendar__tile .calendar-tile {
+  line-height: 1 !important;
+  max-width: 100% !important;
+  text-align: center !important;
+  font-size: var(--calendar-font-size, clamp(12px, 1.2vw + 8px, 18px)) !important;
+  transition: font-size 160ms ease;
+}
+
+/* Weekday header colors (Saturday blue, Sunday red) */
+.meal-container .react-calendar__month-view__weekdays__weekday:nth-child(7) { color: #2563eb; }
+.meal-container .react-calendar__month-view__weekdays__weekday:nth-child(1) { color: #ef4444; }
+
+/* Color day numbers inside the month grid according to weekday column */
+.meal-container .calendar-container .react-calendar__month-view__days > * { color: #111; }
+/* Note: remove brittle nth-child weekend coloring in favor of class-based
+  `.weekday-sun` / `.weekday-sat` which are applied by component JS. Keep
+  day elements inheriting color from the cell so `.weekday-*` classes take
+  effect. */
+.meal-container .calendar-container .react-calendar__month-view__days > * abbr,
+.meal-container .calendar-container .react-calendar__month-view__days > * time,
+.meal-container .calendar-container .react-calendar__month-view__days > * .calendar-tile { color: inherit !important; }
+
+/* Container-query based scaling for meal calendar (width) */
+@container (max-width: 300px) {
+  .meal-container .calendar-container .react-calendar__tile abbr,
+  .meal-container .calendar-container .react-calendar__tile time,
+  .meal-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 12px;
+  }
+}
+@container (min-width: 301px) and (max-width: 420px) {
+  .meal-container .calendar-container .react-calendar__tile abbr,
+  .meal-container .calendar-container .react-calendar__tile time,
+  .meal-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 14px;
+  }
+}
+@container (min-width: 421px) and (max-width: 640px) {
+  .meal-container .calendar-container .react-calendar__tile abbr,
+  .meal-container .calendar-container .react-calendar__tile time,
+  .meal-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 16px;
+  }
+}
+@container (min-width: 641px) {
+  .meal-container .calendar-container .react-calendar__tile abbr,
+  .meal-container .calendar-container .react-calendar__tile time,
+  .meal-container .calendar-container .react-calendar__tile .calendar-tile {
+    font-size: 18px;
+  }
+}
+
+/* Vertical container-query spacing for meal calendar tiles */
+@container (max-height: 220px) {
+  .meal-container .calendar-container .react-calendar__tile {
+    padding-block: 3px !important;
+    min-height: 21px !important;
+    max-height: 25.5px !important;
+  }
+}
+@container (min-height: 221px) and (max-height: 320px) {
+  .meal-container .calendar-container .react-calendar__tile {
+    padding-block: 4.5px !important;
+    min-height: 27px !important;
+    max-height: 36px !important;
+  }
+}
+@container (min-height: 321px) and (max-height: 480px) {
+  .meal-container .calendar-container .react-calendar__tile {
+    padding-block: 6px !important;
+    min-height: 36px !important;
+    max-height: 48px !important;
+  }
+}
+@container (min-height: 481px) {
+  .meal-container .calendar-container .react-calendar__tile {
+    padding-block: 5px !important;
+    min-height: 40px !important;
+    max-height: 50px !important;
+  }
+}
+
 .meal-card-list { list-style:none; padding:0; margin:0; }
 .meal-card { padding:10px; border-bottom:1px solid #eee; }
 .meal-card .row { display:flex; gap:12px; align-items:center; }
@@ -1940,6 +2796,85 @@ html, body, #root {
   box-shadow: 0 4px 8px rgba(0,0,0,0.06);
 }
 
+/* Small gap between the header action buttons (추천 레시피, 마이페이지 이동) */
+.fridge-header > div > button + button {
+  margin-left: 8px;
+}
+
+/* Outer card that wraps the fridge page content and provides 1/6 left/right gutters
+   The outer card centers the content and contains the category tabs, the input
+   form and the ingredient grid. On small screens it becomes full-width. */
+.fridge-outer-card {
+  width: 66.666667%; /* leaves 1/6 gutter on each side */
+  margin: 0 auto 28px auto;
+  padding: 18px 36px; /* increase horizontal padding so outer gutters grow */
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 6px 18px rgba(12,12,12,0.06);
+  box-sizing: border-box;
+}
+
+/* Keep the category tabs pinned to the top of the card and space them nicely */
+.fridge-outer-card .sx-o {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 14px;
+  align-items: center;
+}
+
+/* Tab button styles: pill shape, f23051 border, selected background f23051 */
+.fridge-outer-card .sx-o .fridge-tab {
+  border-radius: 999px;
+  border: 1px solid #f23051;
+  background: #ffffff;
+  color: #222;
+  padding: 6px 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 150ms ease;
+}
+.fridge-outer-card .sx-o .fridge-tab:hover {
+  box-shadow: 0 4px 10px rgba(242,48,81,0.06);
+}
+.fridge-outer-card .sx-o .fridge-tab.active {
+  background: #f23051 !important;
+  color: #fff !important;
+}
+
+/* If the inner input form has its own card-like styling, reduce it slightly so
+   the outer card reads as the primary container. This avoids a double-card
+   visual while preserving form spacing. */
+.fridge-outer-card .fridge-input-form {
+  background: transparent;
+  box-shadow: none;
+  padding: 8px 0;
+}
+
+/* Make the fridge grid sit neatly inside the outer card */
+.fridge-outer-card .fridge-grid {
+  /* keep symmetric internal gutters by relying on the outer-card padding; use
+     start alignment so the first/last tiles sit aligned to the inner edges.
+     Maintain equal horizontal/vertical gap via `gap`. */
+  padding: 8px 0 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 200px);
+  grid-auto-rows: 200px;
+  gap: 16px; /* both row-gap and column-gap = 16px */
+  /* center the grid so left/right empty space inside the outer card is equal
+     while preserving the fixed card gap. This keeps symmetric inner gutters. */
+  justify-content: center;
+}
+
+/* Responsive: on small screens use full width and reduce padding */
+@media (max-width: 900px) {
+  .fridge-outer-card {
+    width: 100%;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  .fridge-outer-card .sx-o { gap: 8px; }
+}
+
 .comment-actions {
   text-align: right;
   margin-top: 12px;
@@ -1950,12 +2885,15 @@ html, body, #root {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
-  margin-bottom: 24px;
-  padding: 20px;
+  /* match the outer-card gutters: occupy 2/3 of page width so left/right gutters are 1/6 */
+  width: 66.666667%;
+  margin: 0 auto 24px auto;
+  padding: 16px 20px;
   background: #fff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
   align-items: center;
+  box-sizing: border-box;
 }
 
 .fridge-input-form input,
@@ -1965,20 +2903,37 @@ html, body, #root {
   border: 1px solid #ddd;
   border-radius: 8px;
   font-size: 16px;
+  box-sizing: border-box;
 }
 
-.fridge-input-form input[type="text"],
-.fridge-input-form input[type="date"] {
-  flex: 1; /* Allow text and date inputs to grow */
-  min-width: 150px; /* Minimum width for inputs */
+.fridge-input-form input[type="text"] {
+  /* name input: take more space */
+  flex: 2 1 320px;
+  min-width: 180px;
 }
 
+.fridge-input-form .sx-v,
 .fridge-input-form input[type="number"] {
-  width: 80px; /* Fixed width for quantity */
+  width: 80px; /* quantity fixed */
+  flex: 0 0 80px;
+}
+
+.fridge-input-form .sx-w {
+  /* unit input: flexible, fill remaining horizontal space */
+  flex: 1 1 120px;
+  min-width: 80px;
 }
 
 .fridge-input-form select {
+  flex: 0 0 140px;
   min-width: 120px;
+}
+
+.fridge-input-form input[type="date"] {
+  /* make date input narrower */
+  /* increase date input width to be roughly double previous size */
+  flex: 0 0 240px;
+  min-width: 180px;
 }
 
 .fridge-input-form button {
@@ -1990,12 +2945,22 @@ html, body, #root {
   transition: background-color 0.2s;
 }
 
-.fridge-input-form button:hover {
-  background-color: #bb954d;
-  border-color: #bb954d;
+/* Add button specific styling (use requested f2536d) */
+.fridge-input-form > .add-button {
+  background-color: #f2536d;
+  border-color: #f2536d;
+}
+.fridge-input-form > .add-button:hover {
+  background-color: #d04159;
+  border-color: #d04159;
 }
 
-.content-wrapper {
+@media (max-width: 900px) {
+  .fridge-input-form {
+    width: 100%;
+    padding: 12px;
+    margin-bottom: 18px;
+  }
 }
 
 .separator {
@@ -2005,9 +2970,12 @@ html, body, #root {
 
 .fridge-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); /* Responsive grid */
+  /* Fixed-size tiles: 200px squares. Use auto-fill to wrap as many as fit. */
+  grid-template-columns: repeat(auto-fill, 200px);
+  grid-auto-rows: 200px;
+  justify-content: start; /* align tiles to left within the outer card */
   gap: 16px;
-  padding: 16px 0; /* Add some vertical padding */
+  padding: 16px 0; /* vertical padding inside the outer card */
 }
 
 .fridge-card {
@@ -2015,17 +2983,99 @@ html, body, #root {
   border: 1px solid #e6e6e6;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-  padding: 16px;
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 8px;
   position: relative; /* For absolute positioning of delete button if needed */
+  /* Fixed square size to match design requirement */
+  width: 100%;
+  height: 100%;
+  min-width: 200px;
+  min-height: 200px;
+  max-width: 200px;
+  max-height: 200px;
 }
 
 .fridge-card-name {
   font-size: 18px;
   font-weight: 700;
   color: #333;
+}
+
+/* Top row inside card: name + badge */
+.fridge-card-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.fridge-card-badge {
+  background: #f0f0f0;
+  padding: 4px 8px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #333;
+  flex: none; /* keep badge size to content */
+}
+
+.fridge-card-qty {
+  margin-top: 8px;
+  font-size: 14px;
+  color: #444;
+  width: 100%;
+  background: #fff6e8; /* requested pale yellow background */
+  padding: 8px 10px;
+  border-radius: 8px;
+  box-sizing: border-box;
+  border: 1px solid #e7d8c1; /* subtle border */
+}
+
+.fridge-card-expire {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #666;
+}
+
+/* Edit button top-right */
+.fridge-card-edit {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  background: rgba(0,0,0,0.06);
+  border: none;
+  border-radius: 6px;
+  width: 30px;
+  height: 30px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+.fridge-card-edit:hover { background: rgba(0,0,0,0.1); }
+
+/* Bottom-centered complete/delete button */
+.fridge-card-complete {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: 10px;
+}
+.fridge-card-complete .sx-11 {
+  background: #f2536d; /* requested color */
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 16px;
+}
+.fridge-card-complete .sx-11:hover { background: #d04159; }
+
+/* Page header alignment: make sure the fridge header aligns with page padding
+   and primary content width (same centering as .container). */
+.fridge-header {
+  max-width: 1080px;
+  margin: 0 auto 24px auto; /* center and keep bottom spacing */
+  padding: 0 16px;
+  box-sizing: border-box;
 }
 
 .fridge-card-category {
@@ -2085,22 +3135,36 @@ html, body, #root {
 
 /* ------------------ HouseholdLedgerMain Summary Card ------------------ */
 .summary-card {
-    margin-top: 20px;
-    padding: 15px;
-    border: 1px solid #eee;
-    border-radius: 10px;
-    background-color: #fdfdfd;
+    margin-top: var(--ledger-gap);
+    padding: 12px; /* slightly reduced overall padding */
+      border: 1px solid #eee;
+      border-radius: 10px;
+      background-color: #fdfdfd;
 }
 .summary-card > div {
-    display: flex;
-    justify-content: space-between;
-    font-size: 16px;
-    padding: 4px 0;
+  display: flex;
+  justify-content: space-between;
+  font-size: 16px;
+  padding: 2px 0; /* reduced spacing between rows */
 }
 .summary-card hr {
-    border: 0;
-    border-top: 1px solid #eee;
-    margin: 8px 0;
+  border: 0;
+  border-top: 1px solid #eee;
+  margin: 6px 0; /* tightened hr spacing */
+}
+
+/* Preserve the original '상세 카드' (summary card) layout for the Household Ledger details
+   Ensure its scope/size remains as before even after other layout changes */
+.details-section > .summary-card {
+  margin-top: 20px;
+  padding: 15px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background-color: #fdfdfd;
+  /* Ensure the summary card does not affect the fixed 70vh heights of the
+     details container — it should sit below as a normal flow element. */
+  flex: 0 0 auto;
+  align-self: stretch; /* occupy full width of the details column as before */
 }
 
 .fridge-card-expire {

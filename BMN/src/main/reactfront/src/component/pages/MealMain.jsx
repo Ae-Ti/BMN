@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
@@ -46,6 +46,99 @@ export default function MealMain() {
   const [editTitle, setEditTitle] = useState("");
   const [editQuantity, setEditQuantity] = useState(1);
   const [editNote, setEditNote] = useState("");
+
+  // responsive calendar font sizing (mirror of HouseholdLedgerMain)
+  const calendarRef = useRef(null);
+  useEffect(() => {
+    const el = calendarRef.current;
+    if (!el) return;
+    const minBasis = 240;
+    const maxBasis = 900;
+    const minFont = 12;
+    const maxFont = 18;
+
+    let raf = 0;
+    const compute = () => {
+      const rect = el.getBoundingClientRect();
+      const basis = Math.min(rect.width, rect.height);
+      let t = (basis - minBasis) / (maxBasis - minBasis);
+      t = Math.max(0, Math.min(1, t));
+      const font = minFont + t * (maxFont - minFont);
+      el.style.setProperty("--calendar-font-size", `${font}px`);
+      try {
+        el.style.setProperty('font-size', `${font}px`, 'important');
+      } catch (e) {
+        el.style.fontSize = `${font}px`;
+      }
+      const inner = el.querySelector('.react-calendar');
+      if (inner) {
+        try {
+          inner.style.setProperty('--calendar-font-size', `${font}px`);
+          inner.style.setProperty('font-size', `${font}px`, 'important');
+        } catch (e) {
+          inner.style.fontSize = `${font}px`;
+        }
+      }
+    };
+
+    compute();
+    const ro = (typeof ResizeObserver !== 'undefined') ? new ResizeObserver(() => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(compute);
+    }) : null;
+    if (ro) ro.observe(el);
+    window.addEventListener('resize', compute);
+    return () => {
+      if (ro) ro.disconnect();
+      window.removeEventListener('resize', compute);
+      cancelAnimationFrame(raf);
+    };
+  }, []);
+
+  // Mark which weekday column corresponds to Sunday/Saturday and add classes
+  useEffect(() => {
+    const el = calendarRef.current;
+    if (!el) return;
+
+    const markWeekendCols = () => {
+      try {
+        const headerAbbrs = Array.from(el.querySelectorAll('.react-calendar__month-view__weekdays__weekday abbr'));
+        let sunIdx = -1, satIdx = -1;
+        headerAbbrs.forEach((abbr, i) => {
+          const t = (abbr.title || abbr.textContent || '').trim().toLowerCase();
+          if (t.startsWith('일') || t.startsWith('sun')) sunIdx = i;
+          if (t.startsWith('토') || t.startsWith('sat')) satIdx = i;
+        });
+
+        headerAbbrs.forEach((abbr, i) => {
+          const parent = abbr.closest('.react-calendar__month-view__weekdays__weekday');
+          if (!parent) return;
+          parent.classList.remove('weekday-sun', 'weekday-sat');
+          if (i === sunIdx) parent.classList.add('weekday-sun');
+          if (i === satIdx) parent.classList.add('weekday-sat');
+        });
+
+        const dayCells = Array.from(el.querySelectorAll('.react-calendar__month-view__days > *'));
+        dayCells.forEach((cell, i) => {
+          cell.classList.remove('weekday-sun', 'weekday-sat');
+          const col = i % 7;
+          if (col === sunIdx) cell.classList.add('weekday-sun');
+          if (col === satIdx) cell.classList.add('weekday-sat');
+        });
+      } catch (e) {
+        // ignore
+      }
+    };
+
+    markWeekendCols();
+    const mo = new MutationObserver(() => markWeekendCols());
+    mo.observe(el, { childList: true, subtree: true });
+    window.addEventListener('resize', markWeekendCols);
+    return () => {
+      mo.disconnect();
+      window.removeEventListener('resize', markWeekendCols);
+    };
+  }, [selectedDate]);
 
   // ✅ 달력 타일 데이터 매핑
   const tileMap = useMemo(() => {
@@ -149,7 +242,7 @@ export default function MealMain() {
   return (
       <div className="meal-container">
         {/* 📅 달력 */}
-        <div className="calendar-container">
+        <div className="calendar-container" ref={calendarRef}>
           <Calendar
               onClickDay={setSelectedDate}
               onActiveStartDateChange={onActiveStartDateChange}
