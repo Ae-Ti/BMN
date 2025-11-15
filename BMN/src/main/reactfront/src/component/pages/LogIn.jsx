@@ -24,12 +24,30 @@ const LogIn = () => {
     }
   }, []);
 
+  // If a token is present in the query string (e.g. after OAuth redirect), finish login
   const finishLogin = useCallback((token) => {
     localStorage.setItem(TOKEN_KEY, token);
     window.dispatchEvent(new Event("auth-changed"));
     axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+    // clear any oauth-in-progress marker
+    try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
     navigate(from, { replace: true });
   }, [navigate, from]);
+
+  // If a token is present in the query string (e.g. after OAuth redirect), finish login
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const oauthToken = params.get("token");
+      if (oauthToken) {
+      // remove token from url without reloading
+      const url = new URL(window.location.href);
+      url.searchParams.delete('token');
+      window.history.replaceState({}, document.title, url.toString());
+        // clear oauth marker and complete login
+        try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
+        finishLogin(oauthToken);
+    }
+  }, [location.search, finishLogin]);
 
   const handleLogin = async () => {
     setError("");
@@ -61,6 +79,7 @@ const LogIn = () => {
           <input className="login-input" placeholder="비밀번호" type="password"
                  value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
           <button className="login-button" onClick={handleLogin}>로그인</button>
+          {/* Google 로그인 버튼 렌더링 비활성화 (OAuth는 나중에 추가) */}
           {error && <p className="error-message">{error}</p>}
           <p className="signup-link" onClick={() => navigate("/signup")}>회원가입</p>
         </div>

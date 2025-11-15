@@ -2,6 +2,10 @@ package com.example.BMN;
 
 import com.example.BMN.User.JwtAuthenticationFilter;
 import com.example.BMN.User.JwtUtil;
+import com.example.BMN.User.CustomOAuth2UserService;
+import com.example.BMN.User.OAuth2AuthenticationSuccessHandler;
+import com.example.BMN.User.UserService;
+import org.springframework.beans.factory.ObjectProvider;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -29,7 +33,7 @@ public class  SecurityConfig {
         this.userDetailsService = userDetailsService;
     }
     @Bean
-    SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    SecurityFilterChain filterChain(HttpSecurity http, OAuth2AuthenticationSuccessHandler oauth2SuccessHandler) throws Exception {
         http
                 .authorizeHttpRequests((authorizeHttpRequests) -> authorizeHttpRequests
                         .requestMatchers(new AntPathRequestMatcher("/**")).permitAll())
@@ -37,7 +41,15 @@ public class  SecurityConfig {
                 .headers((headers) -> headers
                         .addHeaderWriter(new XFrameOptionsHeaderWriter(
                                 XFrameOptionsHeaderWriter.XFrameOptionsMode.SAMEORIGIN)))
-                .formLogin(form -> form.disable()) // 기본 로그인 폼 비활성화 (프론트엔드 사용 시 필요)
+        .formLogin(form -> form.disable()) // 기본 로그인 폼 비활성화 (프론트엔드 사용 시 필요)
+        .oauth2Login(oauth2 -> oauth2
+            // use the custom OAuth2 user service to map external users to local accounts
+            .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService()))
+            // handle successful authentication (issue JWT, redirect)
+            .successHandler(oauth2SuccessHandler)
+            // optional: set custom login page path
+            .loginPage("/user/login")
+        )
                 .logout(logout -> logout.logoutUrl("/user/logout").logoutSuccessUrl("/"))
                 .sessionManagement(sess -> sess.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class); // ✅ JWT 필터 적용
@@ -58,6 +70,16 @@ public class  SecurityConfig {
     @Bean
     public JwtAuthenticationFilter jwtAuthenticationFilter() {
         return new JwtAuthenticationFilter(jwtUtil, userDetailsService);
+    }
+
+    @Bean
+    public CustomOAuth2UserService customOAuth2UserService() {
+        return new CustomOAuth2UserService();
+    }
+
+    @Bean
+    public OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler(ObjectProvider<com.example.BMN.User.UserRepository> userRepositoryProvider) {
+        return new OAuth2AuthenticationSuccessHandler(jwtUtil, userRepositoryProvider);
     }
 
 }

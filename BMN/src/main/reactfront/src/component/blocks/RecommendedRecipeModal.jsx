@@ -30,7 +30,7 @@ const RecommendedRecipeModal = ({
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div
-        className="modal-content"
+        className="modal-content recommended-modal"
         role="dialog"
         aria-modal="true"
         onClick={(e) => e.stopPropagation()}
@@ -44,7 +44,7 @@ const RecommendedRecipeModal = ({
           ×
         </button>
 
-        <h2 className="modal-title">맞춤 추천 레시피</h2>
+        <h2 className="modal-title">재료기반 추천 레시피</h2>
 
         {loading ? (
           <div>추천 불러오는 중…</div>
@@ -111,7 +111,7 @@ const RecommendedRecipeModal = ({
                     </div>
 
                     <div className="recipe-meta">
-                      {matchPct}% 일치
+                      보유 재료와 {matchPct}% 일치
                       {typeof r?.matchedIngredients === "number" &&
                       typeof r?.totalIngredients === "number"
                         ? ` (${r.matchedIngredients}/${r.totalIngredients})`

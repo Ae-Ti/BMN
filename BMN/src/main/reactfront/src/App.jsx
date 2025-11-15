@@ -18,6 +18,7 @@ import RecipeForm from "./component/pages/RecipeForm";
 import MyPage from "./component/pages/MyPage";
 import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
+import ProfileComplete from "./component/pages/ProfileComplete";
 import FollowListPage from "./component/pages/FollowListPage";
 import MealMain from "./component/pages/MealMain";
 import MainPage from "./component/pages/MainPage";
@@ -29,16 +30,31 @@ axios.interceptors.response.use(
     return response;
   },
   (error) => {
-    if (error.response && error.response.status === 401) {
-      const token = localStorage.getItem("token");
-      if (token) { // Only run if a token was present
-        localStorage.removeItem("token");
-        if (window.location.pathname !== '/user/login') {
-          alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-          window.location.href = '/user/login';
+        if (error.response && error.response.status === 401) {
+            try {
+                // If the failing request is part of the OAuth handshake or login endpoints,
+                // do not trigger the global logout behavior (it interrupts the redirect).
+                const reqUrl = (error.config && error.config.url) ? String(error.config.url) : '';
+                const isOAuthRequest = reqUrl.includes('/oauth2/') || reqUrl.includes('/login/oauth2') || reqUrl.includes('/user/login');
+                        const hasTokenInQuery = typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('token=');
+                        const oauthInProgress = typeof window !== 'undefined' && window.sessionStorage && window.sessionStorage.getItem && window.sessionStorage.getItem('oauthInProgress') === '1';
+                        if (isOAuthRequest || hasTokenInQuery || oauthInProgress) {
+                            return Promise.reject(error);
+                        }
+
+                const token = localStorage.getItem("token");
+                if (token) { // Only run if a token was present
+                    localStorage.removeItem("token");
+                    if (window.location.pathname !== '/user/login') {
+                        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
+                        window.location.href = '/user/login';
+                    }
+                }
+            } catch (e) {
+                // If any error happens during interception, just ignore and forward the original error
+                return Promise.reject(error);
+            }
         }
-      }
-    }
     return Promise.reject(error);
   }
 );
@@ -108,6 +124,8 @@ const App = () => {
                             </ProtectedRoute>
                         }
                     />
+                    {/* OAuth first-login profile completion (not wrapped with ProtectedRoute because token may be in query param) */}
+                    <Route path="profile/complete" element={<ProfileComplete />} />
                     <Route
                         path="profile/:username/followers"
                         element={

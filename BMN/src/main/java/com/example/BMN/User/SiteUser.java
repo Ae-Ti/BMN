@@ -22,8 +22,8 @@ public class SiteUser {
     @Column(unique = true)
     private String userName;
 
-    @Column(unique = true)
-    private String nickname;
+        @Column
+        private String nickname;
 
     @Column(columnDefinition = "TEXT")
     private String introduction;
@@ -32,6 +32,16 @@ public class SiteUser {
     private String email;
 
     private String password;
+
+        // OAuth provider info (e.g. "google") and provider-specific id (sub)
+        private String provider;
+        private String providerId;
+
+        private Boolean emailVerified;
+
+                // whether the user has completed onboarding/profile completion
+                @Column
+                private Boolean profileComplete = true;
 
     @Column
     private Long age;

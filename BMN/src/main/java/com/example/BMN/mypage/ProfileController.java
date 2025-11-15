@@ -213,4 +213,44 @@ public class ProfileController {
     private String usernameOf(String s) {
         return (s == null || s.isBlank()) ? "" : s;
     }
+
+    /* ======================= 프로필 보완 ======================= */
+
+    // Simple request body for profile completion. Jackson will bind fields by name.
+    public static class ProfileCompleteRequest {
+        public String nickname;
+        public Long age;
+        public String sex;
+        public String introduction;
+
+        public ProfileCompleteRequest() {}
+    }
+
+    /** 첫 OAuth 로그인 등에서 부족한 정보를 저장하고 profileComplete 플래그를 설정합니다. */
+    @PostMapping("/complete")
+    public ResponseEntity<Void> completeProfile(@RequestBody ProfileCompleteRequest req) {
+        try {
+            SiteUser me = currentUser();
+
+            // nickname 중복 체크 (다른 사용자의 닉네임과 겹치는 경우 400)
+            if (req.nickname != null && !req.nickname.isBlank()) {
+                String newNick = req.nickname.trim();
+                // allow if same as current nickname
+                if (!newNick.equals(me.getNickname()) && userRepository.existsByNickname(newNick)) {
+                    return ResponseEntity.badRequest().build();
+                }
+                me.setNickname(newNick);
+            }
+
+            if (req.age != null) me.setAge(req.age);
+            if (req.sex != null) me.setSex(req.sex);
+            if (req.introduction != null) me.setIntroduction(req.introduction);
+
+            me.setProfileComplete(true);
+            userRepository.save(me);
+            return ResponseEntity.noContent().build();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).build();
+        }
+    }
 }

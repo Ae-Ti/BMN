@@ -13,6 +13,7 @@ public interface UserRepository extends JpaRepository<SiteUser, Long> {
     /* ====== 기본 조회 ====== */
     Optional<SiteUser> findByUserName(String userName);
     boolean existsByUserName(String userName);
+    boolean existsByNickname(String nickname);
 
     /* ====== 즐겨찾기(레시피) 관련 ====== */
     @Query("select count(u) from SiteUser u join u.favorite f where f.id = :recipeId")

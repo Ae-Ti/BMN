@@ -25,9 +25,13 @@ public class UserService {
 
     /* ========================= 가입/조회 ========================= */
 
+    @Transactional
     public SiteUser create(String userName, String email, String password, String introduction,
                            String nickname, Long age, String sex) {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
+        log.debug("UserService.create: start userName={}", userName);
         if (userRepository.existsByUserName(userName)) {
+            log.warn("UserService.create: userName already exists={}", userName);
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "이미 존재하는 아이디입니다.");
         }
 
@@ -40,7 +44,15 @@ public class UserService {
         user.setAge(age);
         user.setSex(sex);
 
-        return userRepository.save(user);
+        try {
+            SiteUser saved = userRepository.saveAndFlush(user);
+            log.info("UserService.create: saved id={} userName={}", saved.getId(), saved.getUserName());
+            return saved;
+        } catch (Exception ex) {
+            log.error("UserService.create: failed to save userName={}, message={}", userName, ex.getMessage(), ex);
+            // Re-throw as runtime to make failures visible during development and to trigger rollback
+            throw new RuntimeException("Failed to create user: " + userName, ex);
+        }
     }
 
     public SiteUser getUser(String userName) {

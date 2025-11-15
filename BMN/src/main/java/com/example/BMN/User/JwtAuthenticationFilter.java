@@ -28,13 +28,26 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             throws ServletException, IOException {
 
         String authHeader = request.getHeader("Authorization");
+        String token = null;
 
-        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+        if (authHeader != null && authHeader.startsWith("Bearer ")) {
+            token = authHeader.substring(7);
+        } else {
+            // try to read token from cookie named AUTH_TOKEN (set by OAuth success handler)
+            if (request.getCookies() != null) {
+                for (jakarta.servlet.http.Cookie c : request.getCookies()) {
+                    if ("AUTH_TOKEN".equals(c.getName())) {
+                        token = c.getValue();
+                        break;
+                    }
+                }
+            }
+        }
+
+        if (token == null) {
             chain.doFilter(request, response);
             return;
         }
-
-        String token = authHeader.substring(7);
         String userName = null;
 
         try {
