@@ -16,6 +16,8 @@ import RecipeForm from "./component/pages/RecipeForm";
 
 // ✅ 기타 페이지
 import MyPage from "./component/pages/MyPage";
+import VerifyInstructions from "./component/pages/VerifyInstructions";
+import VerifySuccess from "./component/pages/VerifySuccess";
 import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
 import ProfileComplete from "./component/pages/ProfileComplete";
@@ -116,6 +118,8 @@ const App = () => {
                             </ProtectedRoute>
                         }
                     />
+                        <Route path="/verify-instructions" element={<VerifyInstructions />} />
+                            <Route path="/verify-success" element={<VerifySuccess />} />
                     <Route
                         path="profile/:username"
                         element={

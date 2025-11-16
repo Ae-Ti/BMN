@@ -16,7 +16,7 @@ public class UserDTO {
     private String nickname;
     private String email;
     private String password;
-    private Long age;
+    private java.time.LocalDate dateOfBirth;
     private String sex;
     private List<Long> followerIds;
     private List<Long> followingIds;
@@ -29,8 +29,8 @@ public class UserDTO {
         this.userName = siteUser.getUserName();
         this.nickname = siteUser.getNickname();
         this.email = siteUser.getEmail();
-        this.password = siteUser.getPassword();
-        this.age = siteUser.getAge();
+    this.password = siteUser.getPassword();
+    this.dateOfBirth = siteUser.getDateOfBirth();
         this.sex = siteUser.getSex();
         this.followerIds = extractIds(siteUser.getFollower());
         this.followingIds = extractIds(siteUser.getFollow());

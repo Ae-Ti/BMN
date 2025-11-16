@@ -4,7 +4,6 @@ import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 import "./recipeMain.css";
-import RecipeCategoryTabs from "./RecipeCategoryTabs";
 
 axios.defaults.baseURL = "http://localhost:8080";
 
@@ -175,8 +174,6 @@ const RecipeMain = () => {
                     에러: {String(err)}
                 </div>
             )}
-
-            <RecipeCategoryTabs />
 
             {/* 베스트 섹션 */}
             <div className="recipe-main-header">

@@ -47,6 +47,8 @@ public class  SecurityConfig {
             .userInfoEndpoint(userInfo -> userInfo.userService(customOAuth2UserService()))
             // handle successful authentication (issue JWT, redirect)
             .successHandler(oauth2SuccessHandler)
+            // handle failures (e.g. email already exists)
+            .failureHandler(new com.example.BMN.User.CustomOAuth2AuthenticationFailureHandler())
             // optional: set custom login page path
             .loginPage("/user/login")
         )

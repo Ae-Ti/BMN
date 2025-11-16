@@ -22,6 +22,23 @@ const LogIn = () => {
       window.alert(msg);              // 브라우저 기본 alert
       sessionStorage.removeItem("flashMessage"); // 한 번만 표시
     }
+    // If OAuth failed and the failure handler redirected here with query params, show alert
+    try {
+      const params = new URLSearchParams(window.location.search);
+      const oauthErr = params.get('oauth_error');
+      const oauthMsg = params.get('message');
+      if (oauthErr) {
+        const decoded = oauthMsg ? decodeURIComponent(oauthMsg) : 'OAuth 인증에 실패했습니다.';
+        window.alert(decoded);
+        // remove oauth query params from URL for cleanliness
+        params.delete('oauth_error');
+        params.delete('message');
+        const base = window.location.pathname + (params.toString() ? `?${params.toString()}` : '');
+        window.history.replaceState({}, document.title, base);
+      }
+    } catch (e) {
+      // ignore
+    }
   }, []);
 
   // If a token is present in the query string (e.g. after OAuth redirect), finish login
@@ -49,6 +66,8 @@ const LogIn = () => {
     }
   }, [location.search, finishLogin]);
 
+    
+
   const handleLogin = async () => {
     setError("");
     if (!userName.trim() || !password.trim()) {
@@ -64,9 +83,15 @@ const LogIn = () => {
       if (!token) return setError("토큰을 받지 못했습니다. 관리자에게 문의하세요.");
       finishLogin(token);
     } catch (err) {
-      if (err.response?.status === 401) setError("비밀번호가 올바르지 않습니다.");
-      else if (err.response?.status === 404) setError("존재하지 않는 아이디입니다.");
-      else setError("로그인 중 오류가 발생했습니다. 다시 시도해주세요.");
+      // Treat 401/404 as user credential errors (show unified friendly message)
+      if (err.response?.status === 401 || err.response?.status === 404) {
+        setError("등록되지 않은 아이디 또는 비밀번호입니다.");
+      } else if (err.request && !err.response) {
+        // network error
+        setError("서버에 연결할 수 없습니다. 인터넷 연결을 확인하세요.");
+      } else {
+        setError("로그인 중 오류가 발생했습니다. 잠시 후 다시 시도하세요.");
+      }
     }
   };
 
@@ -79,7 +104,19 @@ const LogIn = () => {
           <input className="login-input" placeholder="비밀번호" type="password"
                  value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
           <button className="login-button" onClick={handleLogin}>로그인</button>
-          {/* Google 로그인 버튼 렌더링 비활성화 (OAuth는 나중에 추가) */}
+          {/* Google 로그인 버튼 */}
+          <div style={{marginTop:12}}>
+            <a
+              className="oauth-google-button"
+              href="/oauth2/authorization/google"
+              onClick={() => {
+                try { sessionStorage.setItem('oauthInProgress', 'google'); } catch(e) {}
+              }}
+              style={{display:'inline-block', padding:'8px 12px', background:'#fff', color:'#444', border:'1px solid #ddd', borderRadius:4, textDecoration:'none'}}
+            >
+              Google로 로그인
+            </a>
+          </div>
           {error && <p className="error-message">{error}</p>}
           <p className="signup-link" onClick={() => navigate("/signup")}>회원가입</p>
         </div>

@@ -4,7 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.boot.ApplicationArguments;
 import org.springframework.boot.ApplicationRunner;
-import org.springframework.context.annotation.Profile;
+import org.springframework.core.env.Environment;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Component;
 
@@ -20,21 +20,34 @@ import java.util.Map;
  * errors so it won't prevent application startup in other environments.
  */
 @Component
-@Profile("dev")
 public class DatabaseConstraintCleaner implements ApplicationRunner {
 
     private static final Logger log = LoggerFactory.getLogger(DatabaseConstraintCleaner.class);
 
     private final JdbcTemplate jdbc;
+    private final Environment env;
 
-    public DatabaseConstraintCleaner(JdbcTemplate jdbc) {
+    public DatabaseConstraintCleaner(JdbcTemplate jdbc, Environment env) {
         this.jdbc = jdbc;
+        this.env = env;
     }
 
     @Override
     public void run(ApplicationArguments args) throws Exception {
         try {
-            log.info("DB cleaner (dev): scanning SITE_USER indexes/constraints for nickname unique keys...");
+            boolean isDev = false;
+            try {
+                String[] active = env.getActiveProfiles();
+                for (String p : active) if ("dev".equalsIgnoreCase(p)) { isDev = true; break; }
+            } catch (Exception ignored) {}
+
+            boolean explicit = Boolean.parseBoolean(env.getProperty("app.dropNicknameUnique", "false"));
+            if (!isDev && !explicit) {
+                log.info("DB cleaner: not running (activate 'dev' profile or set app.dropNicknameUnique=true to enable)");
+                return;
+            }
+
+            log.info("DB cleaner: scanning SITE_USER indexes/constraints for nickname unique keys...");
 
             // 1) Look for indexes referencing SITE_USER (INDEXES table varies by H2 version but columns exist)
             List<Map<String, Object>> idxs = jdbc.queryForList("SELECT * FROM INFORMATION_SCHEMA.INDEXES WHERE TABLE_NAME = 'SITE_USER'");

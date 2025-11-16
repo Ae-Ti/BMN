@@ -19,10 +19,19 @@ const SignUp = () => {
     const [passwordStrength, setPasswordStrength] = useState("");
     const [passwordError, setPasswordError] = useState("");
     const [errorMessage, setErrorMessage] = useState("");
+    const [successMessage, setSuccessMessage] = useState("");
+    const [fieldErrors, setFieldErrors] = useState({});
 
     const handleChange = (e) => {
         const { name, value } = e.target;
         setForm({ ...form, [name]: value });
+        // clear field-specific error when user edits that field
+        setFieldErrors(prev => {
+            const copy = { ...prev };
+            const key = String(name).toLowerCase();
+            if (copy[key]) delete copy[key];
+            return copy;
+        });
 
         if (name === "password") {
             checkPasswordStrength(value);
@@ -78,16 +87,77 @@ const SignUp = () => {
             password2: form.confirmPassword,
             introduction: "",
             nickname: form.nickname,
-            age: new Date().getFullYear() - form.birthYear,
+            birthYear: form.birthYear ? Number(form.birthYear) : null,
+            birthMonth: form.birthMonth ? Number(form.birthMonth) : null,
+            birthDay: form.birthDay ? Number(form.birthDay) : null,
             sex: form.gender,
+        };
+
+        const extractMessage = (payload) => {
+            if (!payload) return { message: null, fieldErrors: {} };
+            // If payload is a simple string
+            if (typeof payload === "string") return { message: payload, fieldErrors: {} };
+
+            // If payload is an object, try to extract structured field errors
+            if (typeof payload === "object") {
+                // common shapes: { message: '...', errors: { field: [...] } }
+                const fieldErrors = {};
+                let general = null;
+
+                if (payload.message) general = payload.message;
+                if (payload.error) general = general || payload.error;
+
+                const candidate = payload.errors || payload.fieldErrors || payload.field_error || payload;
+
+                if (candidate && typeof candidate === 'object') {
+                    // candidate may be mapping of field->string or array
+                    Object.entries(candidate).forEach(([k, v]) => {
+                        if (!k) return;
+                        const key = String(k).toLowerCase();
+                        if (Array.isArray(v)) fieldErrors[key] = v.join(' / ');
+                        else if (typeof v === 'string') fieldErrors[key] = v;
+                        else fieldErrors[key] = JSON.stringify(v);
+                    });
+                }
+
+                // If no field errors found but object has simple keys we can surface
+                if (Object.keys(fieldErrors).length === 0) {
+                    // try top-level simple values
+                    const vals = Object.values(payload).filter(v => v !== null && v !== undefined && (typeof v === 'string' || Array.isArray(v)));
+                    if (vals.length > 0 && !general) {
+                        general = vals.map(v => (typeof v === 'string' ? v : JSON.stringify(v))).join(' / ');
+                    }
+                }
+
+                return { message: general, fieldErrors };
+            }
+
+            return { message: String(payload), fieldErrors: {} };
         };
 
         try {
             const response = await axios.post("/user/signup", userData);
-            alert(response.data);
-            navigate("/");
+            const { message } = extractMessage(response.data);
+            const msg = message || "회원가입이 성공적으로 완료되었습니다.";
+            setSuccessMessage(msg);
+            setErrorMessage("");
+            setFieldErrors({});
+            // Navigate immediately to verify instructions (removed artificial delay)
+            navigate(`/verify-instructions?email=${encodeURIComponent(form.email)}`);
         } catch (error) {
-            setErrorMessage(error.response?.data || "회원가입 실패");
+            const serverPayload = error.response?.data;
+            const { message, fieldErrors: srvFields } = extractMessage(serverPayload) || {};
+            const general = message || error.message || "회원가입 실패";
+            setErrorMessage(general);
+            setSuccessMessage("");
+            // normalize keys to lowercase for easy lookup
+            const normalized = {};
+            if (srvFields && typeof srvFields === 'object') {
+                Object.entries(srvFields).forEach(([k, v]) => {
+                    normalized[String(k).toLowerCase()] = v;
+                });
+            }
+            setFieldErrors(normalized);
         }
     };
 
@@ -97,7 +167,9 @@ const SignUp = () => {
                 <h2>회원가입</h2>
 
                 <input type="text" name="username" placeholder="아이디" value={form.username} onChange={handleChange} required />
+                { (fieldErrors.username || fieldErrors.username?.length) && <p className="field-error">{fieldErrors.username || fieldErrors.username}</p> }
                 <input type="text" name="nickname" placeholder="닉네임" value={form.nickname} onChange={handleChange} required />
+                { (fieldErrors.nickname || fieldErrors.nickname?.length) && <p className="field-error">{fieldErrors.nickname || fieldErrors.nickname}</p> }
 
                 <label className="label-title">생년월일</label>
                 <div className="row">
@@ -138,17 +210,21 @@ const SignUp = () => {
                     <input type={passwordVisible ? "text" : "password"} name="password" placeholder="비밀번호" value={form.password} onChange={handleChange} required />
                     <span className="eye-icon" onClick={togglePasswordVisibility}>👁</span>
                 </div>
+                { fieldErrors.password && <p className="field-error">{fieldErrors.password}</p> }
                 <p className={`password-strength ${passwordStrength}`}>{passwordStrength}</p>
 
                 <div className="password-box">
                     <input type={passwordVisible ? "text" : "password"} name="confirmPassword" placeholder="비밀번호 확인" value={form.confirmPassword} onChange={handleChange} required />
                     <span className="eye-icon" onClick={togglePasswordVisibility}>👁</span>
                 </div>
+                { fieldErrors.confirmpassword && <p className="field-error">{fieldErrors.confirmpassword}</p> }
                 {passwordError && <p className="password-error">{passwordError}</p>}
-                {errorMessage && <p className="error-message">{errorMessage}</p>}
 
                 <input type="email" name="email" placeholder="이메일" value={form.email} onChange={handleChange} required />
+                { fieldErrors.email && <p className="field-error">{fieldErrors.email}</p> }
                 <button type="submit">가입하기</button>
+                {errorMessage && <p className="error-message">{errorMessage}</p>}
+                {successMessage && <p className="success-message">{successMessage}</p>}
             </form>
         </div>
     );

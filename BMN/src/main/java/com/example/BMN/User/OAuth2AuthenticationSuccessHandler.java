@@ -37,10 +37,30 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         Object principal = authentication.getPrincipal();
         String username = null;
         String name = null;
+        String providerId = null;
+        String registrationId = null;
         if (principal instanceof OAuth2User) {
             OAuth2User user = (OAuth2User) principal;
             username = (String) user.getAttributes().get("email");
             name = (String) user.getAttributes().getOrDefault("name", null);
+            Object sub = user.getAttributes().getOrDefault("sub", user.getAttributes().get("id"));
+            if (sub != null) providerId = String.valueOf(sub);
+        }
+
+        // determine provider/registration id (if available) and only run the Google-specific logic
+        try {
+            if (authentication instanceof org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) {
+                registrationId = ((org.springframework.security.oauth2.client.authentication.OAuth2AuthenticationToken) authentication).getAuthorizedClientRegistrationId();
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+
+        if (registrationId == null || !"google".equalsIgnoreCase(registrationId)) {
+            log.info("OAuth2 success handler: provider '{}' is not google — skipping local user ensure and JWT issuance", registrationId);
+            // For non-Google providers, redirect to root without issuing JWT
+            response.sendRedirect("/");
+            return;
         }
 
         if (username == null) {
@@ -59,48 +79,48 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                 log.debug("UserRepository bean obtained from provider: {}", userRepository.getClass().getName());
                 try {
                     var maybe = userRepository.findByUserName(username);
+                    if (maybe.isEmpty()) {
+                        // also try by email to avoid missing existing accounts when userName != email
+                        maybe = userRepository.findByEmail(username);
+                    }
                     if (maybe.isPresent()) {
-                        log.debug("Existing user found for username='{}' (id={})", username, maybe.get().getId());
+                        // Existing local user found — authenticate immediately. We no longer perform
+                        // a separate link/password flow; OAuth login will log into the existing account.
+                        SiteUser existing = maybe.get();
+                        log.info("OAuth success handler: existing user found for '{}' -> local userName='{}'. Logging in.", username, existing.getUserName());
+                        String token = jwtUtil.generateToken(existing.getUserName());
+                        Cookie cookie = new Cookie("AUTH_TOKEN", token);
+                        cookie.setHttpOnly(true);
+                        cookie.setPath("/");
+                        cookie.setSecure(false);
+                        response.addCookie(cookie);
+                        String redirectUrl = "http://localhost:8080/user/login?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                        response.sendRedirect(redirectUrl);
+                        return;
                     } else {
-                        log.info("No local user for '{}', creating minimal account via UserRepository", username);
+                        // No local user found: do NOT create DB user here.
+                        // Instead, issue a JWT for the OAuth identity and redirect the browser
+                        // to the profile completion page. The profile completion endpoint will
+                        // create the persistent SiteUser when the user submits the form.
+                        log.info("No local user for '{}'. Deferring DB creation until profile completion. Redirecting to profile completion.", username);
                         try {
-                            String randomPassword = java.util.UUID.randomUUID().toString();
-                            BCryptPasswordEncoder encoder = new BCryptPasswordEncoder();
-                            SiteUser created = new SiteUser();
-                            created.setUserName(username);
-                            created.setEmail(username);
-                            created.setPassword(encoder.encode(randomPassword));
-                            created.setIntroduction("구글 계정으로 생성된 사용자");
-                            if (name != null && !name.isBlank()) created.setNickname(name);
-                            else created.setNickname(username.contains("@") ? username.split("@")[0] : username);
-                            created.setProvider((String) ((authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User) ? ((org.springframework.security.oauth2.core.user.OAuth2User)authentication.getPrincipal()).getAttributes().getOrDefault("iss", null) : null));
-                            created.setProfileComplete(false);
-                            // attempt to set providerId/emailVerified if available
-                            if (authentication.getPrincipal() instanceof org.springframework.security.oauth2.core.user.OAuth2User) {
-                                var attr = ((org.springframework.security.oauth2.core.user.OAuth2User)authentication.getPrincipal()).getAttributes();
-                                Object pid = attr.getOrDefault("sub", attr.get("id"));
-                                if (pid != null) created.setProviderId(String.valueOf(pid));
-                                Object ev = attr.get("email_verified");
-                                if (ev instanceof Boolean) created.setEmailVerified((Boolean) ev);
-                                else if (ev instanceof String) created.setEmailVerified(Boolean.parseBoolean((String) ev));
-                            }
-                            SiteUser saved = userRepository.saveAndFlush(created);
-                            log.debug("Created minimal SiteUser id={} username={}", saved.getId(), saved.getUserName());
-                            // verify read-back
-                            var check = userRepository.findByUserName(username);
-                            log.debug("Post-save lookup present={}", check.isPresent());
-                        } catch (Exception createEx) {
-                            log.error("Failed to create minimal user for '{}': {}", username, createEx.getMessage(), createEx);
-                            // In dev, surface the error so it shows in logs/console and stops the flow for easier debugging
-                            if (isDevProfileActive()) {
-                                throw new RuntimeException("Failed to create minimal user for " + username, createEx);
-                            }
+                            String token = jwtUtil.generateToken(username);
+                            Cookie temp = new Cookie("AUTH_TOKEN", token);
+                            temp.setHttpOnly(true);
+                            temp.setPath("/");
+                            temp.setSecure(false);
+                            response.addCookie(temp);
+                            String redirectUrl = "http://localhost:8080/profile/complete?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                            response.sendRedirect(redirectUrl);
+                            return;
+                        } catch (Exception e) {
+                            log.error("Failed to issue token for deferred OAuth user {}: {}", username, e.getMessage(), e);
                         }
                     }
                 } catch (Exception ex) {
-                    log.error("Error while checking/creating user for '{}': {}", username, ex.getMessage(), ex);
+                    log.error("Error while checking user for '{}': {}", username, ex.getMessage(), ex);
                     if (isDevProfileActive()) {
-                        throw new RuntimeException("Error while checking/creating user for " + username, ex);
+                        throw new RuntimeException("Error while checking user for " + username, ex);
                     }
                 }
             }
@@ -123,8 +143,8 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         response.addCookie(cookie);
 
         // Redirect to frontend login handler with token in query param as well (frontend will read it for localStorage)
-        String redirectUrl = "/user/login?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
-        response.sendRedirect(redirectUrl);
+    String redirectUrl = "http://localhost:8080/user/login?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+    response.sendRedirect(redirectUrl);
     }
 
     private boolean isDevProfileActive() {

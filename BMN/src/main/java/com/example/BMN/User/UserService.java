@@ -27,7 +27,7 @@ public class UserService {
 
     @Transactional
     public SiteUser create(String userName, String email, String password, String introduction,
-                           String nickname, Long age, String sex) {
+                           String nickname, java.time.LocalDate dateOfBirth, String sex) {
         org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
         log.debug("UserService.create: start userName={}", userName);
         if (userRepository.existsByUserName(userName)) {
@@ -40,9 +40,11 @@ public class UserService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password)); // 비밀번호 해시 저장
         user.setIntroduction(introduction);
-        user.setNickname(nickname);
-        user.setAge(age);
+    user.setNickname(nickname);
+    user.setDateOfBirth(dateOfBirth);
         user.setSex(sex);
+        // newly created users require email verification
+        user.setEmailVerified(false);
 
         try {
             SiteUser saved = userRepository.saveAndFlush(user);
@@ -52,6 +54,37 @@ public class UserService {
             log.error("UserService.create: failed to save userName={}, message={}", userName, ex.getMessage(), ex);
             // Re-throw as runtime to make failures visible during development and to trigger rollback
             throw new RuntimeException("Failed to create user: " + userName, ex);
+        }
+    }
+
+    /** Create user when password is already hashed (used by pending-registration flow) */
+    @Transactional
+    public SiteUser createFromPending(PendingRegistration pr) {
+        org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
+        String userName = pr.getUserName();
+        log.debug("UserService.createFromPending: start userName={}", userName);
+        if (userRepository.existsByUserName(userName) || userRepository.existsByEmail(pr.getEmail())) {
+            log.warn("UserService.createFromPending: userName or email already exists userName={}", userName);
+            throw new ResponseStatusException(org.springframework.http.HttpStatus.BAD_REQUEST, "이미 존재하는 아이디입니다.");
+        }
+
+        SiteUser user = new SiteUser();
+        user.setUserName(pr.getUserName());
+        user.setEmail(pr.getEmail());
+        user.setPassword(pr.getPasswordHash()); // already hashed
+        user.setIntroduction(pr.getIntroduction());
+        user.setNickname(pr.getNickname());
+        user.setDateOfBirth(pr.getDateOfBirth());
+        user.setSex(pr.getSex());
+        user.setEmailVerified(true); // verified by token
+
+        try {
+            SiteUser saved = userRepository.saveAndFlush(user);
+            log.info("UserService.createFromPending: saved id={} userName={}", saved.getId(), saved.getUserName());
+            return saved;
+        } catch (Exception ex) {
+            log.error("UserService.createFromPending: failed to save userName={}, message={}", userName, ex.getMessage(), ex);
+            throw new RuntimeException("Failed to create user from pending: " + userName, ex);
         }
     }
 

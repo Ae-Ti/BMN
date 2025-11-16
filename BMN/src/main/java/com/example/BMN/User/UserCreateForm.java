@@ -29,7 +29,9 @@ public class UserCreateForm {
     @NotEmpty(message = "닉네임은 필수항목입니다.")
     private String nickname;
 
-    private Long age;
+    private Integer birthYear;
+    private Integer birthMonth;
+    private Integer birthDay;
 
     @NotEmpty(message = "성별은 필수항목입니다.")
     private String sex;

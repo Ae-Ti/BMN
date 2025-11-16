@@ -18,6 +18,7 @@ public class PublicUserDTO {
     private String userName;        // 아이디
     private String nickname;        // 닉네임
     private String email;           // 이메일 (공개 여부는 설정 가능)
+    private Boolean emailVerified;  // 이메일 인증 여부
 
     private Long followingCount;    // 팔로잉 수
     private Long followerCount;     // 팔로워 수

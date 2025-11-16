@@ -289,15 +289,7 @@ export default function RecipeForm() {
                 <div className="sx-39"  >
                     <label>썸네일</label>
                     <input type="file" accept="image/*" onChange={handleThumbChange} />
-                    {thumbnailPreview && (
-                        <div className="sx-32 sx-4j"  >
-                            <img
-                                src={thumbnailPreview}
-                                alt="thumbnail-preview"
-                                onError={onImgError}
-                            />
-                        </div>
-                    )}
+                    {/* 썸네일 미리보기는 UI에서 숨깁니다 (업로드는 가능) */}
                 </div>
 
                 {/* 재료 */}
@@ -333,7 +325,7 @@ export default function RecipeForm() {
                                 <span>{idx + 1}. </span>
                                 <input className="sx-4p recipe-ingredient-input"
                                     type="text"
-                                    placeholder="설명"
+                                    placeholder="요리 과정을 적어주세요."
                                     value={s.description}
                                     onChange={(e) => updateNewStep(idx, "description", e.target.value)}
                                 />

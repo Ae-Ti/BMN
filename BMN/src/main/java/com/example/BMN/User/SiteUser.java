@@ -10,6 +10,7 @@ import lombok.Setter;
 
 import java.util.List;
 import java.util.Set;
+import java.time.LocalDate;
 
 @Setter
 @Getter
@@ -22,8 +23,8 @@ public class SiteUser {
     @Column(unique = true)
     private String userName;
 
-        @Column
-        private String nickname;
+    @Column
+    private String nickname;
 
     @Column(columnDefinition = "TEXT")
     private String introduction;
@@ -43,8 +44,8 @@ public class SiteUser {
                 @Column
                 private Boolean profileComplete = true;
 
-    @Column
-    private Long age;
+        @Column
+        private LocalDate dateOfBirth;
 
     @Column
     private String sex;

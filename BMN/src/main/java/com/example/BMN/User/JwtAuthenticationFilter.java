@@ -12,6 +12,7 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import java.util.Collections;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -73,7 +74,22 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("❌ 유효하지 않은 토큰");
                 }
             } catch (Exception e) {
-                System.out.println("❌ 사용자 인증 실패: " + e.getMessage());
+                // If user is not present in local DB (OAuth-first flow), still allow the request
+                // to proceed by creating a lightweight Authentication based on the JWT subject.
+                System.out.println("❌ 사용자 인증 실패: " + e.getMessage() + " — 시도: JWT 기반 임시 인증 생성");
+                try {
+                    if (jwtUtil.validateToken(token)) {
+                        Authentication auth = new UsernamePasswordAuthenticationToken(
+                                userName, null, Collections.singletonList(new SimpleGrantedAuthority("ROLE_PREAUTH"))
+                        );
+                        SecurityContextHolder.getContext().setAuthentication(auth);
+                        System.out.println("⚠️ 임시 JWT 인증이 SecurityContext에 설정되었습니다 (사용자 로컬 레코드 없음)");
+                    } else {
+                        System.out.println("❌ 유효하지 않은 토큰 (임시 인증 생성 실패)");
+                    }
+                } catch (Exception ex) {
+                    System.out.println("❌ 임시 인증 생성 중 예외: " + ex.getMessage());
+                }
             }
         }
 

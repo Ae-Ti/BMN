@@ -198,6 +198,10 @@ main {
 .eye-icon { position:absolute; right:10px; top:50%; transform:translateY(-50%); cursor:pointer; font-size:16px; }
 .signup-box button { width:100%; padding:12px; background-color:#f2536d; color:white; border:none; border-radius:5px; font-size:16px; cursor:pointer; transition:background-color 0.3s; }
 .signup-box button:hover { background-color:#d94463; }
+/* Feedback messages */
+.error-message { color: #b00020; margin-top: 8px; font-weight: 600; }
+.success-message { color: #0b8457; margin-top: 8px; font-weight: 600; }
+.field-error { color: #b00020; margin: 6px 0 0; font-size: 13px; }
 
 /* ------------------ HouseholdMain.css ------------------ */
 .ledger-container { display: flex; flex-direction: column; width:100%; padding:20px 40px; box-sizing:border-box; gap: var(--ledger-gap); min-height: calc(100vh - var(--header-height)); }

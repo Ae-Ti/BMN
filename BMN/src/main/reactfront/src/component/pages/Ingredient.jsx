@@ -478,6 +478,9 @@ const Ingredient = () => {
                                                     <a href={`https://www.coupang.com/np/search?q=${encodeURIComponent(selectedName)}`} target="_blank" rel="noreferrer">
                                                         {`https://www.coupang.com/np/search?q=${selectedName}`}
                                                     </a>
+                                                    <div className="sx-1y">
+                                                        이 링크는 자동으로 가격이 반영되지 않습니다.
+                                                    </div>
                                                 </div>
                                             ) : (
                                                 <div className="sx-1z">재료를 선택해주세요.</div>

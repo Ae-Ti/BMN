@@ -5,6 +5,8 @@ ALTER TABLE site_user ADD COLUMN IF NOT EXISTS email_verified BOOLEAN;
 ALTER TABLE site_user ADD COLUMN IF NOT EXISTS profile_complete BOOLEAN DEFAULT TRUE;
 ALTER TABLE site_user ADD COLUMN IF NOT EXISTS provider VARCHAR(255);
 ALTER TABLE site_user ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255);
+-- Add date_of_birth (nullable) to support LocalDate mapping on SiteUser
+ALTER TABLE site_user ADD COLUMN IF NOT EXISTS date_of_birth DATE;
 
 -- Ensure existing rows have profile_complete set
 UPDATE site_user SET profile_complete = TRUE WHERE profile_complete IS NULL;

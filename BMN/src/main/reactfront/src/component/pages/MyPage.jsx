@@ -210,7 +210,14 @@ const MyPage = () => {
                         <div className="profile-details">
                             <div><b>아이디</b>: {profile.username || "-"}</div>
                             <div><b>닉네임</b>: {profile.nickname || "-"}</div>
-                            <div><b>이메일</b>: {profile.email || "-"}</div>
+                            <div style={{display:'flex', alignItems:'center', gap:12}}>
+                                <div><b>이메일</b>: {profile.email || "-"}</div>
+                                {profile.email && profile.emailVerified === false && (
+                                    <button onClick={() => nav(`/verify-instructions?email=${encodeURIComponent(profile.email)}`)} style={{padding:'6px 10px'}}>
+                                        이메일 인증
+                                    </button>
+                                )}
+                            </div>
                             <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
                         </div>
                     </div>

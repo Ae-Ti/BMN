@@ -15,14 +15,15 @@ public class WebSpaForward {
     @GetMapping({
             "/",                          // 메인
             "/user/login", "/user/join",  // 사용자
-            "/signup", "/mypage", "/profile/**",        // 마이페이지
+            "/signup", "/mypage", "/profile/**", "/profile-complete",        // 마이페이지
             "/recipes", "/recipes/{id}",  // 레시피 목록 / 상세
             "/recipe-list", "/recipe-detail/{id}",
             "/fridge", "/ingredient",     // 냉장고 / 식재료
             "/household-ledger",          // 가계부
-            "/post-create",               // 게시글 작성
+            "/post-create", "/recipes/edit/{id}",              // 게시글 작성
             "/favorites", "/favorites/**", // 즐겨찾기 관련
-            "/main", "/meal"
+        "/main", "/meal",
+        "/verify-success"
     })
     public String forwardToIndex() {
         return "forward:/index.html";

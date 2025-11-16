@@ -1,6 +1,6 @@
 {
-  "short_name": "React App",
-  "name": "Create React App Sample",
+  "short_name": "라이프 매니저",
+  "name": "라이프 매니저, 솔티",
   "icons": [
     {
       "src": "favicon.ico",
