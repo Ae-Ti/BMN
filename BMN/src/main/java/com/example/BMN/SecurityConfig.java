@@ -80,8 +80,8 @@ public class  SecurityConfig {
     }
 
     @Bean
-    public OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler(ObjectProvider<com.example.BMN.User.UserRepository> userRepositoryProvider) {
-        return new OAuth2AuthenticationSuccessHandler(jwtUtil, userRepositoryProvider);
+    public OAuth2AuthenticationSuccessHandler oAuth2AuthenticationSuccessHandler(ObjectProvider<com.example.BMN.User.UserRepository> userRepositoryProvider, @org.springframework.beans.factory.annotation.Value("${app.frontend.url:https://www.saltylife.co.kr}") String frontendBaseUrl) {
+        return new OAuth2AuthenticationSuccessHandler(jwtUtil, userRepositoryProvider, frontendBaseUrl);
     }
 
 }

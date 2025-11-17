@@ -12,7 +12,11 @@ import java.io.IOException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import java.util.Collections;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import java.net.URLDecoder;
+import java.nio.charset.StandardCharsets;
 
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
@@ -38,7 +42,11 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             if (request.getCookies() != null) {
                 for (jakarta.servlet.http.Cookie c : request.getCookies()) {
                     if ("AUTH_TOKEN".equals(c.getName())) {
-                        token = c.getValue();
+                        try {
+                            token = URLDecoder.decode(c.getValue(), StandardCharsets.UTF_8.toString());
+                        } catch (Exception e) {
+                            token = c.getValue();
+                        }
                         break;
                     }
                 }
@@ -54,9 +62,30 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             userName = jwtUtil.extractUsername(token);
             System.out.println("🔹 JWT 사용자 이름 추출 성공: " + userName);
+        } catch (ExpiredJwtException eje) {
+            System.out.println("⏰ JWT 만료: " + eje.getMessage());
+            // Respond with JSON { status:401, code: "TOKEN_EXPIRED", message: "토큰이 만료되었습니다." }
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            ObjectMapper mapper = new ObjectMapper();
+            String body = mapper.writeValueAsString(java.util.Map.of(
+                    "status", 401,
+                    "code", "TOKEN_EXPIRED",
+                    "message", "토큰이 만료되었습니다."
+            ));
+            response.getWriter().write(body);
+            return;
         } catch (Exception e) {
             System.out.println("❌ JWT 검증 실패: " + e.getMessage());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid Token");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setContentType("application/json;charset=UTF-8");
+            ObjectMapper mapper = new ObjectMapper();
+            String body = mapper.writeValueAsString(java.util.Map.of(
+                    "status", 401,
+                    "code", "INVALID_TOKEN",
+                    "message", "유효하지 않은 토큰입니다."
+            ));
+            response.getWriter().write(body);
             return;
         }
 
@@ -72,6 +101,16 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
                     System.out.println("✅ 인증 성공! SecurityContext에 저장됨");
                 } else {
                     System.out.println("❌ 유효하지 않은 토큰");
+                    response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+                    response.setContentType("application/json;charset=UTF-8");
+                    ObjectMapper mapper = new ObjectMapper();
+                    String body = mapper.writeValueAsString(java.util.Map.of(
+                            "status", 401,
+                            "code", "INVALID_TOKEN",
+                            "message", "유효하지 않은 토큰입니다."
+                    ));
+                    response.getWriter().write(body);
+                    return;
                 }
             } catch (Exception e) {
                 // If user is not present in local DB (OAuth-first flow), still allow the request

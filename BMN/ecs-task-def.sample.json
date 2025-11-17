@@ -1,0 +1,28 @@
+{
+  "family": "bmn-app-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "containerDefinitions": [
+    {
+      "name": "bmn-app",
+      "image": "<AWS_ACCOUNT_ID>.dkr.ecr.<region>.amazonaws.com/bmn:latest",
+      "portMappings": [ { "containerPort": 8080, "protocol": "tcp" } ],
+      "environment": [
+        { "name": "SPRING_PROFILES_ACTIVE", "value": "prod" },
+        { "name": "SPRING_DATASOURCE_URL", "value": "jdbc:mysql://<RDS_ENDPOINT>:3306/bmn_prod?useUnicode=true&characterEncoding=utf8&serverTimezone=UTC&useSSL=false" },
+        { "name": "SPRING_DATASOURCE_USERNAME", "value": "<db_user>" },
+        { "name": "SPRING_DATASOURCE_PASSWORD", "value": "<db_password>" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/bmn",
+          "awslogs-region": "<region>",
+          "awslogs-stream-prefix": "bmn"
+        }
+      }
+    }
+  ]
+}

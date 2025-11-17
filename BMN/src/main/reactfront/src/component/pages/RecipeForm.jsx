@@ -2,9 +2,10 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 // ✅ 이미지 리사이징 헬퍼
 async function resizeImage(file, options) {

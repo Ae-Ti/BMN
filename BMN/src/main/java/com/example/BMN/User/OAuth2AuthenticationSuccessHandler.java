@@ -20,16 +20,59 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+
 public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccessHandler {
 
     private static final Logger log = LoggerFactory.getLogger(OAuth2AuthenticationSuccessHandler.class);
 
     private final JwtUtil jwtUtil;
     private final ObjectProvider<UserRepository> userRepositoryProvider;
+    private final String frontendBaseUrl;
 
-    public OAuth2AuthenticationSuccessHandler(JwtUtil jwtUtil, ObjectProvider<UserRepository> userRepositoryProvider) {
+    public OAuth2AuthenticationSuccessHandler(JwtUtil jwtUtil, ObjectProvider<UserRepository> userRepositoryProvider, String frontendBaseUrl) {
         this.jwtUtil = jwtUtil;
         this.userRepositoryProvider = userRepositoryProvider;
+        this.frontendBaseUrl = frontendBaseUrl;
+    }
+
+    /**
+     * Add AUTH_TOKEN cookie via Set-Cookie header so we can include SameSite and Max-Age attributes.
+     * If secure==true we set SameSite=None (required for cross-site usage like OAuth redirects).
+     * If secure==false we fall back to SameSite=Lax to avoid modern browser rejection.
+     */
+    private void addAuthCookie(HttpServletResponse response, String token, long expirationMs, boolean secure) {
+        try {
+            long maxAge = Math.max(0L, expirationMs / 1000L);
+            String encoded = URLEncoder.encode(token, StandardCharsets.UTF_8.toString());
+            String cookieDomain = null;
+            try {
+                if (frontendBaseUrl != null && !frontendBaseUrl.isBlank()) {
+                    java.net.URI u = new java.net.URI(frontendBaseUrl);
+                    String host = u.getHost();
+                    if (host != null && host.endsWith("saltylife.co.kr")) {
+                        cookieDomain = ".saltylife.co.kr";
+                    }
+                }
+            } catch (Exception e) {
+                // ignore parse errors and proceed without explicit Domain
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("AUTH_TOKEN=").append(encoded).append(";");
+            if (cookieDomain != null) {
+                sb.append(" Domain=").append(cookieDomain).append(";");
+            }
+            sb.append(" Path=/; HttpOnly; Max-Age=").append(maxAge).append(";");
+            if (secure) {
+                sb.append(" Secure; SameSite=None;");
+            } else {
+                sb.append(" SameSite=Lax;");
+            }
+            // Add header (note: response.addCookie doesn't allow SameSite attribute on older Servlet API)
+            response.addHeader("Set-Cookie", sb.toString());
+        } catch (Exception e) {
+            log.warn("Failed to add auth cookie header: {}", e.getMessage());
+        }
     }
 
     @Override
@@ -89,12 +132,9 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                         SiteUser existing = maybe.get();
                         log.info("OAuth success handler: existing user found for '{}' -> local userName='{}'. Logging in.", username, existing.getUserName());
                         String token = jwtUtil.generateToken(existing.getUserName());
-                        Cookie cookie = new Cookie("AUTH_TOKEN", token);
-                        cookie.setHttpOnly(true);
-                        cookie.setPath("/");
-                        cookie.setSecure(false);
-                        response.addCookie(cookie);
-                        String redirectUrl = "http://localhost:8080/user/login?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                        boolean secureCookie = isRequestSecure(request);
+                        addAuthCookie(response, token, jwtUtil.getExpirationMs(), secureCookie);
+                        String redirectUrl = buildRedirectUrl(request, "/", token);
                         response.sendRedirect(redirectUrl);
                         return;
                     } else {
@@ -105,12 +145,9 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                         log.info("No local user for '{}'. Deferring DB creation until profile completion. Redirecting to profile completion.", username);
                         try {
                             String token = jwtUtil.generateToken(username);
-                            Cookie temp = new Cookie("AUTH_TOKEN", token);
-                            temp.setHttpOnly(true);
-                            temp.setPath("/");
-                            temp.setSecure(false);
-                            response.addCookie(temp);
-                            String redirectUrl = "http://localhost:8080/profile/complete?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+                            boolean secure = isRequestSecure(request);
+                            addAuthCookie(response, token, jwtUtil.getExpirationMs(), secure);
+                            String redirectUrl = buildRedirectUrl(request, "/profile/complete", token);
                             response.sendRedirect(redirectUrl);
                             return;
                         } catch (Exception e) {
@@ -135,16 +172,44 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
         String token = jwtUtil.generateToken(username);
 
         // Also set an HttpOnly cookie so browsers send it automatically on subsequent requests.
-        Cookie cookie = new Cookie("AUTH_TOKEN", token);
-        cookie.setHttpOnly(true);
-        cookie.setPath("/");
-        // In local/dev environments Secure=false; in production set Secure=true and SameSite as needed
-        cookie.setSecure(false);
-        response.addCookie(cookie);
+    boolean secure = isRequestSecure(request);
+    addAuthCookie(response, token, jwtUtil.getExpirationMs(), secure);
 
         // Redirect to frontend login handler with token in query param as well (frontend will read it for localStorage)
-    String redirectUrl = "http://localhost:8080/user/login?token=" + URLEncoder.encode(token, StandardCharsets.UTF_8);
+    String redirectUrl = buildRedirectUrl(request, "/", token);
     response.sendRedirect(redirectUrl);
+    }
+
+    private String buildRedirectUrl(HttpServletRequest request, String path, String token) {
+        String base = null;
+        try {
+            if (frontendBaseUrl != null && !frontendBaseUrl.isBlank() && !frontendBaseUrl.contains("localhost")) {
+                base = frontendBaseUrl;
+            } else {
+                String proto = request.getHeader("X-Forwarded-Proto");
+                if (proto == null || proto.isBlank()) proto = request.getScheme();
+                String host = request.getHeader("X-Forwarded-Host");
+                if (host == null || host.isBlank()) {
+                    int port = request.getServerPort();
+                    host = request.getServerName() + ((port == 80 || port == 443) ? "" : ":" + port);
+                }
+                base = proto + "://" + host;
+            }
+        } catch (Exception e) {
+            base = "";
+        }
+        String encoded = URLEncoder.encode(token, StandardCharsets.UTF_8);
+        return base + path + "?token=" + encoded;
+    }
+
+    private boolean isRequestSecure(HttpServletRequest request) {
+        try {
+            String proto = request.getHeader("X-Forwarded-Proto");
+            if (proto != null) return proto.equalsIgnoreCase("https");
+            return request.isSecure();
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     private boolean isDevProfileActive() {

@@ -1,7 +1,10 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ko">
   <head>
     <meta charset="utf-8" />
+    <!-- 문서 언어를 한국어로 지정하고 자동 번역(예: Google Translate)을 방지합니다 -->
+    <meta http-equiv="Content-Language" content="ko" />
+    <meta name="google" content="notranslate" />
     <link rel="icon" href="%PUBLIC_URL%/favicon.ico" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <meta name="theme-color" content="#000000" />
@@ -39,6 +42,25 @@
           }
         } catch (e) {
           // 무시
+        }
+      })();
+    </script>
+    <!-- OAuth 리디렉트: token 쿼리 파라미터가 있으면 localStorage에 저장하고 URL에서 제거 -->
+    <script>
+      (function () {
+        try {
+          var params = new URLSearchParams(window.location.search || '');
+          var t = params.get('token');
+          if (t) {
+            try { sessionStorage.setItem('oauthInProgress', '1'); } catch (e) {}
+            try { localStorage.setItem('token', t); } catch (e) {}
+            // remove token from URL for cleanliness
+            params.delete('token');
+            var newUrl = window.location.pathname + (params.toString() ? '?' + params.toString() : '');
+            window.history.replaceState({}, document.title, newUrl);
+          }
+        } catch (e) {
+          // ignore
         }
       })();
     </script>

@@ -2,8 +2,9 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 const TOKEN_KEY = "token";
 

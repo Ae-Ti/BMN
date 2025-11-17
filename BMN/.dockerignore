@@ -1,0 +1,12 @@
+.gradle
+build
+.idea
+.vscode
+node_modules
+src/main/reactfront/node_modules
+**/build/tmp
+**/build/classes
+**/build/test-results
+**/*.log
+.gradle
+gradle/wrapper/gradle-wrapper.jar

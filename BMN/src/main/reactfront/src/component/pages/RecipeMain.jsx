@@ -2,10 +2,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import "./recipeMain.css";
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 const TOKEN_KEY = "token";
 const hasToken = () => {

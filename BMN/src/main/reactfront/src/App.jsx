@@ -33,6 +33,13 @@ axios.interceptors.response.use(
   },
   (error) => {
         if (error.response && error.response.status === 401) {
+            // Only treat as session-expired when backend explicitly signals TOKEN_EXPIRED
+            const respData = (error.response && error.response.data) ? error.response.data : {};
+            const code = respData.code || respData.error || '';
+            if (code !== 'TOKEN_EXPIRED') {
+                // Not an expired-token case we care about; forward error
+                return Promise.reject(error);
+            }
             try {
                 // If the failing request is part of the OAuth handshake or login endpoints,
                 // do not trigger the global logout behavior (it interrupts the redirect).
@@ -44,13 +51,12 @@ axios.interceptors.response.use(
                             return Promise.reject(error);
                         }
 
-                const token = localStorage.getItem("token");
-                if (token) { // Only run if a token was present
-                    localStorage.removeItem("token");
-                    if (window.location.pathname !== '/user/login') {
-                        alert('세션이 만료되었습니다. 다시 로그인해주세요.');
-                        window.location.href = '/user/login';
-                    }
+                // Discard any existing token and force login.
+                try { localStorage.removeItem("token"); } catch(e) {}
+                try { delete axios.defaults.headers.common['Authorization']; } catch(e) {}
+                if (window.location.pathname !== '/user/login') {
+                    try { alert('세션이 만료되었습니다. 다시 로그인해주세요.'); } catch(e) {}
+                    window.location.href = '/user/login';
                 }
             } catch (e) {
                 // If any error happens during interception, just ignore and forward the original error

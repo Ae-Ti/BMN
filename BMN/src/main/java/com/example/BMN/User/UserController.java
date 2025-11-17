@@ -29,11 +29,11 @@ public class UserController {
     private final UserRepository userRepository;
     private final PendingRegistrationRepository pendingRegistrationRepository;
     private final EmailService emailService;
-    @Value("${app.frontend.url:http://localhost:3000}")
+    @Value("${app.frontend.url:https://www.saltylife.co.kr}")
     private String frontendBaseUrl;
 
     @PostMapping("/signup")
-    public ResponseEntity<?> signup(@Valid @RequestBody UserCreateForm userCreateForm) {
+    public ResponseEntity<?> signup(@Valid @RequestBody UserCreateForm userCreateForm, HttpServletRequest request) {
         if (!userCreateForm.getPassword1().equals(userCreateForm.getPassword2())) {
             throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
         }
@@ -73,7 +73,7 @@ public class UserController {
         pendingRegistrationRepository.save(pr);
         // send verification email (email + display name)
         String display = pr.getNickname() != null ? pr.getNickname() : pr.getUserName();
-        emailService.sendVerificationEmail(pr.getEmail(), display, verificationToken);
+    emailService.sendVerificationEmail(pr.getEmail(), display, verificationToken, request);
 
         return ResponseEntity.ok().body(new SignupResponse(null, "회원가입이 접수되었습니다. 이메일의 링크를 클릭하여 인증을 완료해주세요."));
         // 예외는 GlobalExceptionHandler가 처리
@@ -187,7 +187,7 @@ public class UserController {
     }
 
     @PostMapping("/resend-verification")
-    public ResponseEntity<?> resendVerification(@RequestBody ResendRequest req) {
+    public ResponseEntity<?> resendVerification(@RequestBody ResendRequest req, HttpServletRequest request) {
         String email = req == null ? null : req.email;
         if (email == null || email.isBlank()) {
             return ResponseEntity.badRequest().body(java.util.Map.of("message", "이메일을 입력하세요."));
@@ -202,7 +202,7 @@ public class UserController {
         pr.setExpiryAt(Instant.now().plusSeconds(60 * 60 * 24));
         pendingRegistrationRepository.save(pr);
         String display = pr.getNickname() != null ? pr.getNickname() : pr.getUserName();
-        emailService.sendVerificationEmail(pr.getEmail(), display, verificationToken);
+    emailService.sendVerificationEmail(pr.getEmail(), display, verificationToken, request);
         return ResponseEntity.ok(java.util.Map.of("message", "인증 메일을 재전송했습니다."));
     }
 

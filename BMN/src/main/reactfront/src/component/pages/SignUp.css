@@ -42,3 +42,10 @@
 
 .signup-box button { width: 100%; padding: 12px; background-color: #f2536d; color: white; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; transition: background-color 0.3s; }
 .signup-box button:hover { background-color: #d94463; }
+
+/* Informational message shown under submit while request is in progress */
+.info-message {
+  color: #555;
+  margin-top: 8px;
+  font-size: 14px;
+}

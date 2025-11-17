@@ -45,6 +45,11 @@ public class JwtUtil {
         return getClaims(token).getExpiration().after(new Date());
     }
 
+    // expose expiration so callers can align cookie Max-Age with token lifetime
+    public long getExpirationMs() {
+        return expirationMs;
+    }
+
     private Claims getClaims(String token) {
         return Jwts.parserBuilder()
                 .setSigningKey(getSigningKey())

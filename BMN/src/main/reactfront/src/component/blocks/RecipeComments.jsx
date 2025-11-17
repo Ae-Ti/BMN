@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { API_BASE } from '../../config';
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 // --- Base64URL 디코더 (JWT payload 디코딩용)
 function b64urlDecode(str) {

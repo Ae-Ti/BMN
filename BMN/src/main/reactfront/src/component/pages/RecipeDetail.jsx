@@ -2,12 +2,13 @@
 import React, { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import RecipeComments from "../blocks/RecipeComments";
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
-const MY_PAGE_URL = "http://localhost:8080/mypage";
+const MY_PAGE_URL = `${API_BASE}/mypage`;
 
 /* ---------- helpers ---------- */
 function b64urlDecode(str) {
@@ -153,9 +154,7 @@ export default function RecipeDetail() {
 
     const thumbSrc =
         recipe?.thumbnailUrl ||
-        (recipe?.id
-            ? `http://localhost:8080/recipe/thumbnail/${recipe.id}`
-            : undefined);
+        (recipe?.id ? `${API_BASE}/recipe/thumbnail/${recipe.id}` : undefined);
 
     const ingredientRows = useMemo(() => {
         const arr = Array.isArray(recipe?.ingredientRows)

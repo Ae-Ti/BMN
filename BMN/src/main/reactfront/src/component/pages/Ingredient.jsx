@@ -1,8 +1,9 @@
 // src/component/pages/Ingredient.jsx
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { API_BASE } from '../../config';
 
-const apiBase = 'http://localhost:8080';
+const apiBase = API_BASE;
 
 // 로컬 타임존 기준 YYYY-MM-DD (UTC 변환 없이 하루 밀림 방지)
 const localTodayISO = () => {

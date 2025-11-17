@@ -2,10 +2,11 @@
 import React, { useEffect, useMemo, useState, useCallback } from "react";
 import { Link, useParams, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import "./ProfilePage.css"; // Import the new CSS file
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 const TOKEN_KEY = "token";
 

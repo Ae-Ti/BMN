@@ -21,6 +21,7 @@ const SignUp = () => {
     const [errorMessage, setErrorMessage] = useState("");
     const [successMessage, setSuccessMessage] = useState("");
     const [fieldErrors, setFieldErrors] = useState({});
+    const [submitting, setSubmitting] = useState(false);
 
     const handleChange = (e) => {
         const { name, value } = e.target;
@@ -136,6 +137,7 @@ const SignUp = () => {
         };
 
         try {
+            setSubmitting(true);
             const response = await axios.post("/user/signup", userData);
             const { message } = extractMessage(response.data);
             const msg = message || "회원가입이 성공적으로 완료되었습니다.";
@@ -158,6 +160,8 @@ const SignUp = () => {
                 });
             }
             setFieldErrors(normalized);
+        } finally {
+            setSubmitting(false);
         }
     };
 
@@ -222,7 +226,10 @@ const SignUp = () => {
 
                 <input type="email" name="email" placeholder="이메일" value={form.email} onChange={handleChange} required />
                 { fieldErrors.email && <p className="field-error">{fieldErrors.email}</p> }
-                <button type="submit">가입하기</button>
+                <button type="submit" disabled={submitting}>가입하기</button>
+                {submitting && !errorMessage && Object.keys(fieldErrors).length === 0 && (
+                    <p className="info-message">잠시만 기다려주세요!</p>
+                )}
                 {errorMessage && <p className="error-message">{errorMessage}</p>}
                 {successMessage && <p className="success-message">{successMessage}</p>}
             </form>

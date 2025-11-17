@@ -2,10 +2,11 @@
 import React, { useEffect, useRef, useState, useCallback } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import "./recipeMain.css";
 
-axios.defaults.baseURL = "http://localhost:8080";
+axios.defaults.baseURL = API_BASE;
 
 const PAGE_SIZE = 12;
 

@@ -88,3 +88,5 @@ src/main/resources/application-local.yml
 src/main/resources/application.yml
 src/main/resources/application.properties
 프로젝트_평가_보고서.md
+
+**/app.jar
