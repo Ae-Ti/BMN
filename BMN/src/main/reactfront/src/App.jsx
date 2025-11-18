@@ -44,7 +44,10 @@ axios.interceptors.response.use(
                 // If the failing request is part of the OAuth handshake or login endpoints,
                 // do not trigger the global logout behavior (it interrupts the redirect).
                 const reqUrl = (error.config && error.config.url) ? String(error.config.url) : '';
-                const isOAuthRequest = reqUrl.includes('/oauth2/') || reqUrl.includes('/login/oauth2') || reqUrl.includes('/user/login');
+                // Consider only true OAuth handshake endpoints as OAuth requests.
+                // Do NOT treat `/user/login` as an OAuth request — if a token expired we want
+                // the global handler to clear it and redirect to the login page.
+                const isOAuthRequest = reqUrl.includes('/oauth2/') || reqUrl.includes('/login/oauth2');
                         const hasTokenInQuery = typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('token=');
                         const oauthInProgress = typeof window !== 'undefined' && window.sessionStorage && window.sessionStorage.getItem && window.sessionStorage.getItem('oauthInProgress') === '1';
                         if (isOAuthRequest || hasTokenInQuery || oauthInProgress) {
@@ -78,8 +81,14 @@ const App = () => {
                     <Route path="recipes" element={<RecipesList />} />
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
-                    <Route path="/recipe/:id" element={<RecipeDetail />} />
-                    <Route path="/ingredient" element={<Ingredient />} /> {/* ✅ 추가 */}
+                    <Route
+                        path="ingredient"
+                        element={
+                            <ProtectedRoute>
+                                <Ingredient />
+                            </ProtectedRoute>
+                        }
+                    /> {/* ✅ 보호된 경로로 변경 */}
 
                     {/* ✅ 상세 & 업로드/수정 보호 */}
                     <Route

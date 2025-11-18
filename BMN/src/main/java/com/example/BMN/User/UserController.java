@@ -88,12 +88,14 @@ public class UserController {
         Optional<SiteUser> userOptional = userRepository.findByUserName(loginRequest.getUserName());
 
         if (userOptional.isEmpty()) {
-            throw new IllegalArgumentException("존재하지 않는 사용자입니다.");
+            // For security, return a generic authentication failure (401) rather than revealing which part is wrong.
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "등록되지 않은 아이디 또는 비밀번호입니다."));
         }
 
         SiteUser user = userOptional.get();
 
         if (user.getEmailVerified() == null || Boolean.FALSE.equals(user.getEmailVerified())) {
+            // Keep explicit message for email verification required
             throw new IllegalArgumentException("이메일 인증이 필요합니다. 이메일을 확인하세요.");
         }
 
@@ -110,7 +112,8 @@ public class UserController {
         System.out.println("비밀번호 매칭 결과: " + isMatch);
 
         if (!isMatch) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            // Return a unified 401 for authentication failures to match frontend behavior
+            return ResponseEntity.status(401).body(java.util.Map.of("message", "등록되지 않은 아이디 또는 비밀번호입니다."));
         }
 
         // ✅ JWT 토큰 발급

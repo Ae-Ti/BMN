@@ -87,14 +87,14 @@ public class ProfileController {
         }
     }
 
-    /** ✅ 내가 작성한 레시피 목록 */
+    /** ✅ 내가 작성한 레시피 목록 (클라이언트가 카드에 필요한 모든 필드를 사용하도록 RecipeDTO로 반환) */
     @GetMapping("/me/recipes")
-    public ResponseEntity<List<MyRecipeDto>> myRecipes() {
+    public ResponseEntity<List<RecipeDTO>> myRecipes() {
         try {
             SiteUser me = currentUser();
-            List<MyRecipeDto> list = recipeRepository.findAllByAuthorOrderByIdDesc(me)
+            List<RecipeDTO> list = recipeRepository.findAllByAuthorOrderByIdDesc(me)
                     .stream()
-                    .map(MyRecipeDto::of)
+                    .map(RecipeDTO::new)
                     .toList();
             return ResponseEntity.ok(list);
         } catch (AccessDeniedException e) {
