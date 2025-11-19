@@ -30,7 +30,11 @@ const ProfileComplete = () => {
         } else {
             // if token already in localStorage, ensure axios sends it
             const stored = localStorage.getItem('token');
-            if (stored) try { sessionStorage.setItem('oauthInProgress', '1'); } catch(e) {}
+            // Do NOT mark oauthInProgress for a plain stored token — that flag should
+            // only be set when we're in an OAuth-first handshake (token came via URL)
+            // or when the user explicitly started an OAuth flow. Marking it here
+            // caused normal users with a stored token to be treated as "oauth in
+            // progress" which led to incorrect redirects to profile completion.
             if (stored) axios.defaults.headers.common['Authorization'] = `Bearer ${stored}`;
         }
 

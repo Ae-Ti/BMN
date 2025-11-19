@@ -110,8 +110,9 @@ const LogIn = () => {
               className="oauth-google-button"
               href="/oauth2/authorization/google"
               onClick={() => {
-                try { sessionStorage.setItem('oauthInProgress', 'google'); } catch(e) {}
-              }}
+                  // mark oauth as started (use '1' consistently with the rest of the app)
+                  try { sessionStorage.setItem('oauthInProgress', '1'); } catch(e) {}
+                }}
               style={{display:'inline-block', padding:'8px 12px', background:'#fff', color:'#444', border:'1px solid #ddd', borderRadius:4, textDecoration:'none'}}
             >
               Google로 로그인
