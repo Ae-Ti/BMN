@@ -48,26 +48,77 @@ const ProtectedRoute = ({ children }) => {
                 setAllowed(true);
             })
             .catch(err => {
-                if (err.response && err.response.status === 401) {
-                    const oauthInProgress = typeof window !== 'undefined' && window.sessionStorage && window.sessionStorage.getItem && window.sessionStorage.getItem('oauthInProgress') === '1';
-                    if (oauthInProgress) {
-                        // Let user finish profile
-                        if (ran.current) return;
-                        ran.current = true;
-                        navigate(`/profile/complete`, { replace: true });
-                        setAllowed(false);
-                        return;
-                    }
-                    // invalid token for normal user -> force login
+                // Network error (no response) - don't logout, just allow access with existing token
+                if (!err.response) {
+                    console.warn('[ProtectedRoute] Network error during token verification, allowing access:', err.message);
+                    setAllowed(true);
+                    return;
+                }
+
+                const status = err.response.status;
+                const code = err.response.data?.code || '';
+
+                // TOKEN_EXPIRED or INVALID_TOKEN -> always go to login page
+                if (status === 401 && (code === 'TOKEN_EXPIRED' || code === 'INVALID_TOKEN')) {
                     if (ran.current) return;
                     ran.current = true;
+                    try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
                     localStorage.removeItem(TOKEN_KEY);
                     window.alert('세션이 만료되었습니다. 다시 로그인해주세요.');
                     navigate(`/user/login?from=${encodeURIComponent(from)}`, { replace: true });
                     setAllowed(false);
                     return;
                 }
-                // Other errors: block access
+
+                // USER_NOT_FOUND -> user has valid token but no DB record
+                // This happens for OAuth users who haven't completed their profile
+                if (status === 401 && code === 'USER_NOT_FOUND') {
+                    // Check if this is an active OAuth flow (token just received from OAuth redirect)
+                    const hasTokenInQuery = window.location.search.includes('token=');
+                    const oauthInProgress = sessionStorage.getItem('oauthInProgress') === '1';
+                    
+                    if (hasTokenInQuery || oauthInProgress) {
+                        // Active OAuth flow - redirect to profile completion
+                        if (ran.current) return;
+                        ran.current = true;
+                        navigate('/profile/complete', { replace: true });
+                        setAllowed(false);
+                        return;
+                    } else {
+                        // Not an active OAuth flow - this shouldn't normally happen
+                        // but if it does, clear everything and go to login
+                        if (ran.current) return;
+                        ran.current = true;
+                        try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
+                        localStorage.removeItem(TOKEN_KEY);
+                        window.alert('다시 로그인해주세요.');
+                        navigate(`/user/login?from=${encodeURIComponent(from)}`, { replace: true });
+                        setAllowed(false);
+                        return;
+                    }
+                }
+
+                // UNAUTHENTICATED or other 401 without recognized code -> go to login
+                if (status === 401) {
+                    if (ran.current) return;
+                    ran.current = true;
+                    try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
+                    localStorage.removeItem(TOKEN_KEY);
+                    window.alert('로그인이 필요합니다.');
+                    navigate(`/user/login?from=${encodeURIComponent(from)}`, { replace: true });
+                    setAllowed(false);
+                    return;
+                }
+
+                // Server errors (5xx) - don't logout, allow access
+                if (status >= 500) {
+                    console.warn('[ProtectedRoute] Server error during verification, allowing access:', status);
+                    setAllowed(true);
+                    return;
+                }
+
+                // Other client errors (4xx except 401): block access but don't logout
+                console.warn('[ProtectedRoute] Unexpected error:', status);
                 setAllowed(false);
             });
     }, [location, navigate]);

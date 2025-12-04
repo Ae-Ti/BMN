@@ -342,7 +342,7 @@ export default function RecipeDetail() {
                             </span>
                             <span className="sx-42">(내 프로필)</span>
                         </a>
-                    ) : (
+                    ) : authorUsername ? (
                         <Link
                             className="sx-43"
                             to={authorTo || "#"}
@@ -355,6 +355,14 @@ export default function RecipeDetail() {
                                 {authorName || authorUsername}
                             </span>
                         </Link>
+                    ) : (
+                        /* 탈퇴한 사용자 - 링크 없이 표시 */
+                        <span className="sx-43" style={{ cursor: "default", opacity: 0.7 }}>
+                            <span className="sx-40 sx-41" aria-hidden>
+                                {authorInitials}
+                            </span>
+                            <span>{authorName}</span>
+                        </span>
                     ))}
                 {canEditOrDelete && (
                     <div className="relative">

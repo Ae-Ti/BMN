@@ -52,4 +52,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
         WHERE r.id = :id
         """)
     void decreaseFavoriteCount(@Param("id") Long id);
+
+    /** 특정 작성자의 모든 레시피의 author를 null로 설정 (회원 탈퇴 시 사용) */
+    @Modifying
+    @Query("UPDATE Recipe r SET r.author = null WHERE r.author = :author")
+    void clearAuthor(@Param("author") SiteUser author);
 }

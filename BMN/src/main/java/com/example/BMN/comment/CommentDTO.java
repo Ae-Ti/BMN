@@ -31,6 +31,9 @@ public class CommentDTO {
             userName = c.getAuthor().getUserName();
             String nick = c.getAuthor().getNickname();
             displayName = (nick != null && !nick.isBlank()) ? nick : userName;
+        } else {
+            // 탈퇴한 사용자 (실제로는 댓글 삭제되지만 방어적 처리)
+            displayName = "탈퇴한 사용자";
         }
 
         return CommentDTO.builder()

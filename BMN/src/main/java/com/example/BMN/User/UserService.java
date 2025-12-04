@@ -23,6 +23,20 @@ public class UserService {
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
 
+    /** 성별을 영문(male/female)으로 정규화 */
+    private String normalizeSex(String sex) {
+        if (sex == null || sex.isBlank()) return null;
+        String s = sex.trim().toLowerCase();
+        if (s.equals("남") || s.equals("남성") || s.equals("male") || s.equals("m")) {
+            return "male";
+        } else if (s.equals("여") || s.equals("여성") || s.equals("female") || s.equals("f")) {
+            return "female";
+        } else if (s.equals("other") || s.equals("기타")) {
+            return "other";
+        }
+        return sex; // 알 수 없는 값은 그대로 저장
+    }
+
     /* ========================= 가입/조회 ========================= */
 
     @Transactional
@@ -42,7 +56,7 @@ public class UserService {
         user.setIntroduction(introduction);
     user.setNickname(nickname);
     user.setDateOfBirth(dateOfBirth);
-        user.setSex(sex);
+        user.setSex(normalizeSex(sex));
         // newly created users require email verification
         user.setEmailVerified(false);
 
@@ -75,7 +89,7 @@ public class UserService {
         user.setIntroduction(pr.getIntroduction());
         user.setNickname(pr.getNickname());
         user.setDateOfBirth(pr.getDateOfBirth());
-        user.setSex(pr.getSex());
+        user.setSex(normalizeSex(pr.getSex()));
         user.setEmailVerified(true); // verified by token
 
         try {

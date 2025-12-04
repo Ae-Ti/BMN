@@ -122,6 +122,53 @@ public class UserController {
         // 예외는 GlobalExceptionHandler가 처리
     }
 
+    /**
+     * Refresh the JWT token. If the current token is still valid (not expired),
+     * issue a new token with a fresh expiration time.
+     */
+    @PostMapping("/refresh-token")
+    public ResponseEntity<?> refreshToken(@RequestHeader(value = "Authorization", required = false) String authHeader) {
+        if (authHeader == null || !authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.status(401).body(java.util.Map.of(
+                "status", 401,
+                "code", "NO_TOKEN",
+                "message", "토큰이 없습니다."
+            ));
+        }
+        String oldToken = authHeader.substring(7);
+        try {
+            // Validate the old token first
+            if (!jwtUtil.validateToken(oldToken)) {
+                return ResponseEntity.status(401).body(java.util.Map.of(
+                    "status", 401,
+                    "code", "TOKEN_EXPIRED",
+                    "message", "토큰이 만료되었습니다."
+                ));
+            }
+            String username = jwtUtil.extractUsername(oldToken);
+            // Issue a new token
+            String newToken = jwtUtil.generateToken(username);
+            log.info("Token refreshed for user: {}", username);
+            return ResponseEntity.ok().body(java.util.Map.of(
+                "token", newToken,
+                "message", "토큰이 갱신되었습니다."
+            ));
+        } catch (io.jsonwebtoken.ExpiredJwtException e) {
+            return ResponseEntity.status(401).body(java.util.Map.of(
+                "status", 401,
+                "code", "TOKEN_EXPIRED",
+                "message", "토큰이 만료되었습니다."
+            ));
+        } catch (Exception e) {
+            log.warn("Token refresh failed: {}", e.getMessage());
+            return ResponseEntity.status(401).body(java.util.Map.of(
+                "status", 401,
+                "code", "INVALID_TOKEN",
+                "message", "유효하지 않은 토큰입니다."
+            ));
+        }
+    }
+
     @GetMapping("/verify-email")
     public ResponseEntity<?> verifyEmail(@RequestParam("token") String token, HttpServletRequest request) {
         if (token == null || token.isBlank()) {

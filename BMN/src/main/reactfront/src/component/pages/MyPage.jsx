@@ -85,6 +85,7 @@ const MyPage = () => {
         username: "",
         nickname: "",
         email: "",
+        introduction: "",
         followingCount: 0,
         followerCount: 0,
     });
@@ -99,6 +100,7 @@ const MyPage = () => {
                     username: data?.username ?? data?.userName ?? usernameFromToken(),
                     nickname: data?.nickname ?? "",
                     email: data?.email ?? "",
+                    introduction: data?.introduction ?? "",
                     followingCount: data?.followingCount ?? 0,
                     followerCount: data?.followerCount ?? 0,
                 });
@@ -107,6 +109,7 @@ const MyPage = () => {
                     username: usernameFromToken(),
                     nickname: "",
                     email: "",
+                    introduction: "",
                     followingCount: 0,
                     followerCount: 0,
                 });
@@ -201,7 +204,17 @@ const MyPage = () => {
         <div className="page-container">
             <h1 className="ml-16-67pct">마이페이지</h1>
 
-            <div className="profile-card">
+            <div className="profile-card" style={{ position: "relative" }}>
+                {/* 설정 버튼 - 프로필 카드 우측 상단 */}
+                <button
+                    onClick={() => nav("/settings")}
+                    className="settings-btn"
+                    title="설정"
+                    aria-label="프로필 설정"
+                >
+                    ⚙️
+                </button>
+
                 <div className="profile-header">
                     <div className="profile-avatar" aria-hidden>{initials}</div>
                     <div className="profile-info">
@@ -210,7 +223,6 @@ const MyPage = () => {
                         </div>
                         <div className="profile-details">
                             <div><b>아이디</b>: {profile.username || "-"}</div>
-                            <div><b>닉네임</b>: {profile.nickname || "-"}</div>
                             <div style={{display:'flex', alignItems:'center', gap:12}}>
                                 <div><b>이메일</b>: {profile.email || "-"}</div>
                                 {profile.email && profile.emailVerified === false && (
@@ -220,6 +232,11 @@ const MyPage = () => {
                                 )}
                             </div>
                             <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
+                            {profile.introduction && (
+                                <div className="profile-introduction">
+                                    {profile.introduction}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

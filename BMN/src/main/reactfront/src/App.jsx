@@ -18,13 +18,28 @@ import RecipeForm from "./component/pages/RecipeForm";
 import MyPage from "./component/pages/MyPage";
 import VerifyInstructions from "./component/pages/VerifyInstructions";
 import VerifySuccess from "./component/pages/VerifySuccess";
+import VerifyEmailChange from "./component/pages/VerifyEmailChange";
 import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
 import ProfileComplete from "./component/pages/ProfileComplete";
 import FollowListPage from "./component/pages/FollowListPage";
 import MealMain from "./component/pages/MealMain";
 import MainPage from "./component/pages/MainPage";
+import ProfileSettings from "./component/pages/ProfileSettings";
 import axios from 'axios';
+
+// Initialize axios Authorization header from localStorage on app load
+const TOKEN_KEY = "token";
+(() => {
+    try {
+        const storedToken = localStorage.getItem(TOKEN_KEY);
+        if (storedToken && storedToken !== "null" && storedToken !== "undefined") {
+            axios.defaults.headers.common["Authorization"] = `Bearer ${storedToken}`;
+        }
+    } catch (e) {
+        console.warn('[App] Failed to initialize Authorization header:', e);
+    }
+})();
 
 // Add a response interceptor
 axios.interceptors.response.use(
@@ -32,30 +47,40 @@ axios.interceptors.response.use(
     return response;
   },
   (error) => {
-        if (error.response && error.response.status === 401) {
-            // Only treat as session-expired when backend explicitly signals TOKEN_EXPIRED
-            const respData = (error.response && error.response.data) ? error.response.data : {};
+        // Network error (no response from server) - don't treat as auth failure
+        if (!error.response) {
+            console.warn('[axios] Network error:', error.message);
+            return Promise.reject(error);
+        }
+
+        if (error.response.status === 401) {
+            // Only treat as session-expired when backend explicitly signals TOKEN_EXPIRED or INVALID_TOKEN
+            const respData = error.response.data || {};
             const code = respData.code || respData.error || '';
-            if (code !== 'TOKEN_EXPIRED') {
-                // Not an expired-token case we care about; forward error
+            
+            // If not an explicit token error, forward the error without logout
+            if (code !== 'TOKEN_EXPIRED' && code !== 'INVALID_TOKEN') {
                 return Promise.reject(error);
             }
+            
             try {
                 // If the failing request is part of the OAuth handshake or login endpoints,
                 // do not trigger the global logout behavior (it interrupts the redirect).
                 const reqUrl = (error.config && error.config.url) ? String(error.config.url) : '';
                 // Consider only true OAuth handshake endpoints as OAuth requests.
-                // Do NOT treat `/user/login` as an OAuth request — if a token expired we want
-                // the global handler to clear it and redirect to the login page.
                 const isOAuthRequest = reqUrl.includes('/oauth2/') || reqUrl.includes('/login/oauth2');
-                        const hasTokenInQuery = typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('token=');
-                        const oauthInProgress = typeof window !== 'undefined' && window.sessionStorage && window.sessionStorage.getItem && window.sessionStorage.getItem('oauthInProgress') === '1';
-                        if (isOAuthRequest || hasTokenInQuery || oauthInProgress) {
-                            return Promise.reject(error);
-                        }
+                const hasTokenInQuery = typeof window !== 'undefined' && window.location && window.location.search && window.location.search.includes('token=');
+                
+                // Only skip logout for active OAuth handshake (token in URL), not for stale oauthInProgress flag
+                if (isOAuthRequest || hasTokenInQuery) {
+                    return Promise.reject(error);
+                }
 
-                // Discard any existing token and force login.
-                try { localStorage.removeItem("token"); } catch(e) {}
+                // Token expired/invalid -> clear session and redirect to login
+                // Also clear the oauthInProgress flag since the session is no longer valid
+                console.log('[axios] Token expired/invalid, clearing session');
+                try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
+                try { localStorage.removeItem(TOKEN_KEY); } catch(e) {}
                 try { delete axios.defaults.headers.common['Authorization']; } catch(e) {}
                 if (window.location.pathname !== '/user/login') {
                     try { alert('세션이 만료되었습니다. 다시 로그인해주세요.'); } catch(e) {}
@@ -69,6 +94,67 @@ axios.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// Token refresh utility - refreshes token when it's close to expiring
+const TOKEN_REFRESH_THRESHOLD_MS = 30 * 60 * 1000; // Refresh when 30 minutes or less remaining
+const TOKEN_REFRESH_CHECK_INTERVAL_MS = 5 * 60 * 1000; // Check every 5 minutes
+
+const getTokenExpiration = (token) => {
+    if (!token) return null;
+    try {
+        const parts = token.split('.');
+        if (parts.length !== 3) return null;
+        const payload = JSON.parse(atob(parts[1]));
+        return payload.exp ? payload.exp * 1000 : null;
+    } catch {
+        return null;
+    }
+};
+
+const refreshTokenIfNeeded = async () => {
+    const token = localStorage.getItem(TOKEN_KEY);
+    if (!token) return;
+    
+    const expMs = getTokenExpiration(token);
+    if (!expMs) return;
+    
+    const timeUntilExpiry = expMs - Date.now();
+    if (timeUntilExpiry > TOKEN_REFRESH_THRESHOLD_MS) {
+        // Token still has plenty of time, no need to refresh
+        return;
+    }
+    
+    if (timeUntilExpiry <= 0) {
+        // Token already expired, don't try to refresh
+        console.log('[App] Token already expired, not refreshing');
+        return;
+    }
+    
+    try {
+        console.log('[App] Token expiring soon, attempting refresh...');
+        const res = await axios.post('/user/refresh-token');
+        if (res.data && res.data.token) {
+            localStorage.setItem(TOKEN_KEY, res.data.token);
+            axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+            console.log('[App] Token refreshed successfully');
+            window.dispatchEvent(new Event('auth-changed'));
+        }
+    } catch (err) {
+        console.warn('[App] Token refresh failed:', err.message);
+        // Don't force logout here - let the normal 401 handling take care of it
+    }
+};
+
+// Start token refresh check interval
+if (typeof window !== 'undefined') {
+    setInterval(refreshTokenIfNeeded, TOKEN_REFRESH_CHECK_INTERVAL_MS);
+    // Also check on page visibility change (when user returns to tab)
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            refreshTokenIfNeeded();
+        }
+    });
+}
 
 const App = () => {
     return (
@@ -133,8 +219,17 @@ const App = () => {
                             </ProtectedRoute>
                         }
                     />
+                    <Route
+                        path="settings"
+                        element={
+                            <ProtectedRoute>
+                                <ProfileSettings />
+                            </ProtectedRoute>
+                        }
+                    />
                         <Route path="/verify-instructions" element={<VerifyInstructions />} />
                             <Route path="/verify-success" element={<VerifySuccess />} />
+                            <Route path="/user/verify-email-change" element={<VerifyEmailChange />} />
                     <Route
                         path="profile/:username"
                         element={

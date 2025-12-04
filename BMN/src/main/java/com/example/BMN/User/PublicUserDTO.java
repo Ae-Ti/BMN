@@ -18,6 +18,7 @@ public class PublicUserDTO {
     private String userName;        // 아이디
     private String nickname;        // 닉네임
     private String email;           // 이메일 (공개 여부는 설정 가능)
+    private String introduction;    // 소개글
     private Boolean emailVerified;  // 이메일 인증 여부
 
     private Long followingCount;    // 팔로잉 수
@@ -32,6 +33,7 @@ public class PublicUserDTO {
         dto.setUserName(u.getUserName());
         dto.setNickname(u.getNickname());
         dto.setEmail(u.getEmail());
+        dto.setIntroduction(u.getIntroduction());
 
         // 기본 팔로우 정보는 null로 초기화 (컨트롤러/서비스에서 설정)
         dto.setFollowingCount(null);
@@ -49,6 +51,7 @@ public class PublicUserDTO {
         dto.setUserName(u.getUserName());
         dto.setNickname(u.getNickname());
         dto.setEmail(null);
+        dto.setIntroduction(u.getIntroduction());
 
         dto.setFollowingCount(null);
         dto.setFollowerCount(null);

@@ -82,6 +82,7 @@ const ProfilePage = () => {
         username: "",
         nickname: "",
         email: "",
+        introduction: "",
         followingCount: 0,
         followerCount: 0,
         followedByMe: false,
@@ -102,6 +103,7 @@ const ProfilePage = () => {
                 username: data?.username ?? username,
                 nickname: data?.nickname ?? "",
                 email: data?.email ?? "",
+                introduction: data?.introduction ?? "",
                 followingCount: data?.followingCount ?? 0,
                 followerCount: data?.followerCount ?? 0,
                 followedByMe: !!data?.followedByMe,
@@ -111,6 +113,7 @@ const ProfilePage = () => {
                 username,
                 nickname: "",
                 email: "",
+                introduction: "",
                 followingCount: 0,
                 followerCount: 0,
                 followedByMe: false,
@@ -239,9 +242,13 @@ const ProfilePage = () => {
                         </div>
                         <div className="profile-details">
                             <div><b>아이디</b>: {profile.username || "-"}</div>
-                            <div><b>닉네임</b>: {profile.nickname || "-"}</div>
                             <div><b>이메일</b>: {profile.email || "-"}</div>
                             <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
+                            {profile.introduction && (
+                                <div className="profile-introduction">
+                                    {profile.introduction}
+                                </div>
+                            )}
                         </div>
                     </div>
                 </div>

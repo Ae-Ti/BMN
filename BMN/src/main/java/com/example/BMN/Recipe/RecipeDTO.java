@@ -64,8 +64,14 @@ public class RecipeDTO {
         if (a != null) {
             this.authorId = a.getId();
             this.authorUsername = a.getUserName();
-            // a.getNickname() 이 있으면 사용
-            // this.authorDisplayName = a.getNickname();
+            // 닉네임이 있으면 닉네임, 없으면 userName 사용
+            this.authorDisplayName = (a.getNickname() != null && !a.getNickname().isBlank()) 
+                    ? a.getNickname() : a.getUserName();
+        } else {
+            // 탈퇴한 사용자
+            this.authorId = null;
+            this.authorUsername = null;
+            this.authorDisplayName = "탈퇴한 사용자";
         }
 
         // 썸네일 URL

@@ -8,6 +8,9 @@ import Footer from './Footer'; // Import Footer
 import './Layout.css'; // Import Layout.css
 
 const TOKEN_KEY = "token";
+// Clock skew allowance: 5 minutes in milliseconds
+const CLOCK_SKEW_MS = 5 * 60 * 1000;
+
 const isTokenValid = (raw) => {
     if (!raw) return false;
     const t = String(raw).trim();
@@ -16,8 +19,19 @@ const isTokenValid = (raw) => {
     if (parts.length === 3) {
         try {
             const payload = JSON.parse(atob(parts[1]));
-            if (payload?.exp && payload.exp * 1000 < Date.now()) return false;
-        } catch {}
+            // JWT exp is in seconds; allow clock skew
+            if (payload?.exp) {
+                const expMs = payload.exp * 1000;
+                if (expMs + CLOCK_SKEW_MS < Date.now()) {
+                    console.log('[Layout] Token expired:', new Date(expMs).toISOString());
+                    return false;
+                }
+            }
+        } catch (e) {
+            console.warn('[Layout] Failed to parse token payload:', e);
+            // If we can't parse the token, assume it's invalid only if it's malformed
+            return false;
+        }
     }
     return true;
 };
@@ -75,8 +89,7 @@ const Layout = () => {
                 </div>
 
                 <div className="auth-group">
-                    <form className="sx-1"
-                        className="header-search"
+                    <form className="header-search sx-1"
                         onSubmit={(e) => {
                             e.preventDefault();
                             const q = String(searchText || "").trim();
