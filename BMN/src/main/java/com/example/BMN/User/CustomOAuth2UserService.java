@@ -50,16 +50,27 @@ public class CustomOAuth2UserService implements OAuth2UserService<OAuth2UserRequ
         String name = (String) attributes.getOrDefault("name", email);
 
         if (email != null) {
-            // Try to locate an existing user by either userName or email. Some users may have
-            // registered with a different userName while email is stored in the email column.
-            Optional<SiteUser> maybe = userRepository.findByUserName(email);
-            if (maybe.isEmpty()) {
-                maybe = userRepository.findByEmail(email);
-            }
             String provider = userRequest.getClientRegistration().getRegistrationId(); // e.g. "google"
             String providerId = attributes.getOrDefault("sub", attributes.get("id")) != null
                     ? String.valueOf(attributes.getOrDefault("sub", attributes.get("id")))
                     : null;
+
+            // 1차: providerId로 사용자 찾기 (이메일 변경해도 동일 계정으로 인식)
+            Optional<SiteUser> maybe = Optional.empty();
+            if (provider != null && providerId != null) {
+                maybe = userRepository.findByProviderAndProviderId(provider, providerId);
+                if (maybe.isPresent()) {
+                    log.debug("OAuth loadUser: found user by providerId={}", providerId);
+                }
+            }
+            
+            // 2차: providerId로 못 찾으면 이메일로 찾기 (기존 사용자 또는 이메일 변경 전 사용자)
+            if (maybe.isEmpty()) {
+                maybe = userRepository.findByUserName(email);
+            }
+            if (maybe.isEmpty()) {
+                maybe = userRepository.findByEmail(email);
+            }
 
             Boolean emailVerified = null;
             Object ev = attributes.get("email_verified");

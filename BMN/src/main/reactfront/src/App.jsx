@@ -19,6 +19,7 @@ import MyPage from "./component/pages/MyPage";
 import VerifyInstructions from "./component/pages/VerifyInstructions";
 import VerifySuccess from "./component/pages/VerifySuccess";
 import VerifyEmailChange from "./component/pages/VerifyEmailChange";
+import VerifyEmailChangeResult from "./component/pages/VerifyEmailChangeResult";
 import FridgePage from "./component/pages/FridgePage";
 import ProfilePage from "./component/pages/ProfilePage";
 import ProfileComplete from "./component/pages/ProfileComplete";
@@ -230,6 +231,7 @@ const App = () => {
                         <Route path="/verify-instructions" element={<VerifyInstructions />} />
                             <Route path="/verify-success" element={<VerifySuccess />} />
                             <Route path="/user/verify-email-change" element={<VerifyEmailChange />} />
+                            <Route path="/user/verify-email-change-result" element={<VerifyEmailChangeResult />} />
                     <Route
                         path="account/setup"
                         element={<ProfileComplete />}

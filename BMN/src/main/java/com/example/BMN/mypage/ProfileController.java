@@ -95,6 +95,21 @@ public class ProfileController {
         return sex; // 알 수 없는 값은 그대로 저장
     }
 
+    /** 쿠키 값 가져오기 (없으면 null) */
+    private String getCookieValue(HttpServletRequest request, String name) {
+        if (request.getCookies() == null) return null;
+        for (Cookie c : request.getCookies()) {
+            if (name.equals(c.getName())) {
+                try {
+                    return java.net.URLDecoder.decode(c.getValue(), java.nio.charset.StandardCharsets.UTF_8.toString());
+                } catch (Exception e) {
+                    return c.getValue();
+                }
+            }
+        }
+        return null;
+    }
+
     /* ======================= 내 프로필 ======================= */
 
     /** ✅ 내 프로필 기본 정보 */
@@ -314,12 +329,22 @@ public class ProfileController {
         }
     }
 
-    /** ✅ 이메일 변경 인증 완료 */
+    /** ✅ 이메일 변경 인증 완료 - 브라우저에서 직접 접근하는 엔드포인트 (리다이렉트 방식) */
     @GetMapping("/verify-email-change")
     @Transactional
-    public ResponseEntity<?> verifyEmailChange(@RequestParam String token) {
+    public ResponseEntity<?> verifyEmailChange(@RequestParam String token,
+                                                @RequestHeader(value = "Accept", required = false) String accept) {
+        // API 호출인지 브라우저 직접 접근인지 판단
+        boolean isBrowserRequest = accept != null && accept.contains("text/html");
+        
         Optional<PendingEmailChange> maybe = pendingEmailChangeRepository.findByToken(token);
         if (maybe.isEmpty()) {
+            if (isBrowserRequest) {
+                return ResponseEntity.status(302)
+                    .header("Location", "/user/verify-email-change-result?success=false&message=" + 
+                        java.net.URLEncoder.encode("유효하지 않은 토큰입니다.", java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+            }
             return ResponseEntity.badRequest().body(java.util.Map.of("message", "유효하지 않은 토큰입니다."));
         }
 
@@ -328,6 +353,12 @@ public class ProfileController {
         // 토큰 만료 확인
         if (LocalDateTime.now().isAfter(pending.getExpiresAt())) {
             pendingEmailChangeRepository.delete(pending);
+            if (isBrowserRequest) {
+                return ResponseEntity.status(302)
+                    .header("Location", "/user/verify-email-change-result?success=false&message=" + 
+                        java.net.URLEncoder.encode("토큰이 만료되었습니다. 다시 요청해주세요.", java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+            }
             return ResponseEntity.badRequest().body(java.util.Map.of("message", "토큰이 만료되었습니다. 다시 요청해주세요."));
         }
 
@@ -335,30 +366,50 @@ public class ProfileController {
         Optional<SiteUser> userMaybe = userRepository.findById(pending.getUserId());
         if (userMaybe.isEmpty()) {
             pendingEmailChangeRepository.delete(pending);
+            if (isBrowserRequest) {
+                return ResponseEntity.status(302)
+                    .header("Location", "/user/verify-email-change-result?success=false&message=" + 
+                        java.net.URLEncoder.encode("사용자를 찾을 수 없습니다.", java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+            }
             return ResponseEntity.badRequest().body(java.util.Map.of("message", "사용자를 찾을 수 없습니다."));
         }
 
         // 이메일 중복 재확인
         if (userRepository.existsByEmail(pending.getNewEmail())) {
             pendingEmailChangeRepository.delete(pending);
+            if (isBrowserRequest) {
+                return ResponseEntity.status(302)
+                    .header("Location", "/user/verify-email-change-result?success=false&message=" + 
+                        java.net.URLEncoder.encode("이미 사용 중인 이메일입니다.", java.nio.charset.StandardCharsets.UTF_8))
+                    .build();
+            }
             return ResponseEntity.badRequest().body(java.util.Map.of("message", "이미 사용 중인 이메일입니다."));
         }
 
         // 이메일 변경
         SiteUser user = userMaybe.get();
         String oldEmail = user.getEmail();
-        user.setEmail(pending.getNewEmail());
+        String newEmail = pending.getNewEmail();
+        user.setEmail(newEmail);
         user.setEmailVerified(true);
         userRepository.save(user);
 
         // 대기 요청 삭제
         pendingEmailChangeRepository.delete(pending);
 
-        log.info("Email changed for user id={}, oldEmail={}, newEmail={}", user.getId(), oldEmail, pending.getNewEmail());
+        log.info("Email changed for user id={}, oldEmail={}, newEmail={}", user.getId(), oldEmail, newEmail);
+
+        if (isBrowserRequest) {
+            return ResponseEntity.status(302)
+                .header("Location", "/user/verify-email-change-result?success=true&email=" + 
+                    java.net.URLEncoder.encode(newEmail, java.nio.charset.StandardCharsets.UTF_8))
+                .build();
+        }
 
         return ResponseEntity.ok(java.util.Map.of(
             "message", "이메일이 성공적으로 변경되었습니다.",
-            "newEmail", pending.getNewEmail()
+            "newEmail", newEmail
         ));
     }
 
@@ -577,10 +628,19 @@ public class ProfileController {
                             created.setEmail(username);
                             created.setPassword(encoder.encode(UUID.randomUUID().toString()));
                             created.setIntroduction(""); // 소개글 비워두기
+                            // Set OAuth provider info from cookies if available
+                            String oauthProvider = getCookieValue(request, "OAUTH_PROVIDER");
+                            String oauthProviderId = getCookieValue(request, "OAUTH_PROVIDER_ID");
+                            if (oauthProvider != null && !oauthProvider.isBlank()) {
+                                created.setProvider(oauthProvider);
+                            }
+                            if (oauthProviderId != null && !oauthProviderId.isBlank()) {
+                                created.setProviderId(oauthProviderId);
+                            }
                             // nickname will be set from req below if provided
                             created.setProfileComplete(false);
                             me = userRepository.save(created);
-                            log.info("Created minimal SiteUser id={} for username='{}' (email='{}')", me.getId(), me.getUserName(), username);
+                            log.info("Created minimal SiteUser id={} for username='{}' (email='{}') provider={} providerId={}", me.getId(), me.getUserName(), username, oauthProvider, oauthProviderId);
                         }
                     }
                 } catch (Exception ex) {

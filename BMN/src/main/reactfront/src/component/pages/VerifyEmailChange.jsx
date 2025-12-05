@@ -15,6 +15,10 @@ const VerifyEmailChange = () => {
 
     useEffect(() => {
         const token = searchParams.get("token");
+        console.log("[VerifyEmailChange] URL:", window.location.href);
+        console.log("[VerifyEmailChange] searchParams:", searchParams.toString());
+        console.log("[VerifyEmailChange] token:", token);
+        
         if (!token) {
             setStatus("error");
             setMessage("유효하지 않은 링크입니다.");
@@ -23,11 +27,14 @@ const VerifyEmailChange = () => {
 
         (async () => {
             try {
+                console.log("[VerifyEmailChange] Calling API with token:", token);
                 const { data } = await axios.get(`/user/profile/verify-email-change?token=${encodeURIComponent(token)}`);
+                console.log("[VerifyEmailChange] API response:", data);
                 setStatus("success");
                 setMessage(data.message || "이메일이 변경되었습니다.");
                 setNewEmail(data.newEmail || "");
             } catch (err) {
+                console.error("[VerifyEmailChange] API error:", err.response?.status, err.response?.data);
                 setStatus("error");
                 setMessage(err.response?.data?.message || "이메일 변경 인증에 실패했습니다.");
             }

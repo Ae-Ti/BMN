@@ -36,6 +36,25 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
     }
 
     /**
+     * Add a simple cookie for OAuth provider info (used during profile completion).
+     */
+    private void addOAuthInfoCookie(HttpServletResponse response, String name, String value, boolean secure) {
+        try {
+            String encoded = URLEncoder.encode(value, StandardCharsets.UTF_8.toString());
+            StringBuilder sb = new StringBuilder();
+            sb.append(name).append("=").append(encoded).append("; Path=/; HttpOnly; Max-Age=3600;");
+            if (secure) {
+                sb.append(" Secure; SameSite=None;");
+            } else {
+                sb.append(" SameSite=Lax;");
+            }
+            response.addHeader("Set-Cookie", sb.toString());
+        } catch (Exception e) {
+            log.warn("Failed to add {} cookie: {}", name, e.getMessage());
+        }
+    }
+
+    /**
      * Add AUTH_TOKEN cookie via Set-Cookie header so we can include SameSite and Max-Age attributes.
      * If secure==true we set SameSite=None (required for cross-site usage like OAuth redirects).
      * If secure==false we fall back to SameSite=Lax to avoid modern browser rejection.
@@ -121,7 +140,14 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
             } else {
                 log.debug("UserRepository bean obtained from provider: {}", userRepository.getClass().getName());
                 try {
-                    var maybe = userRepository.findByUserName(username);
+                    // First try to find by providerId (stable Google sub ID that doesn't change even if email changes)
+                    var maybe = (providerId != null && registrationId != null)
+                            ? userRepository.findByProviderAndProviderId(registrationId, providerId)
+                            : java.util.Optional.<SiteUser>empty();
+                    if (maybe.isEmpty()) {
+                        // Fallback: try by userName
+                        maybe = userRepository.findByUserName(username);
+                    }
                     if (maybe.isEmpty()) {
                         // also try by email to avoid missing existing accounts when userName != email
                         maybe = userRepository.findByEmail(username);
@@ -130,6 +156,22 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                         // Existing local user found — authenticate immediately. We no longer perform
                         // a separate link/password flow; OAuth login will log into the existing account.
                         SiteUser existing = maybe.get();
+                        
+                        // Update provider info if missing (for existing users who don't have providerId yet)
+                        boolean changed = false;
+                        if ((existing.getProvider() == null || existing.getProvider().isBlank()) && registrationId != null) {
+                            existing.setProvider(registrationId);
+                            changed = true;
+                        }
+                        if ((existing.getProviderId() == null || existing.getProviderId().isBlank()) && providerId != null) {
+                            existing.setProviderId(providerId);
+                            changed = true;
+                        }
+                        if (changed) {
+                            userRepository.save(existing);
+                            log.info("OAuth success handler: updated provider info for user '{}' (provider={}, providerId={})", existing.getUserName(), registrationId, providerId);
+                        }
+                        
                         log.info("OAuth success handler: existing user found for '{}' -> local userName='{}'. Logging in.", username, existing.getUserName());
                         String token = jwtUtil.generateToken(existing.getUserName());
                         boolean secureCookie = isRequestSecure(request);
@@ -147,6 +189,13 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                             String token = jwtUtil.generateToken(username);
                             boolean secure = isRequestSecure(request);
                             addAuthCookie(response, token, jwtUtil.getExpirationMs(), secure);
+                            // Store provider info in cookies so profile completion can save them
+                            if (registrationId != null) {
+                                addOAuthInfoCookie(response, "OAUTH_PROVIDER", registrationId, secure);
+                            }
+                            if (providerId != null) {
+                                addOAuthInfoCookie(response, "OAUTH_PROVIDER_ID", providerId, secure);
+                            }
                             String redirectUrl = buildRedirectUrl(request, "/account/setup", token);
                             response.sendRedirect(redirectUrl);
                             return;

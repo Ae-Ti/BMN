@@ -140,7 +140,8 @@ public class EmailService {
         }
 
         String encoded = java.net.URLEncoder.encode(token, java.nio.charset.StandardCharsets.UTF_8);
-        String verifyUrl = base + "/user/verify-email-change?token=" + encoded;
+        // 백엔드 API로 직접 연결 (브라우저에서 직접 접근 시 백엔드가 처리 후 리다이렉트)
+        String verifyUrl = base + "/user/profile/verify-email-change?token=" + encoded;
 
         if (mailSender == null) {
             log.warn("JavaMailSender bean not configured - skipping actual send. Email change URL: {}", verifyUrl);
