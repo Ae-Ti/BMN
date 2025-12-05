@@ -242,7 +242,7 @@ const ProfilePage = () => {
                         </div>
                         <div className="profile-details">
                             <div><b>아이디</b>: {profile.username || "-"}</div>
-                            <div><b>이메일</b>: {profile.email || "-"}</div>
+                            {profile.email && <div><b>이메일</b>: {profile.email}</div>}
                             <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
                             {profile.introduction && (
                                 <div className="profile-introduction">

@@ -147,7 +147,7 @@ public class OAuth2AuthenticationSuccessHandler implements AuthenticationSuccess
                             String token = jwtUtil.generateToken(username);
                             boolean secure = isRequestSecure(request);
                             addAuthCookie(response, token, jwtUtil.getExpirationMs(), secure);
-                            String redirectUrl = buildRedirectUrl(request, "/profile/complete", token);
+                            String redirectUrl = buildRedirectUrl(request, "/account/setup", token);
                             response.sendRedirect(redirectUrl);
                             return;
                         } catch (Exception e) {

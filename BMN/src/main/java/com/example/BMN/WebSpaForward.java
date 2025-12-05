@@ -23,7 +23,9 @@ public class WebSpaForward {
             "/post-create", "/recipes/edit/{id}",              // 게시글 작성
             "/favorites", "/favorites/**", // 즐겨찾기 관련
         "/main", "/meal",
-        "/verify-success"
+        "/verify-success",
+            "/settings"
+
     })
     public String forwardToIndex() {
         return "forward:/index.html";

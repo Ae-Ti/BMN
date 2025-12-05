@@ -165,9 +165,10 @@ public class ProfileController {
     public static class ProfileUpdateRequest {
         public String nickname;
         public String introduction;
+        public Boolean emailPublic;
     }
 
-    /** ✅ 내 프로필 수정 (닉네임, 소개글) */
+    /** ✅ 내 프로필 수정 (닉네임, 소개글, 이메일 공개 여부) */
     @PutMapping("/me")
     public ResponseEntity<?> updateMyProfile(@RequestBody ProfileUpdateRequest req) {
         try {
@@ -179,6 +180,9 @@ public class ProfileController {
             if (req.introduction != null) {
                 me.setIntroduction(req.introduction.trim());
             }
+            if (req.emailPublic != null) {
+                me.setEmailPublic(req.emailPublic);
+            }
 
             SiteUser saved = userRepository.save(me);
             log.info("Profile updated for user id={} userName={}", saved.getId(), saved.getUserName());
@@ -186,7 +190,8 @@ public class ProfileController {
             return ResponseEntity.ok(java.util.Map.of(
                 "message", "프로필이 수정되었습니다.",
                 "nickname", saved.getNickname() != null ? saved.getNickname() : "",
-                "introduction", saved.getIntroduction() != null ? saved.getIntroduction() : ""
+                "introduction", saved.getIntroduction() != null ? saved.getIntroduction() : "",
+                "emailPublic", saved.getEmailPublic() != null ? saved.getEmailPublic() : false
             ));
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(401).build();
@@ -364,7 +369,16 @@ public class ProfileController {
     public ResponseEntity<PublicUserDTO> userProfile(@PathVariable String username) {
         SiteUser target = findByUsername(username);
         String me = currentUsernameOrNull();
-        PublicUserDTO dto = PublicUserDTO.fromEntity(target);
+        
+        // 본인이 자신의 프로필을 조회하는 경우 이메일 포함
+        PublicUserDTO dto;
+        if (me != null && me.equals(username)) {
+            dto = PublicUserDTO.fromEntity(target);
+        } else {
+            // 타인 프로필 - 이메일 공개 설정에 따라 포함/제외
+            dto = PublicUserDTO.forPublicView(target);
+        }
+        
         dto.setEmailVerified(target.getEmailVerified());
         dto.setFollowingCount(userService.countFollowing(username));
         dto.setFollowerCount(userService.countFollowers(username));

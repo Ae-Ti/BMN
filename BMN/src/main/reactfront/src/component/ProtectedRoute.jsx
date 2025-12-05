@@ -81,7 +81,7 @@ const ProtectedRoute = ({ children }) => {
                         // Active OAuth flow - redirect to profile completion
                         if (ran.current) return;
                         ran.current = true;
-                        navigate('/profile/complete', { replace: true });
+                        navigate('/account/setup', { replace: true });
                         setAllowed(false);
                         return;
                     } else {

@@ -10,6 +10,7 @@ const ProfileComplete = () => {
     const [birthMonth, setBirthMonth] = useState("");
     const [birthDay, setBirthDay] = useState("");
     const [sex, setSex] = useState("");
+    const [introduction, setIntroduction] = useState("");
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -60,6 +61,14 @@ const ProfileComplete = () => {
         axios.get("/user/profile/me")
             .then(res => {
                 const d = res.data;
+                
+                // 이미 프로필이 완성된 사용자는 마이페이지로 리다이렉트
+                if (d.profileComplete === true) {
+                    try { sessionStorage.removeItem('oauthInProgress'); } catch(e) {}
+                    navigate('/mypage');
+                    return;
+                }
+                
                 // If we're in an OAuth-first flow (temporary token set), do NOT prefill username or nickname.
                 let oauthInProgress = false;
                 try { oauthInProgress = sessionStorage.getItem('oauthInProgress') === '1'; } catch(e) { oauthInProgress = false; }
@@ -134,7 +143,8 @@ const ProfileComplete = () => {
             birthYear: by,
             birthMonth: bm,
             birthDay: bd,
-            sex: sex || null
+            sex: sex || null,
+            introduction: introduction || null
         })
         .then((res) => {
             // profile completion done — clear the oauthInProgress flag
@@ -212,6 +222,14 @@ const ProfileComplete = () => {
                     <option value="female">여성</option>
                     <option value="other">기타</option>
                 </select>
+
+                <label className="label-title">자기소개 (선택)</label>
+                <textarea 
+                    placeholder="간단한 자기소개를 작성해주세요 (선택사항)" 
+                    value={introduction} 
+                    onChange={e=>setIntroduction(e.target.value)} 
+                    rows="3"
+                />
 
                 <div>
                     <button type="submit">저장</button>

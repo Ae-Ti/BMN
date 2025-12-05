@@ -26,13 +26,21 @@
 
 /* Keep form inputs full width inside the card */
 .signup-box input,
-.signup-box select {
+.signup-box select,
+.signup-box textarea {
   width: 100%;
   padding: 10px;
   margin-bottom: 10px;
   border: 1px solid #ccc;
   border-radius: 5px;
   box-sizing: border-box;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.signup-box textarea {
+  resize: vertical;
+  min-height: 80px;
 }
 
 .row { display: flex; gap: 10px; }

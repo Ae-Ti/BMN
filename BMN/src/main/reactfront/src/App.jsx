@@ -231,6 +231,10 @@ const App = () => {
                             <Route path="/verify-success" element={<VerifySuccess />} />
                             <Route path="/user/verify-email-change" element={<VerifyEmailChange />} />
                     <Route
+                        path="account/setup"
+                        element={<ProfileComplete />}
+                    />
+                    <Route
                         path="profile/:username"
                         element={
                             <ProtectedRoute>
@@ -238,8 +242,6 @@ const App = () => {
                             </ProtectedRoute>
                         }
                     />
-                    {/* OAuth first-login profile completion (not wrapped with ProtectedRoute because token may be in query param) */}
-                    <Route path="profile/complete" element={<ProfileComplete />} />
                     <Route
                         path="profile/:username/followers"
                         element={

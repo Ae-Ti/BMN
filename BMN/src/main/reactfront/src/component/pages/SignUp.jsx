@@ -14,6 +14,7 @@ const SignUp = () => {
         password: "",
         confirmPassword: "",
         email: "",
+        introduction: "",
     });
     const [passwordVisible, setPasswordVisible] = useState(false);
     const [passwordStrength, setPasswordStrength] = useState("");
@@ -86,7 +87,7 @@ const SignUp = () => {
             email: form.email,
             password1: form.password,
             password2: form.confirmPassword,
-            introduction: "",
+            introduction: form.introduction || "",
             nickname: form.nickname,
             birthYear: form.birthYear ? Number(form.birthYear) : null,
             birthMonth: form.birthMonth ? Number(form.birthMonth) : null,
@@ -226,6 +227,17 @@ const SignUp = () => {
 
                 <input type="email" name="email" placeholder="이메일" value={form.email} onChange={handleChange} required />
                 { fieldErrors.email && <p className="field-error">{fieldErrors.email}</p> }
+
+                <label className="label-title">자기소개 (선택)</label>
+                <textarea 
+                    name="introduction" 
+                    placeholder="간단한 자기소개를 작성해주세요 (선택사항)" 
+                    value={form.introduction} 
+                    onChange={handleChange} 
+                    rows="3"
+                />
+                { fieldErrors.introduction && <p className="field-error">{fieldErrors.introduction}</p> }
+
                 <button type="submit" disabled={submitting}>가입하기</button>
                 {submitting && !errorMessage && Object.keys(fieldErrors).length === 0 && (
                     <p className="info-message">잠시만 기다려주세요!</p>

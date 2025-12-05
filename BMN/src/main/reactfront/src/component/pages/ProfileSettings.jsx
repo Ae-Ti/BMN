@@ -23,10 +23,12 @@ const ProfileSettings = () => {
         nickname: "",
         email: "",
         introduction: "",
+        emailPublic: false,
     });
     const [formData, setFormData] = useState({
         nickname: "",
         introduction: "",
+        emailPublic: false,
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -49,10 +51,12 @@ const ProfileSettings = () => {
                     nickname: data?.nickname ?? "",
                     email: data?.email ?? "",
                     introduction: data?.introduction ?? "",
+                    emailPublic: data?.emailPublic ?? false,
                 });
                 setFormData({
                     nickname: data?.nickname ?? "",
                     introduction: data?.introduction ?? "",
+                    emailPublic: data?.emailPublic ?? false,
                 });
             } catch (err) {
                 console.error("Failed to load profile:", err);
@@ -65,8 +69,11 @@ const ProfileSettings = () => {
 
     // 입력 핸들러
     const handleChange = useCallback((e) => {
-        const { name, value } = e.target;
-        setFormData((prev) => ({ ...prev, [name]: value }));
+        const { name, value, type, checked } = e.target;
+        setFormData((prev) => ({ 
+            ...prev, 
+            [name]: type === "checkbox" ? checked : value 
+        }));
     }, []);
 
     // 프로필 수정 제출
@@ -225,6 +232,22 @@ const ProfileSettings = () => {
                                     )}
                                 </div>
                             )}
+                        </div>
+
+                        <div className="form-group">
+                            <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+                                <input
+                                    type="checkbox"
+                                    name="emailPublic"
+                                    checked={formData.emailPublic}
+                                    onChange={handleChange}
+                                    style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                                />
+                                <span>이메일 공개</span>
+                            </label>
+                            <small className="form-hint" style={{ marginTop: "4px" }}>
+                                체크하면 다른 사용자가 내 프로필에서 이메일을 볼 수 있습니다.
+                            </small>
                         </div>
 
                         <div className="form-group">

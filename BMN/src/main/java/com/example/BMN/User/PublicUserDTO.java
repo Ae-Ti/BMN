@@ -20,12 +20,14 @@ public class PublicUserDTO {
     private String email;           // 이메일 (공개 여부는 설정 가능)
     private String introduction;    // 소개글
     private Boolean emailVerified;  // 이메일 인증 여부
+    private Boolean emailPublic;    // 이메일 공개 여부
 
     private Long followingCount;    // 팔로잉 수
     private Long followerCount;     // 팔로워 수
     private Boolean followedByMe;   // 현재 로그인한 사용자가 이 유저를 팔로우 중인지 여부
+    private Boolean profileComplete; // 프로필 완성 여부
 
-    /** 기본 변환 메서드: SiteUser → PublicUserDTO */
+    /** 기본 변환 메서드: SiteUser → PublicUserDTO (본인 조회용 - 이메일 항상 포함) */
     public static PublicUserDTO fromEntity(SiteUser u) {
         if (u == null) return null;
         PublicUserDTO dto = new PublicUserDTO();
@@ -34,6 +36,8 @@ public class PublicUserDTO {
         dto.setNickname(u.getNickname());
         dto.setEmail(u.getEmail());
         dto.setIntroduction(u.getIntroduction());
+        dto.setEmailPublic(u.getEmailPublic() != null ? u.getEmailPublic() : false);
+        dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
 
         // 기본 팔로우 정보는 null로 초기화 (컨트롤러/서비스에서 설정)
         dto.setFollowingCount(null);
@@ -43,7 +47,32 @@ public class PublicUserDTO {
         return dto;
     }
 
-    /** 이메일 비공개 버전 */
+    /** 타인 프로필 조회용 - 이메일 공개 설정에 따라 이메일 포함/제외 */
+    public static PublicUserDTO forPublicView(SiteUser u) {
+        if (u == null) return null;
+        PublicUserDTO dto = new PublicUserDTO();
+        dto.setId(u.getId());
+        dto.setUserName(u.getUserName());
+        dto.setNickname(u.getNickname());
+        dto.setIntroduction(u.getIntroduction());
+        dto.setEmailPublic(u.getEmailPublic() != null ? u.getEmailPublic() : false);
+        dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
+        
+        // 이메일 공개 설정에 따라 이메일 포함
+        if (Boolean.TRUE.equals(u.getEmailPublic())) {
+            dto.setEmail(u.getEmail());
+        } else {
+            dto.setEmail(null);
+        }
+
+        dto.setFollowingCount(null);
+        dto.setFollowerCount(null);
+        dto.setFollowedByMe(null);
+
+        return dto;
+    }
+
+    /** 이메일 비공개 버전 (레거시 호환) */
     public static PublicUserDTO withoutEmail(SiteUser u) {
         if (u == null) return null;
         PublicUserDTO dto = new PublicUserDTO();
@@ -52,6 +81,8 @@ public class PublicUserDTO {
         dto.setNickname(u.getNickname());
         dto.setEmail(null);
         dto.setIntroduction(u.getIntroduction());
+        dto.setEmailPublic(false);
+        dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
 
         dto.setFollowingCount(null);
         dto.setFollowerCount(null);

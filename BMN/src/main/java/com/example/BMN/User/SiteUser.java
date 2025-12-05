@@ -40,6 +40,10 @@ public class SiteUser {
 
         private Boolean emailVerified;
 
+        /** 이메일 공개 여부 (기본값: false = 비공개) */
+        @Column
+        private Boolean emailPublic = false;
+
                 // whether the user has completed onboarding/profile completion
                 @Column
                 private Boolean profileComplete = true;

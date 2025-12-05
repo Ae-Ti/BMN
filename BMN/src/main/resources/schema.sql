@@ -7,9 +7,13 @@ ALTER TABLE site_user ADD COLUMN IF NOT EXISTS provider VARCHAR(255);
 ALTER TABLE site_user ADD COLUMN IF NOT EXISTS provider_id VARCHAR(255);
 -- Add date_of_birth (nullable) to support LocalDate mapping on SiteUser
 ALTER TABLE site_user ADD COLUMN IF NOT EXISTS date_of_birth DATE;
+-- Add email_public (default FALSE = 비공개)
+ALTER TABLE site_user ADD COLUMN IF NOT EXISTS email_public BOOLEAN DEFAULT FALSE;
 
 -- Ensure existing rows have profile_complete set
 UPDATE site_user SET profile_complete = TRUE WHERE profile_complete IS NULL;
+-- Ensure existing rows have email_public set to FALSE
+UPDATE site_user SET email_public = FALSE WHERE email_public IS NULL;
 
 -- If the DB previously created a UNIQUE constraint/index on nickname, remove it.
 -- These DROP statements are idempotent (IF EXISTS) and try common names used by hibernate/H2.

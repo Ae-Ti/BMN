@@ -232,11 +232,15 @@ const MyPage = () => {
                                 )}
                             </div>
                             <div><b>팔로잉</b>: {profile.followingCount ?? 0} · <b>팔로워</b>: {profile.followerCount ?? 0}</div>
-                            {profile.introduction && (
-                                <div className="profile-introduction">
-                                    {profile.introduction}
-                                </div>
-                            )}
+                            <div className="profile-introduction">
+                                {profile.introduction ? (
+                                    profile.introduction
+                                ) : (
+                                    <span style={{color: '#888', fontStyle: 'italic'}}>
+                                        아직 자기소개가 없습니다. <span onClick={() => nav("/settings")} style={{color: '#4CAF50', cursor: 'pointer', textDecoration: 'underline'}}>회원정보를 수정</span>하여 자기소개를 추가해주세요!
+                                    </span>
+                                )}
+                            </div>
                         </div>
                     </div>
                 </div>
