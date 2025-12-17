@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
-import "./SignUp.css";
+import "./ProfileComplete.css";
 
 const ProfileComplete = () => {
     const [nickname, setNickname] = useState("");

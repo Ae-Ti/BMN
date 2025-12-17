@@ -3,7 +3,7 @@ import React, { useEffect, useState, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from "../../config";
-import "./ProfilePage.css";
+import "./ProfileSettings.css";
 
 axios.defaults.baseURL = API_BASE;
 

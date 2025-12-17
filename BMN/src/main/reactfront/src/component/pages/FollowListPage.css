@@ -1,0 +1,142 @@
+.follow-page {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.follow-tabs {
+    margin-top: 8px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.follow-tab {
+    background: #fff;
+    color: #111827;
+    border: 1px solid #e5e7eb;
+    border-radius: 999px;
+    padding: 8px 14px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+
+.follow-tab.is-active {
+    background: #111827;
+    color: #fff;
+    border-color: #111827;
+}
+
+.follow-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 16px;
+    margin-top: 16px;
+}
+
+.follow-card {
+    border: 1px solid #e7e7e7;
+    border-radius: 12px;
+    background: #fff;
+    padding: 14px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    min-height: 76px;
+    cursor: pointer;
+    transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.follow-card:hover {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+}
+
+.follow-card:focus-visible {
+    outline: 2px solid #2563eb;
+    outline-offset: 3px;
+}
+
+.follow-card-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 0;
+}
+
+.follow-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #eef2ff;
+    color: #3b82f6;
+    display: grid;
+    place-items: center;
+    font-weight: 800;
+    font-size: 16px;
+    flex: 0 0 auto;
+}
+
+.follow-card-name {
+    font-weight: 800;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.follow-action,
+.follow-status {
+    padding: 6px 10px;
+    border-radius: 8px;
+    font-weight: 700;
+    height: 34px;
+    width: 90px;
+    display: grid;
+    place-items: center;
+    flex: 0 0 auto;
+}
+
+.follow-action {
+    border: 1px solid transparent;
+    cursor: pointer;
+}
+
+.follow-action--follow {
+    border-color: #16a34a;
+    background: #22c55e;
+    color: #fff;
+}
+
+.follow-action--follow:hover {
+    background: #16a34a;
+}
+
+.follow-status--following {
+    border: 1px solid #a3a3a3;
+    background: #f5f5f5;
+    color: #666;
+}
+
+@media (max-width: 640px) {
+    .follow-card {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+    }
+
+    .follow-card-left {
+        width: 100%;
+    }
+
+    .follow-card-name {
+        max-width: 100%;
+    }
+
+    .follow-action,
+    .follow-status {
+        width: 100%;
+    }
+}

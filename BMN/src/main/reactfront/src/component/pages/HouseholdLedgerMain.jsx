@@ -2,6 +2,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
+import "./CalendarCard.css";
+import "./HouseholdLedgerMain.css";
 import axios from "axios";
 
 const api = axios.create({ baseURL: "/api" });
@@ -279,7 +281,7 @@ const HouseholdLedgerMain = () => {
         <div className="ledger-container">
             <div className="ledger-top-row">
             {/* 왼쪽 달력 */}
-            <div className="calendar-container" ref={calendarRef}>
+            <div className="calendar-container calendar-card" ref={calendarRef}>
                 <Calendar
                     onClickDay={handleDateClick}
                     value={selectedDate}

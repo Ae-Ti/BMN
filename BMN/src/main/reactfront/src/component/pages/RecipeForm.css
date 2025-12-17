@@ -1,0 +1,225 @@
+.sx-4i {
+  width: 50%;
+  margin: 28px auto;
+  padding: 20px;
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(16,24,40,0.06);
+  border: 1px solid #f2e9db;
+}
+
+.sx-4i label {
+  display: block;
+  margin-bottom: 6px;
+  font-weight: 700;
+  color: #222;
+}
+
+.sx-4i > form > div > input:not([type="file"]),
+.sx-4i > form > div > textarea {
+  width: 100%;
+  height: 40px;
+  padding: 10px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  box-sizing: border-box;
+  background: #fff;
+  resize: none;
+}
+
+.sx-4i .sx-4j,
+.sx-4i .sx-4o,
+.sx-4i .sx-4m {
+  border-radius: 8px;
+  object-fit: cover;
+  border: 1px solid #e9e6df;
+  box-shadow: 0 4px 12px rgba(16,24,40,0.04);
+}
+
+.sx-4i .sx-4k {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 4px;
+}
+
+.sx-4i .sx-4l {
+  margin-bottom: 12px;
+}
+
+.sx-4i .sx-4m {
+  width: 200px;
+}
+
+.sx-4i .sx-4n {
+  margin-bottom: 12px;
+  border: 1px solid #eee;
+  padding: 12px;
+  border-radius: 8px;
+  background: #fffaf6;
+}
+
+.sx-4i .sx-4o {
+  width: 240px;
+  height: 160px;
+}
+
+.sx-4i .sx-4p {
+  width: 100%;
+  margin-top: 8px;
+}
+
+.sx-4i .sx-46 {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.sx-4i .sx-46 .recipe-add-button {
+  background-color: #ffe176;
+  color: #111;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sx-4i .sx-46 .recipe-delete-button {
+  background-color: #f2536d;
+  color: white;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.sx-4i .sx-46 button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 18px rgba(0,0,0,0.08);
+}
+
+@media (max-width: 720px) {
+  .sx-4i {
+    padding: 14px;
+    margin: 12px;
+  }
+  .sx-4i .sx-4k {
+    flex-direction: column;
+  }
+}
+
+/* Ensure ingredient list and new-step container stack vertically despite .sx-46 general rule */
+.sx-4i .sx-46.sx-4k,
+.sx-4i .sx-46.sx-4n {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: stretch;
+}
+
+.sx-4i .sx-46.sx-4k > div {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  width: 100%;
+}
+
+/* Make inputs inside ingredient rows responsive: name (flex:1), link (flex:2) */
+.sx-4i .sx-46.sx-4k > div input {
+  flex: 1 1 0;
+  min-width: 0;
+  height: 40px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+}
+
+.sx-4i .sx-46.sx-4k > div input:nth-of-type(2) {
+  flex: 2 1 0;
+}
+
+.sx-4i .sx-46.sx-4n > div {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  width: 100%;
+}
+
+/* stack each new-step item vertically */
+.sx-4i .sx-4n > div.recipe-step-item {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sx-4i .recipe-step-image-upload {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.sx-4i .recipe-step-image-upload input[type="file"] {
+  margin-left: 10px;
+}
+
+.sx-4i .recipe-step-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+}
+
+.sx-4i .recipe-step-controls input[type="text"] {
+  flex: 1;
+  height: 40px;
+  border: 1px solid #dcdcdc;
+  border-radius: 8px;
+  padding: 10px;
+  box-sizing: border-box;
+}
+
+.sx-4i .recipe-step-controls span {
+  font-weight: bold;
+  min-width: 20px;
+  text-align: right;
+}
+
+.sx-4i .sx-submit {
+  display: block;
+  width: 50%;
+  padding: 14px 18px;
+  font-size: 18px;
+  font-weight: 800;
+  border-radius: 12px;
+  color: #ede4e7;
+  background-color: #f23051;
+  border: none;
+  box-shadow: 0 6px 15px rgba(0,0,0,0.18);
+  cursor: pointer;
+  margin: 0 auto;
+}
+
+.sx-4i .sx-submit:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 9px 18px rgba(0,0,0,0.22);
+}
+
+.sx-4i .form-group-horizontal {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-end;
+}
+
+.sx-4i .form-group-horizontal > div {
+  flex: 1;
+}
+
+.sx-4i > form > .form-group-horizontal input {
+  width: 100%;
+  border: 1px solid #dcdcdc;
+  height: 40px;
+  border-radius: 8px;
+}

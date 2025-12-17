@@ -1,2 +1,440 @@
-/* Inlined into index.css. Safe to delete this file. */
-/* DO NOT EDIT - styles moved into src/index.css */
+.ingredient-page {
+	width: 80%;
+	margin: 2rem auto;
+	font-family: Arial, sans-serif;
+}
+
+.ingredient-top-box {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 24px;
+	margin-bottom: 24px;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.thumbnail {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+}
+
+.thumb-box {
+	--thumb-width: clamp(140px, 28vw, 360px);
+	width: var(--thumb-width);
+	aspect-ratio: 1 / 0.7;
+	overflow: hidden;
+	border-radius: 8px;
+}
+
+.thumb-box > img {
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+	display: block;
+}
+
+.thumbnail .recipe-title {
+	font-size: 20px;
+	font-weight: 800;
+	color: #222;
+	text-align: center;
+	max-width: 220px;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	display: -webkit-box;
+	line-clamp: 2;
+	-webkit-line-clamp: 2;
+	-webkit-box-orient: vertical;
+	white-space: normal;
+}
+
+.ingredient-link h3 {
+	font-size: 18px;
+	margin: 0 0 8px 0;
+}
+
+.ingredient-link h3 .ing-name {
+	color: #f2536d;
+	font-weight: 800;
+}
+
+.ingredient-link h3 .purchase-label {
+	color: #111;
+	margin-left: 8px;
+	font-weight: 600;
+}
+
+.cost-section {
+	flex: 1;
+	text-align: center;
+}
+
+.cost-section input {
+	width: 100px;
+	margin-left: 10px;
+}
+
+.ingredient-top-box > .reflect-button {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	flex: 0.7;
+	align-items: flex-start;
+	box-sizing: border-box;
+	--reflect-width: min(380px, 34vw);
+}
+
+.reflect-button button {
+	background-color: #cebe30;
+	color: #fff;
+	border: none;
+	border-radius: 8px;
+	padding: 8px 12px;
+	font-size: 14px;
+	font-weight: 700;
+	cursor: pointer;
+	text-decoration: none;
+	transition: background-color 0.2s;
+}
+
+.reflect-button button:hover {
+	background-color: #bb954d;
+}
+
+.reflect-button button:disabled {
+	background-color: #e0e0e0;
+	color: #9e9e9e;
+	cursor: not-allowed;
+}
+
+.button-group-horizontal {
+	display: flex;
+	gap: 12px;
+	margin-top: 12px;
+	width: 100%;
+}
+
+.button-group-horizontal > button {
+	flex: 1;
+	background: transparent;
+	color: #fff;
+	border: none;
+	padding: 10px 12px;
+	border-radius: 8px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child {
+	background: #f1bac3;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child:hover:not(:disabled) {
+	background: #e6a7b3;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:first-child:disabled {
+	background: #f6d7dc;
+	color: #ffffffcc;
+	cursor: not-allowed;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child {
+	background: #f2536d;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child:hover:not(:disabled) {
+	background: #d9415e;
+}
+
+.ingredient-top-box > .reflect-button .button-group-horizontal > button:last-child:disabled {
+	background: #f9a1ad;
+	color: #ffffffcc;
+	cursor: not-allowed;
+}
+
+.ingredient-top-box > .reflect-button > div:first-child,
+.ingredient-top-box > .reflect-button .sx-1l,
+.ingredient-top-box > .reflect-button .sx-1o,
+.ingredient-top-box > .reflect-button .button-group-horizontal {
+	width: var(--reflect-width);
+}
+
+.ingredient-top-box > .reflect-button > div:first-child {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+.ingredient-top-box > .reflect-button .sx-1l {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+}
+
+@media (max-width: 640px) {
+	.ingredient-page {
+		width: 94%;
+	}
+
+	.ingredient-top-box {
+		padding: 16px;
+	}
+
+	.ingredient-top-box > .reflect-button {
+		--reflect-width: 100%;
+	}
+
+	.ingredient-top-box > .reflect-button > div:first-child,
+	.ingredient-top-box > .reflect-button .sx-1l,
+	.ingredient-top-box > .reflect-button .sx-1o,
+	.ingredient-top-box > .reflect-button .button-group-horizontal {
+		width: 100%;
+	}
+}
+
+.ingredient-bottom-box {
+	display: flex;
+	gap: 24px;
+}
+
+.ingredient-list {
+	flex: 2;
+	padding: 24px;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ingredient-list ul {
+	list-style: none;
+	padding: 0;
+}
+
+.ingredient-list li {
+	padding: 8px;
+	cursor: pointer;
+	border-radius: 4px;
+}
+
+.ingredient-list li:hover {
+	background-color: #f1f1f1;
+}
+
+.ingredient-link {
+	flex: 3;
+	padding: 24px;
+	border-radius: 8px;
+	background: #fff;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+}
+
+.ingredient-link a {
+	color: #007bff;
+	text-decoration: none;
+}
+
+.ingredient-link a:hover {
+	text-decoration: underline;
+}
+
+.ingredient-link .sx-20 {
+	border-top: 1px solid #eee;
+	margin-top: 12px;
+	padding-top: 10px;
+}
+
+.ingredient-list h3,
+.ingredient-link h3,
+.ingredient-link .prominent-text,
+.ingredient-list h4,
+.ingredient-link h4 {
+	padding-bottom: 8px;
+	margin-bottom: 12px;
+	border-bottom: 1px solid #eee;
+}
+
+.prominent-text {
+	font-weight: 600;
+}
+
+/* Utility classes specific to Ingredient page */
+.sx-1h {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.sx-1i {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.sx-1j {
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+}
+
+.sx-1k {
+	font-size: 18px;
+}
+
+.sx-1l {
+	display: flex;
+	gap: 12px;
+	flex-wrap: wrap;
+	align-items: center;
+	margin-top: 4px;
+}
+
+.sx-1m {
+	font-size: 13px;
+	color: #444;
+}
+
+.sx-1n {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	font-size: 13px;
+}
+
+.sx-1o {
+	padding: 6px 8px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+}
+
+.sx-1p {
+	margin-top: 8px;
+	padding: 8px 12px;
+}
+
+.sx-1q {
+	margin-top: 6px;
+	padding: 8px 12px;
+}
+
+.sx-1r {
+	text-align: center;
+	padding-top: 50px;
+}
+
+.sx-1s {
+	color: #b00020;
+	font-size: 12px;
+}
+
+.sx-1t {
+	margin-top: 16px;
+}
+
+.sx-1u {
+	font-size: 13px;
+	color: #444;
+}
+
+.sx-1v {
+	white-space: pre-wrap;
+}
+
+.sx-1w {
+	margin: 8px 0 14px;
+	font-size: 14px;
+}
+
+.sx-1x {
+	margin-bottom: 4px;
+	font-weight: 600;
+}
+
+.sx-1y {
+	color: #888;
+	font-size: 12px;
+	margin-top: 4px;
+}
+
+.sx-1z {
+	color: #888;
+}
+
+.sx-20 {
+	width: 100%;
+	border-collapse: collapse;
+}
+
+.sx-22 {
+	text-align: left;
+}
+
+.sx-23 {
+	text-align: right;
+}
+
+.sx-24 {
+	border-top: 1px solid #eee;
+}
+
+.sx-25 {
+	text-align: center;
+}
+
+.sx-26 {
+	position: fixed;
+	inset: 0;
+	background: rgba(0, 0, 0, 0.35);
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	z-index: 9999px;
+}
+
+.sx-27 {
+	width: min(560px, 92vw);
+	max-width: 500px;
+	background: #fff;
+	border-radius: 12px;
+	padding: 24px;
+	box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.sx-28 {
+	margin-top: 0;
+}
+
+.sx-29 {
+	max-height: 240px;
+	overflow: auto;
+	border: 1px solid #eee;
+	border-radius: 8px;
+	padding: 8px;
+}
+
+.sx-2a {
+	width: 100%;
+	border-collapse: collapse;
+	font-size: 14px;
+}
+
+.sx-2b {
+	border-top: 1px solid #f1f1f1;
+}
+
+.sx-2c {
+	margin-top: 10px;
+	font-size: 14px;
+}
+
+.sx-2d {
+	display: flex;
+	gap: 16px;
+	margin-top: 12px;
+	justify-content: flex-end;
+	align-items: baseline;
+}

@@ -1,0 +1,121 @@
+.sx-3 {
+    margin-top: 24px;
+}
+
+.sx-4 {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+}
+
+.sx-5 {
+    width: 100%;
+    padding: 8px;
+    border-radius: 6px;
+}
+
+.sx-6 {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sx-7 {
+    background: #ffe176;
+    color: #111;
+    padding: 6px 12px;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+}
+
+.sx-8 {
+    list-style: none;
+    padding: 0;
+}
+
+.sx-9 {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
+}
+
+.sx-a {
+    width: 100%;
+    padding: 6px;
+}
+
+.sx-b {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-top: 6px;
+}
+
+.sx-c {
+    background: #28a745;
+    color: #fff;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+}
+
+.sx-d {
+    background: #ccc;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 6px;
+}
+
+.sx-e {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.sx-f {
+    color: #999;
+    font-size: 13px;
+}
+
+.sx-g {
+    margin: 6px 0;
+}
+
+.sx-h {
+    white-space: pre-wrap;
+}
+
+.sx-i {
+    margin-top: 8px;
+    display: flex;
+    gap: 8px;
+}
+
+.sx-j {
+    background: transparent;
+    color: #111;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 0;
+    cursor: pointer;
+}
+
+.sx-k {
+    background: transparent;
+    color: #111;
+    padding: 4px 10px;
+    border: none;
+    border-radius: 0;
+    border-left: 1px solid #111;
+    cursor: pointer;
+}
+
+.comment-actions {
+    text-align: right;
+    margin-top: 12px;
+}

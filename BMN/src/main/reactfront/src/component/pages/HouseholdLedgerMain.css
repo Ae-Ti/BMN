@@ -1,0 +1,321 @@
+/* HouseholdLedgerMain page styles */
+
+.ledger-container {
+	box-sizing: border-box;
+	display: flex;
+	flex-direction: column;
+	gap: var(--ledger-gap, 20px);
+	min-height: calc(100vh - var(--header-height, 60px));
+	padding: 20px 40px;
+	width: 100%;
+}
+
+.ledger-top-row {
+	display: flex;
+	align-items: stretch;
+	gap: var(--ledger-gap, 20px);
+	height: 70vh;
+}
+
+.ledger-top-row > .calendar-container {
+	flex: 2 1 0;
+}
+
+.ledger-top-row > .details-section {
+	flex: 1 1 0;
+}
+
+.ledger-container .calendar-container,
+.ledger-container .details-section,
+.ledger-container .details-container {
+	box-sizing: border-box;
+}
+
+.ledger-container .calendar-container,
+.ledger-container .details-container {
+	background: #fff;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	padding: 20px;
+}
+
+.ledger-container .calendar-container {
+	flex: 2;
+	height: 70vh;
+	overflow: hidden;
+	container-type: size;
+}
+
+.ledger-container .details-section {
+	display: flex;
+	flex-direction: column;
+	gap: var(--ledger-gap, 20px);
+}
+
+.ledger-container .details-container {
+	flex-grow: 1;
+	overflow-y: auto;
+}
+
+.ledger-container .details-container > h2 {
+	font-size: 20px;
+	margin: 0 0 12px;
+}
+
+.ledger-container .summary-card,
+.ledger-container .details-section > .summary-card {
+	align-self: flex-end;
+	width: min(360px, 100%);
+}
+
+.ledger-container .input-group {
+	background: #f9f9f9;
+	border-radius: 10px;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 20px;
+	padding: 10px;
+}
+
+.ledger-container .input-group input,
+.ledger-container .input-group select {
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	box-sizing: border-box;
+	font-size: 16px;
+	padding: 8px;
+}
+
+.ledger-container .input-group button {
+	background: #f23051;
+	border: none;
+	border-radius: 5px;
+	color: #fff;
+	cursor: pointer;
+	font-size: 16px;
+	padding: 8px;
+}
+
+.ledger-container .input-group button:hover {
+	background: #d61d45;
+}
+
+.transaction-list-header {
+	align-items: center;
+	background: #fafafa;
+	border-bottom: 1px solid #ddd;
+	box-sizing: border-box;
+	color: #333;
+	display: grid;
+	font-weight: 700;
+	gap: 6px;
+	grid-template-columns: 0 minmax(160px, 1fr) 90px 100px;
+	padding: 6px 8px;
+	width: 100%;
+}
+
+.transaction-list {
+	list-style: none;
+	margin-top: 15px;
+	min-height: 200px;
+	padding: 0;
+}
+
+.transaction-list li {
+	align-items: center;
+	border-bottom: 1px solid #f0f0f0;
+	box-sizing: border-box;
+	display: grid;
+	gap: 6px;
+	grid-template-columns: 0 minmax(160px, 1fr) 90px 100px;
+	padding: 8px;
+	width: 100%;
+}
+
+/* Name: allow up to 2 lines, then ellipsis; ensure it doesn't force the grid to overflow */
+.transaction-list li .name {
+	grid-column: 2;
+	padding-left: 0;
+	display: -webkit-box;
+	line-clamp: 2;
+	-webkit-line-clamp: 2; /* show up to 2 lines */
+	-webkit-box-orient: vertical;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: normal;
+	word-break: break-word;
+	min-width: 0; /* allow it to shrink inside the grid without causing overflow */
+}
+.transaction-list li .amount { grid-column: 3; text-align: right; padding-right: 6px; white-space: nowrap; max-width: 90px; overflow: hidden; text-overflow: ellipsis; }
+.transaction-list li .actions { grid-column: 4; justify-self: end; display: flex; gap: 6px; }
+.transaction-list li .actions button { flex: 0 0 auto; white-space: nowrap; }
+.income { color: blue; font-weight: bold; }
+.expense { color: red; font-weight: bold; }
+
+/* Center the empty list message */
+.transaction-list li.empty {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 12px 8px;
+	color: #666;
+	grid-column: 1 / -1; /* span the full grid */
+	width: 100%;
+	box-sizing: border-box;
+}
+
+/* Edit row: inputs/selects placed into respective columns */
+.transaction-list li.edit select,
+.transaction-list li.edit input {
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	box-sizing: border-box;
+	font-size: 14px;
+	padding: 6px;
+}
+.transaction-list li.edit select { grid-column: 1; }
+.transaction-list li.edit .edit-name { grid-column: 2; }
+.transaction-list li.edit .edit-amount { grid-column: 3; text-align: right; }
+
+/* Ledger-specific net summary colors */
+.ledger-container .calendar-container .calendar-net {
+	align-items: center;
+	display: flex;
+	justify-content: center;
+	width: 100%;
+}
+
+.ledger-container .calendar-container .calendar-net .income {
+	color: #1f8a50;
+	font-weight: 700;
+}
+
+.ledger-container .calendar-container .calendar-net .expense {
+	color: #ef4444;
+	font-weight: 700;
+}
+
+.ledger-container .calendar-container .calendar-net .neutral {
+	color: #666;
+	font-weight: 600;
+}
+
+/* Desktop keeps a 2:1 split between calendar and details */
+@media (min-width: 901px) {
+	.ledger-top-row > .calendar-container {
+		flex: 0 0 66.666666%;
+		max-width: 66.666666%;
+	}
+	.ledger-top-row > .details-section {
+		flex: 0 0 33.333333%;
+		max-width: 33.333333%;
+	}
+}
+
+/* Strong ledger-scoped overrides to ensure transaction name uses two lines and no leading gap */
+.ledger-container .transaction-list-header .name {
+	padding-left: 0 !important;
+	min-width: 0 !important;
+}
+
+.ledger-container .details-container h2 {
+	color: #2c3e50;
+}
+.ledger-container .transaction-list li .name {
+	padding-left: 0 !important;
+	display: -webkit-box !important;
+	-webkit-box-orient: vertical !important;
+	-webkit-line-clamp: 2 !important;
+	line-clamp: 2 !important;
+	overflow: hidden !important;
+	text-overflow: ellipsis !important;
+	white-space: normal !important;
+	min-width: 0 !important;
+}
+
+/* Color and button styling for ledger transaction rows */
+.ledger-container .transaction-list-header .name {
+	color: #706266 !important;
+}
+.ledger-container .transaction-list li .name {
+	color: #706266 !important;
+}
+
+.ledger-container .transaction-list li .actions button {
+	/* edit/save/cancel buttons default style */
+	color: #2c3e50;
+	border: 1px solid #2c3e50;
+	background: transparent;
+	padding: 6px 8px;
+	border-radius: 6px;
+	cursor: pointer;
+}
+.ledger-container .transaction-list li .actions button.danger,
+.ledger-container .transaction-list li .actions button[class~="danger"] {
+	/* delete button */
+	color: #fff;
+	background: #2c3e50;
+	border: 1px solid #2c3e50;
+}
+
+.ledger-container .transaction-list li .actions button:hover {
+	opacity: 0.95;
+}
+
+/* Responsive: stack ledger calendar and details on narrow screens */
+@media (max-width: 900px) {
+	.ledger-top-row {
+		flex-direction: column;
+		height: auto;
+	}
+
+	.ledger-container .calendar-container,
+	.ledger-container .details-section,
+	.ledger-container .details-container,
+	.ledger-container .summary-card {
+		flex: 0 0 auto;
+		max-width: 100%;
+		width: 100%;
+	}
+
+	.ledger-container .details-container,
+	.ledger-container .summary-card {
+		margin-top: 16px;
+	}
+}
+
+/* ------------------ HouseholdLedgerMain Summary Card ------------------ */
+.ledger-container .summary-card {
+	margin-top: var(--ledger-gap, 20px);
+	padding: 12px;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	background-color: #fdfdfd;
+}
+.ledger-container .summary-card > div {
+	display: flex;
+	justify-content: space-between;
+	font-size: 16px;
+	padding: 2px 0;
+}
+.ledger-container .summary-card hr {
+	border: 0;
+	border-top: 1px solid #eee;
+	margin: 6px 0;
+}
+
+/* Preserve the original '상세 카드' (summary card) layout for the Household Ledger details
+	 Ensure its scope/size remains as before even after other layout changes */
+
+.ledger-container .details-section > .summary-card {
+	margin-top: 20px;
+	padding: 15px;
+	border: 1px solid #eee;
+	border-radius: 10px;
+	background-color: #fdfdfd;
+	/* Ensure the summary card does not affect the fixed 70vh heights of the
+		 details container — it should sit below as a normal flow element. */
+	flex: 0 0 auto;
+	align-self: stretch; /* occupy full width of the details column as before */
+}

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import axios from "axios";
-import { API_BASE } from '../../config';
+import { API_BASE } from "../../config";
+import "./RecipeComments.css";
 
 axios.defaults.baseURL = API_BASE;
 

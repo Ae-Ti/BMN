@@ -5,6 +5,7 @@ import axios from "axios";
 import { onImgError } from "../lib/placeholder";
 import RecommendedRecipeModal from "../blocks/RecommendedRecipeModal";
 import EditIngredientModal from "../blocks/EditIngredientModal";
+import "./FridgePage.css";
 
 const TOKEN_KEY = "token";
 const CATEGORIES = [
@@ -172,7 +173,7 @@ const FridgePage = () => {
 
     const tabUI = useMemo(
         () => (
-            <div className="sx-o">
+            <div className="fridge-tabs-row">
                 {CATEGORIES.map((c) => (
                     <button
                         key={c.key}
@@ -192,7 +193,7 @@ const FridgePage = () => {
             <div className="fridge-header">
                 <h1 >우리 집 냉장고</h1>
                 <div >
-                    <button className="sx-t"
+                    <button className="fridge-rec-button"
                         onClick={openRecommendations}
                          >
                         추천 레시피
@@ -208,14 +209,14 @@ const FridgePage = () => {
                     value={form.name}
                     onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
                 />
-                <input className="sx-v"
+                <input className="fridge-qty-input"
                     type="number"
                     min="1"
                     placeholder="수량"
                     value={form.qty}
                     onChange={(e) => setForm((f) => ({ ...f, qty: e.target.value }))}
                 />
-                <input className="sx-w"
+                <input className="fridge-unit-input"
                     placeholder="단위(예: 개, g, 묶음)"
                     value={form.unit}
                     onChange={(e) => setForm((f) => ({ ...f, unit: e.target.value }))}

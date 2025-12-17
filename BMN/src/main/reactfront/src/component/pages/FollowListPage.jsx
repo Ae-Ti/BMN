@@ -2,7 +2,8 @@
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import axios from "axios";
-import { API_BASE } from '../../config';
+import { API_BASE } from "../../config";
+import "./FollowListPage.css";
 
 axios.defaults.baseURL = API_BASE;
 
@@ -38,81 +39,6 @@ function authHeaders() {
     const t = localStorage.getItem(TOKEN_KEY);
     return t ? { Authorization: `Bearer ${t}` } : {};
 }
-
-/* ===== STYLES ===== */
-const styles = {
-    tabsWrap: { marginTop: 8, display: "flex", gap: 8 },
-    tabBtn(active) {
-        return {
-            background: active ? "#111827" : "#fff",
-            color: active ? "#fff" : "#111827",
-            border: "1px solid #e5e7eb",
-            borderRadius: 999,
-            padding: "8px 14px",
-            fontWeight: 700,
-            cursor: "pointer",
-        };
-    },
-    grid: {
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))",
-        gap: 16,
-        marginTop: 16,
-    },
-    card: {
-        border: "1px solid #e7e7e7",
-        borderRadius: 12,
-        background: "#fff",
-        padding: 14,
-        boxShadow: "0 2px 10px rgba(0,0,0,0.05)",
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "space-between",
-        minHeight: 76,
-        cursor: "pointer",
-    },
-    left: { display: "flex", alignItems: "center", gap: 12, minWidth: 0 },
-    avatar: {
-        width: 48,
-        height: 48,
-        borderRadius: "50%",
-        background: "#eef2ff",
-        color: "#3b82f6",
-        display: "grid",
-        placeItems: "center",
-        fontWeight: 800,
-        fontSize: 16,
-        flex: "0 0 auto",
-    },
-    name: { fontWeight: 800, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis", maxWidth: 180 },
-
-    btnFollow: {
-        padding: "6px 10px",
-        borderRadius: 8,
-        border: "1px solid #16a34a",
-        background: "#22c55e",
-        color: "#fff",
-        fontWeight: 700,
-        cursor: "pointer",
-        height: 34,
-        width: 90,
-        flex: "0 0 auto",
-    },
-    btnFollowing: {
-        padding: "6px 10px",
-        borderRadius: 8,
-        border: "1px solid #a3a3a3",
-        background: "#f5f5f5",
-        color: "#666",
-        fontWeight: 700,
-        height: 34,
-        width: 90,
-        cursor: "default",
-        flex: "0 0 auto",
-        display: "grid",
-        placeItems: "center",
-    },
-};
 
 const FollowListPage = () => {
     const { username } = useParams();               // 보고 있는 대상의 username
@@ -221,21 +147,21 @@ const FollowListPage = () => {
     const tabLabel = tab === "followers" ? "팔로워" : "팔로잉";
 
     return (
-        <div className="sx-l"  >
+        <div className="sx-l follow-page">
             <h1>{username}의 {tabLabel} 목록</h1>
 
             {/* 탭 */}
-            <div style={styles.tabsWrap}>
+            <div className="follow-tabs">
                 <button
                     onClick={() => setTab("followers")}
-                    style={styles.tabBtn(tab === "followers")}
+                    className={`follow-tab${tab === "followers" ? " is-active" : ""}`}
                     aria-pressed={tab === "followers"}
                 >
                     팔로워
                 </button>
                 <button
                     onClick={() => setTab("following")}
-                    style={styles.tabBtn(tab === "following")}
+                    className={`follow-tab${tab === "following" ? " is-active" : ""}`}
                     aria-pressed={tab === "following"}
                 >
                     팔로잉
@@ -246,7 +172,7 @@ const FollowListPage = () => {
             {!loading && list.length === 0 && <p >표시할 항목이 없습니다.</p>}
 
             {!loading && list.length > 0 && (
-                <div style={styles.grid}>
+                <div className="follow-grid">
                     {list.map((u) => {
                         const isMe = me && u.username === me;
                         const display = u.nickname ? `${u.nickname} (${u.username})` : u.username;
@@ -262,26 +188,27 @@ const FollowListPage = () => {
                         return (
                             <div
                                 key={u.username}
-                                style={styles.card}
+                                className="follow-card"
                                 role="button"
                                 tabIndex={0}
                                 onClick={() => goProfile(u.username)}
                                 onKeyDown={(e) => { if (e.key === "Enter") goProfile(u.username); }}
                                 aria-label={`${display} 프로필로 이동`}
                             >
-                                <div style={styles.left}>
-                                    <div style={styles.avatar}>{initials(u.nickname, u.username)}</div>
-                                    <div style={styles.name}>
+                                <div className="follow-card-left">
+                                    <div className="follow-card-avatar">{initials(u.nickname, u.username)}</div>
+                                    <div className="follow-card-name">
                                         {display} {isMe && "· 나"}
                                     </div>
                                 </div>
 
                                 {showFollowingBadge && (
-                                    <div style={styles.btnFollowing}>팔로잉</div>
+                                    <div className="follow-status follow-status--following">팔로잉</div>
                                 )}
                                 {showFollowBtn && (
                                     <button
-                                        style={styles.btnFollow}
+                                        type="button"
+                                        className="follow-action follow-action--follow"
                                         onClick={(e) => toggleFollow(u.username, false, e)}
                                     >
                                         팔로우

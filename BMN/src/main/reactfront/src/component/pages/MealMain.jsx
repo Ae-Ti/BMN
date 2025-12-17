@@ -2,6 +2,8 @@ import React, { useEffect, useMemo, useState, useRef } from "react";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
+import "./MealMain.css";
+import "./CalendarCard.css";
 
 const api = axios.create({ baseURL: "/api" });
 
@@ -242,7 +244,7 @@ export default function MealMain() {
   return (
       <div className="meal-container">
         {/* 📅 달력 */}
-        <div className="calendar-container" ref={calendarRef}>
+        <div className="calendar-container calendar-card" ref={calendarRef}>
           <Calendar
               onClickDay={setSelectedDate}
               onActiveStartDateChange={onActiveStartDateChange}

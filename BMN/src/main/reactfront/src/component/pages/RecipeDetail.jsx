@@ -5,6 +5,7 @@ import axios from "axios";
 import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import RecipeComments from "../blocks/RecipeComments";
+import "./recipeDetail.css";
 
 axios.defaults.baseURL = API_BASE;
 
@@ -470,12 +471,20 @@ export default function RecipeDetail() {
 
             {Array.isArray(steps) && steps.length > 0 && (
                 <div className="content-card">
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                        <button onClick={goToPreviousStep} disabled={currentStepIndex === 0}>
+                    <div className="step-nav">
+                        <button
+                            className="step-nav-btn"
+                            onClick={goToPreviousStep}
+                            disabled={currentStepIndex === 0}
+                        >
                             ← 이전 단계
                         </button>
                         <h3>Step {currentStepIndex + 1} / {steps.length}</h3>
-                        <button onClick={goToNextStep} disabled={currentStepIndex === steps.length - 1}>
+                        <button
+                            className="step-nav-btn"
+                            onClick={goToNextStep}
+                            disabled={currentStepIndex === steps.length - 1}
+                        >
                             다음 단계 →
                         </button>
                     </div>

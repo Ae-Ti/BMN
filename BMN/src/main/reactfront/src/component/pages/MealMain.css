@@ -1,2 +1,190 @@
-/* Inlined into index.css. Safe to delete this file. */
-/* DO NOT EDIT - styles moved into src/index.css */
+.meal-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: stretch;
+	width: 100%;
+	padding: 20px 40px;
+	box-sizing: border-box;
+	gap: 20px;
+	height: calc(100vh - 72px);
+}
+
+.meal-container {
+	display: flex;
+	justify-content: space-between;
+	align-items: stretch;
+	width: 100%;
+	padding: 20px 40px;
+	box-sizing: border-box;
+	gap: 20px;
+	min-height: calc(100vh - 72px);
+}
+
+.meal-container .calendar-container {
+	flex: 2;
+}
+
+.meal-container .details-container {
+	flex: 1;
+	background: #fff;
+	padding: 20px;
+	border-radius: 10px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	overflow-y: auto;
+	height: 70vh;
+}
+
+.meal-container .calendar-tile {
+	text-align: center;
+	font-size: 13px;
+	margin-top: 4px;
+	line-height: 1.1;
+}
+
+.meal-container .calendar-tile .mini-recipe {
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.meal-container .calendar-tile .mini-more {
+	color: #666;
+	font-size: 12px;
+}
+
+.meal-card-list {
+	list-style: none;
+	padding: 0;
+	margin: 0;
+}
+
+.meal-card-list .empty {
+	color: #777;
+	padding: 12px 0;
+}
+
+.meal-card {
+	padding: 10px;
+	border-bottom: 1px solid #eee;
+}
+
+.meal-card .row {
+	display: flex;
+	gap: 12px;
+	align-items: center;
+}
+
+.meal-card .thumb {
+	width: 64px;
+	height: 64px;
+	object-fit: cover;
+	border-radius: 8px;
+	background: #f5f5f5;
+}
+
+.meal-card .info {
+	flex: 1;
+}
+
+.meal-card .slot {
+	font-size: 14px;
+	font-weight: 600;
+	color: #6b7280;
+	margin-bottom: 2px;
+}
+
+.meal-card .title {
+	font-weight: 700;
+	margin-bottom: 4px;
+	display: flex;
+	align-items: center;
+	gap: 6px;
+}
+
+.meal-card .note {
+	color: #666;
+	font-size: 14px;
+}
+
+.meal-card .actions {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.meal-card .actions button {
+	border: 1px solid #d7e3ff;
+	background: #eef3ff;
+	color: #1d4ed8;
+	border-radius: 10px;
+	padding: 8px 12px;
+	font-weight: 700;
+	cursor: pointer;
+}
+
+.meal-card .actions button:hover {
+	background: #e1eaff;
+	border-color: #c5d6ff;
+}
+
+.meal-card .actions .danger {
+	background: #fff1f2;
+	border-color: #fecdd3;
+	color: #b91c1c;
+	border-radius: 10px;
+}
+
+.meal-card .actions .danger:hover {
+	background: #ffe4e6;
+	border-color: #fda4af;
+}
+
+.meal-card .actions .danger {
+	background-color: #ef4444;
+	color: #fff;
+}
+
+.meal-card .actions .btn-link {
+	padding: 6px 10px;
+	border: 1px solid #ddd;
+	border-radius: 8px;
+	text-decoration: none;
+	color: #111;
+}
+
+.meal-card .qty-badge {
+	font-size: 12px;
+	color: #2563eb;
+	font-weight: 800;
+}
+
+.meal-card .row.edit {
+	display: flex;
+	gap: 8px;
+	align-items: center;
+}
+
+.meal-card .row.edit input,
+.meal-card .row.edit select {
+	padding: 8px;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+	font-size: 16px;
+}
+
+@media (max-width: 900px) {
+	.meal-container {
+		flex-direction: column;
+	}
+
+	.meal-container .calendar-container,
+	.meal-container .details-container {
+		flex: 0 0 auto;
+		max-width: 100%;
+		width: 100%;
+	}
+
+	.meal-container .details-container {
+		margin-top: 16px;
+	}
+}

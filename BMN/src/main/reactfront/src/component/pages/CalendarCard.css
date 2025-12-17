@@ -1,0 +1,212 @@
+/* Shared calendar card styles for MealMain and HouseholdLedgerMain */
+
+.calendar-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+    padding: 20px;
+    height: 70vh;
+    overflow: hidden;
+    container-type: size;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-card .react-calendar {
+    width: 100% !important;
+    max-width: none !important;
+    background: transparent;
+    padding: 20px;
+    height: 100%;
+    border: none;
+    box-shadow: none;
+    display: flex;
+    flex-direction: column;
+    box-sizing: border-box;
+    overflow: hidden;
+}
+
+.calendar-card .react-calendar__viewContainer {
+    flex-grow: 1;
+}
+
+.calendar-card .react-calendar__month-view {
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.calendar-card .react-calendar__month-view__days {
+    flex-grow: 1;
+    display: grid !important;
+    grid-template-columns: repeat(7, 1fr);
+    grid-template-rows: repeat(6, 1fr);
+    row-gap: 8px;
+}
+
+.calendar-card .react-calendar__tile {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 6em;
+    padding: 5px;
+    text-align: center;
+    box-sizing: border-box !important;
+    overflow: hidden !important;
+    white-space: nowrap !important;
+    text-overflow: ellipsis !important;
+    min-width: 0 !important;
+}
+
+.calendar-card .react-calendar__tile abbr,
+.calendar-card .react-calendar__tile time,
+.calendar-card .react-calendar__tile .calendar-tile {
+    line-height: 1 !important;
+    max-width: 100% !important;
+    text-align: center;
+    font-size: var(--calendar-font-size, clamp(12px, 1.2vw + 8px, 18px)) !important;
+    transition: font-size 160ms ease;
+}
+
+.calendar-card .react-calendar__month-view__weekdays {
+    text-align: center;
+    font-weight: bold;
+    color: #111;
+}
+
+.calendar-card .react-calendar__month-view__weekdays__weekday:nth-child(7) {
+    color: #2563eb;
+}
+
+.calendar-card .react-calendar__month-view__weekdays__weekday:nth-child(1) {
+    color: #ef4444;
+}
+
+.calendar-card .react-calendar__month-view__days > * {
+    color: #111;
+}
+
+.calendar-card .react-calendar__month-view__days > * abbr,
+.calendar-card .react-calendar__month-view__days > * time,
+.calendar-card .react-calendar__month-view__days > * .calendar-tile {
+    color: inherit !important;
+}
+
+.calendar-card .react-calendar__month-view__days__day--neighboringMonth {
+    opacity: 0.5;
+    color: #111 !important;
+}
+
+.calendar-card .react-calendar__tile--now {
+    background: #95caff !important;
+    color: #042735 !important;
+    border-radius: 5px !important;
+}
+
+.calendar-card .react-calendar__tile--active {
+    background: #c3e9ff !important;
+    color: #042735 !important;
+    border-radius: 5px !important;
+}
+
+.calendar-card .react-calendar__navigation {
+    background-color: transparent;
+}
+
+.calendar-card .react-calendar__navigation__label {
+    font-size: 24px !important;
+    font-weight: bold;
+    color: #2c3e50 !important;
+}
+
+.calendar-card .react-calendar__navigation button {
+    color: #111;
+    font-weight: bold;
+    padding: 10px 14px !important;
+    font-size: 16px !important;
+    min-width: 44px !important;
+    height: 44px !important;
+    line-height: 44px !important;
+    border-radius: 8px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    background: transparent !important;
+    border: 1px solid transparent !important;
+    cursor: pointer !important;
+}
+
+.calendar-card .react-calendar__navigation button:hover {
+    background: rgba(44, 62, 80, 0.06) !important;
+}
+
+.calendar-card .react-calendar__navigation button svg {
+    width: 18px !important;
+    height: 18px !important;
+    display: block !important;
+}
+
+@container (max-width: 300px) {
+    .calendar-card .react-calendar__tile abbr,
+    .calendar-card .react-calendar__tile time,
+    .calendar-card .react-calendar__tile .calendar-tile {
+        font-size: 12px;
+    }
+}
+
+@container (min-width: 301px) and (max-width: 420px) {
+    .calendar-card .react-calendar__tile abbr,
+    .calendar-card .react-calendar__tile time,
+    .calendar-card .react-calendar__tile .calendar-tile {
+        font-size: 14px;
+    }
+}
+
+@container (min-width: 421px) and (max-width: 640px) {
+    .calendar-card .react-calendar__tile abbr,
+    .calendar-card .react-calendar__tile time,
+    .calendar-card .react-calendar__tile .calendar-tile {
+        font-size: 16px;
+    }
+}
+
+@container (min-width: 641px) {
+    .calendar-card .react-calendar__tile abbr,
+    .calendar-card .react-calendar__tile time,
+    .calendar-card .react-calendar__tile .calendar-tile {
+        font-size: 18px;
+    }
+}
+
+@container (max-height: 220px) {
+    .calendar-card .react-calendar__tile {
+        padding-block: 3px !important;
+        min-height: 21px !important;
+        max-height: 25.5px !important;
+    }
+}
+
+@container (min-height: 221px) and (max-height: 320px) {
+    .calendar-card .react-calendar__tile {
+        padding-block: 4.5px !important;
+        min-height: 27px !important;
+        max-height: 36px !important;
+    }
+}
+
+@container (min-height: 321px) and (max-height: 480px) {
+    .calendar-card .react-calendar__tile {
+        padding-block: 6px !important;
+        min-height: 36px !important;
+        max-height: 48px !important;
+    }
+}
+
+@container (min-height: 481px) {
+    .calendar-card .react-calendar__tile {
+        padding-block: 5px !important;
+        min-height: 40px !important;
+        max-height: 50px !important;
+    }
+}

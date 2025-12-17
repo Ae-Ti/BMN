@@ -1,3 +1,327 @@
-/* Inlined into index.css. Safe to delete this file. */
-/* DO NOT EDIT - styles moved into src/index.css */
-    margin: 20px auto;
+.recipe-detail-page {
+	margin: 0 16.666667%;
+}
+
+.content-card {
+	background: white;
+	padding: 1.5rem;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+	margin-bottom: 24px;
+}
+
+.card-section:not(:last-child) {
+	margin-bottom: 1.5rem;
+}
+
+.favorite-btn {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 14px 24px;
+	border-radius: 50px;
+	border: 1px solid #ddd;
+	background: #ffffff;
+	color: #222;
+	cursor: pointer;
+	transition: all 0.2s ease-in-out;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+}
+
+.favorite-btn.favorited {
+	background: #ffe8ec;
+	color: #d81b60;
+	border-color: #ffc2d1;
+}
+
+.favorite-btn:hover {
+	transform: translateY(-1px);
+	box-shadow: 0 4px 8px rgba(0,0,0,0.06);
+}
+
+.cook-button {
+	background-color: #f2536d;
+	color: white;
+	padding: 14px 24px;
+	font-size: 16px;
+	border: none;
+	border-radius: 50px;
+	cursor: pointer;
+	box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+	transition: all 0.2s ease-in-out;
+	text-decoration: none;
+}
+
+.cook-button:hover {
+	background-color: #dd3e58;
+}
+
+.recipe-action-buttons-container {
+	position: fixed;
+	bottom: 24px;
+	right: 24px;
+	z-index: 1000;
+	display: flex;
+	flex-direction: row;
+	gap: 12px;
+	align-items: center;
+}
+
+.relative {
+	position: relative;
+	display: inline-block;
+}
+
+.three-dots-button {
+	background: none;
+	border: none;
+	font-size: 24px;
+	cursor: pointer;
+	padding: 0 8px;
+	color: #333;
+}
+
+.three-dots-button:hover {
+	color: #000;
+}
+
+.dropdown-menu {
+	position: absolute;
+	left: 100%;
+	margin-left: 10px;
+	background-color: #fff;
+	min-width: 120px;
+	box-shadow: 0px 8px 16px 0px rgba(0, 0, 0, 0.2);
+	z-index: 1;
+	border-radius: 8px;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.dropdown-item {
+	color: black;
+	padding: 12px 16px;
+	text-decoration: none;
+	display: block;
+	border: none;
+	background: none;
+	width: 100%;
+	text-align: left;
+	cursor: pointer;
+}
+
+.dropdown-item:hover {
+	background-color: #f1f1f1;
+}
+
+.dropdown-item:nth-child(1) {
+	background-color: transparent;
+	color: #111;
+}
+
+.dropdown-item:nth-child(1):hover {
+	background-color: #ffe0b2;
+}
+
+.dropdown-item:nth-child(2) {
+	background-color: transparent;
+	color: #111;
+}
+
+.dropdown-item:nth-child(2):hover {
+	background-color: #ffcdd2;
+}
+
+.sx-3l {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	padding: 20px 0;
+}
+
+.sx-3m {
+	color: #666;
+	font-size: 16px;
+}
+
+.sx-3v {
+	font-size: 18px;
+}
+
+.sx-3w {
+	font-weight: 700;
+}
+
+.sx-3x {
+	display: flex;
+	align-items: center;
+	gap: 12px;
+	margin-top: 8px;
+	margin-bottom: 8px;
+	flex-wrap: wrap;
+}
+
+.sx-3y {
+	margin: 0;
+}
+
+.sx-3z {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+	text-decoration: none;
+	color: #111;
+}
+
+.sx-40 {
+	width: 28px;
+	height: 28px;
+	border-radius: 50%;
+	background: #eef2ff;
+	color: #3b82f6;
+	display: grid;
+	place-items: center;
+	font-weight: 800;
+	font-size: 12px;
+}
+
+.sx-41 {
+	font-weight: 700;
+}
+
+.sx-42 {
+	font-size: 12px;
+	color: #6b7280;
+}
+
+.sx-43 {
+	display: inline-flex;
+	align-items: center;
+	gap: 8px;
+	padding: 6px 10px;
+	border-radius: 999px;
+	border: 1px solid #e5e7eb;
+	background: #fff;
+	text-decoration: none;
+	color: #111;
+}
+
+.sx-44 {
+	color: #666;
+	margin-bottom: 16px;
+}
+
+.sx-45 {
+	width: 100%;
+	max-width: 500px;
+	max-height: 500px;
+	border-radius: 12px;
+	display: block;
+	margin: 0 auto 16px auto;
+	object-fit: cover;
+}
+
+.sx-46 {
+	margin-top: 16px;
+}
+
+.sx-47 {
+	line-height: 1.7px;
+}
+
+.sx-48 {
+	line-height: 1.9;
+}
+
+.sx-49 {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-wrap: wrap;
+	margin-bottom: 4px;
+}
+
+.sx-4a {
+	color: #999;
+}
+
+.sx-4b {
+	display: inline-flex;
+	align-items: center;
+	gap: 6px;
+	padding: 2px 8px;
+	border: 1px solid #ddd;
+	border-radius: 6px;
+	text-decoration: none;
+	font-size: 13px;
+}
+
+.sx-4c {
+	white-space: pre-line;
+}
+
+.sx-4d {
+	padding-left: 20px;
+}
+
+.sx-4e {
+	margin-bottom: 24px;
+}
+
+.sx-4f {
+	font-weight: 600;
+	margin-bottom: 6px;
+}
+
+.sx-4g {
+	margin-bottom: 8px;
+}
+
+.sx-4h {
+	width: 100%;
+	max-width: 500px;
+	max-height: 500px;
+	border-radius: 12px;
+	display: block;
+	margin: 0 auto;
+	object-fit: cover;
+}
+
+.comment-section-card {
+	background: white;
+	padding: 1.5rem;
+	border-radius: 8px;
+	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+	margin-top: 24px;
+}
+
+.step-nav {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 16px;
+}
+
+.step-nav-btn {
+	background: none;
+	border: none;
+	padding: 6px 10px;
+	border-radius: 8px;
+	font-weight: 800;
+	color: #111;
+	cursor: pointer;
+}
+
+.step-nav-btn:disabled {
+	color: #b0b0b0;
+	cursor: not-allowed;
+}
+
+.step-nav-btn:not(:disabled):hover {
+	background: #f3f4f6;
+}

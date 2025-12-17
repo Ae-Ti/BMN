@@ -1,0 +1,328 @@
+.fridge-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 0 auto 24px auto;
+    max-width: 1080px;
+    padding: 0 16px;
+    box-sizing: border-box;
+}
+
+.fridge-header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    margin: 0;
+}
+
+.fridge-header button {
+    padding: 8px 16px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #fff;
+    color: #222;
+    cursor: pointer;
+    transition: all 0.2s ease-in-out;
+}
+
+.fridge-header button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.06);
+}
+
+.fridge-header > div > button + button {
+    margin-left: 8px;
+}
+
+.fridge-outer-card {
+    width: 66.666667%;
+    margin: 0 auto 28px auto;
+    padding: 18px 36px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(12, 12, 12, 0.06);
+    box-sizing: border-box;
+}
+
+.fridge-tabs-row {
+    display: flex;
+    gap: 10px;
+    margin-bottom: 14px;
+    align-items: center;
+}
+
+.fridge-tabs-row .fridge-tab {
+    border-radius: 999px;
+    border: 1px solid #f23051;
+    background: #fff;
+    color: #222;
+    padding: 6px 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 150ms ease;
+}
+
+.fridge-tabs-row .fridge-tab:hover {
+    box-shadow: 0 4px 10px rgba(242, 48, 81, 0.06);
+}
+
+.fridge-tabs-row .fridge-tab.active {
+    background: #f23051 !important;
+    color: #fff !important;
+}
+
+.fridge-rec-button {
+    padding: 8px 12px;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    background: #0ea5e9;
+    color: #fff;
+    font-weight: 600;
+    cursor: pointer;
+}
+
+.fridge-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, 200px);
+    grid-auto-rows: 200px;
+    justify-content: start;
+    gap: 16px;
+    padding: 16px 0;
+}
+
+.fridge-outer-card .fridge-grid {
+    padding-top: 8px;
+    padding-bottom: 0;
+    justify-content: center;
+}
+
+@media (max-width: 900px) {
+    .fridge-outer-card {
+        width: 100%;
+        padding: 12px;
+        border-radius: 10px;
+    }
+
+    .fridge-tabs-row {
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+}
+
+.fridge-input-form {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    width: 66.666667%;
+    margin: 0 auto 24px auto;
+    padding: 16px 20px;
+    background: #fff;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    align-items: center;
+    box-sizing: border-box;
+}
+
+.fridge-input-form input,
+.fridge-input-form select,
+.fridge-input-form button {
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    box-sizing: border-box;
+}
+
+.fridge-input-form input[type="text"] {
+    flex: 2 1 320px;
+    min-width: 180px;
+}
+
+.fridge-input-form .fridge-qty-input,
+.fridge-input-form input[type="number"] {
+    width: 80px;
+    flex: 0 0 80px;
+}
+
+.fridge-input-form .fridge-unit-input {
+    flex: 1 1 120px;
+    min-width: 80px;
+}
+
+.fridge-input-form select {
+    flex: 0 0 140px;
+    min-width: 120px;
+}
+
+.fridge-input-form input[type="date"] {
+    flex: 0 0 240px;
+    min-width: 180px;
+}
+
+.fridge-input-form button {
+    background-color: #cebe30;
+    color: #fff;
+    border-color: #cebe30;
+    cursor: pointer;
+    font-weight: 600;
+    transition: background-color 0.2s ease;
+}
+
+.fridge-input-form > .add-button {
+    background-color: #f2536d;
+    border-color: #f2536d;
+}
+
+.fridge-input-form > .add-button:hover {
+    background-color: #d04159;
+    border-color: #d04159;
+}
+
+@media (max-width: 900px) {
+    .fridge-input-form {
+        width: 100%;
+        padding: 12px;
+        margin-bottom: 18px;
+    }
+}
+
+.fridge-card {
+    background: #fff;
+    border: 1px solid #e6e6e6;
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-width: 200px;
+    min-height: 200px;
+    max-width: 200px;
+    max-height: 200px;
+}
+
+.fridge-card-top {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.fridge-card-name {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+}
+
+.fridge-card-badge {
+    background: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 8px;
+    font-size: 13px;
+    color: #333;
+    flex: none;
+}
+
+.fridge-card-qty {
+    margin-top: 8px;
+    font-size: 14px;
+    color: #444;
+    width: 100%;
+    background: #fff6e8;
+    padding: 8px 10px;
+    border-radius: 8px;
+    box-sizing: border-box;
+    border: 1px solid #e7d8c1;
+}
+
+.fridge-card-expire {
+    margin-top: 6px;
+    font-size: 14px;
+    color: #888;
+}
+
+.fridge-card-category {
+    font-size: 14px;
+    color: #666;
+    background-color: #f0f0f0;
+    padding: 4px 8px;
+    border-radius: 6px;
+    align-self: flex-start;
+}
+
+.fridge-card-edit {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: rgba(0, 0, 0, 0.06);
+    border: none;
+    border-radius: 6px;
+    width: 30px;
+    height: 30px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.fridge-card-edit:hover {
+    background: rgba(0, 0, 0, 0.1);
+}
+
+.fridge-card-complete {
+    position: absolute;
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: 10px;
+}
+
+.fridge-card-complete .sx-11 {
+    background: #f2536d;
+    color: #fff;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 16px;
+}
+
+.fridge-card-complete .sx-11:hover {
+    background: #d04159;
+}
+
+.fridge-card-quantity button {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    border: 1px solid #ddd;
+    background: #f0f0f0;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fridge-card-quantity button:hover {
+    background-color: #e0e0e0;
+}
+
+.fridge-card-delete {
+    position: absolute;
+    top: 12px;
+    right: 12px;
+    background: #ff4d4d;
+    color: #fff;
+    border: none;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    cursor: pointer;
+    font-weight: 700;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.fridge-card-delete:hover {
+    background: #cc0000;
+}

@@ -1,2 +1,102 @@
-/* Inlined into index.css. Safe to delete this file. */
-/* DO NOT EDIT - styles moved into src/index.css */
+.login-container {
+	display: flex;
+	justify-content: center;
+	align-items: flex-start;
+	min-height: calc(100vh - var(--header-height));
+	padding-top: var(--header-height);
+	box-sizing: border-box;
+}
+
+.login-box {
+	background: #ffffff;
+	padding: 2rem;
+	border-radius: 8px;
+	box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+	width: 33.333vw;
+	max-width: 520px;
+	min-width: 320px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 12px;
+}
+
+.login-box h2 {
+	margin-bottom: 1rem;
+}
+
+.login-input {
+	width: 100%;
+	padding: 10px;
+	margin: 10px 0;
+	border: 1px solid #ccc;
+	border-radius: 5px;
+}
+
+.login-button {
+	width: 100%;
+	padding: 10px;
+	background-color: #f2536d;
+	color: #ffffff;
+	border: none;
+	border-radius: 5px;
+	cursor: pointer;
+	transition: background-color 0.2s ease;
+}
+
+.login-button:hover {
+	background-color: #d94463;
+}
+
+.signup-link {
+	margin-top: 10px;
+	font-size: 0.9rem;
+	color: #4d320a;
+	cursor: pointer;
+}
+
+.signup-link:hover {
+	text-decoration: underline;
+}
+
+.google-login-wrapper {
+	width: 100%;
+	margin-top: 12px;
+}
+
+.google-login-button {
+	width: 100%;
+	display: inline-block;
+	text-align: center;
+	padding: 10px;
+	background-color: #ffffff;
+	color: #444444;
+	border: 1px solid #dddddd;
+	border-radius: 5px;
+	text-decoration: none;
+	font-weight: 600;
+	transition: background-color 0.2s ease;
+}
+
+.google-login-button:hover {
+	background-color: #f5f5f5;
+}
+
+.google-login-button {
+	display: flex;
+	justify-content: center;
+	align-items: center;
+	gap: 10px;
+}
+
+.google-icon {
+	width: 20px;
+	height: 20px;
+}
+
+.login-error-message {
+	color: #b00020;
+	margin-top: 8px;
+	font-weight: 600;
+}

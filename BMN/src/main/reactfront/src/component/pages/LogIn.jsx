@@ -2,8 +2,10 @@
 import React, { useState, useCallback, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
+import "./LogIn.css";
 
 const TOKEN_KEY = "token";
+const GOOGLE_ICON_SRC = `${process.env.PUBLIC_URL || ""}/assets/Google_Favicon_2025.svg`;
 
 const LogIn = () => {
   const navigate = useNavigate();
@@ -105,20 +107,20 @@ const LogIn = () => {
                  value={password} onChange={e => setPassword(e.target.value)} autoComplete="current-password" />
           <button className="login-button" onClick={handleLogin}>로그인</button>
           {/* Google 로그인 버튼 */}
-          <div style={{marginTop:12}}>
+          <div className="google-login-wrapper">
             <a
-              className="oauth-google-button"
+              className="google-login-button"
               href="/oauth2/authorization/google"
               onClick={() => {
                   // mark oauth as started (use '1' consistently with the rest of the app)
                   try { sessionStorage.setItem('oauthInProgress', '1'); } catch(e) {}
                 }}
-              style={{display:'inline-block', padding:'8px 12px', background:'#fff', color:'#444', border:'1px solid #ddd', borderRadius:4, textDecoration:'none'}}
             >
+              <img src={GOOGLE_ICON_SRC} alt="Google" className="google-icon" />
               Google로 로그인
             </a>
           </div>
-          {error && <p className="error-message">{error}</p>}
+          {error && <p className="login-error-message">{error}</p>}
           <p className="signup-link" onClick={() => navigate("/signup")}>회원가입</p>
         </div>
       </div>
