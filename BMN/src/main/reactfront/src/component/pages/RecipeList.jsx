@@ -4,7 +4,7 @@ import { Link, useNavigate, useLocation } from "react-router-dom";
 import axios from "axios";
 import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
-import "./recipeMain.css";
+import "./RecipeCards.css";
 import "./RecipeList.css";
 
 axios.defaults.baseURL = API_BASE;

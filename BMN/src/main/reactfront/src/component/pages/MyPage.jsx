@@ -5,7 +5,7 @@ import axios from "axios";
 import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import "./ProfilePage.css"; // Import the new CSS file
-import "./recipeMain.css";
+import "./RecipeCards.css";
 
 axios.defaults.baseURL = API_BASE;
 

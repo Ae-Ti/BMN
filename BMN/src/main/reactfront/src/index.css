@@ -7,7 +7,7 @@
 :root {
   --header-height: 60px;
   --ledger-gap: 20px;
-  --bg: #f8f2e5;
+  --bg: #ffffff;
   --surface: #ffffff;
   --card-border: #e6e6e6;
   --radius: 12px;
@@ -36,4 +36,8 @@ body {
   display: flex;
   align-items: baseline;
   gap: 16px;
+}
+
+.page-container {
+  position: relative;
 }

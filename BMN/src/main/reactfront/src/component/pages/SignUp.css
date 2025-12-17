@@ -14,10 +14,11 @@
   max-width: 520px;
   min-width: 320px;
   padding: 20px;
-  border: 1px solid #ccc;
+  border: none !important; /* ensure old borders don't leak through */
   border-radius: 10px;
   background-color: white;
   text-align: center;
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
 }
 
 .signup-box h2 {

@@ -5,6 +5,7 @@ import axios from "axios";
 import { API_BASE } from '../../config';
 import { onImgError } from "../lib/placeholder";
 import "./ProfilePage.css"; // Import the new CSS file
+import "./RecipeCards.css";
 
 axios.defaults.baseURL = API_BASE;
 
@@ -231,7 +232,9 @@ const ProfilePage = () => {
 
     return (
         <div className="page-container">
-            <h1>{profile.username}의 프로필</h1>
+            <div className="profile-page-width">
+                <h1>{profile.username}의 프로필</h1>
+            </div>
 
             <div className="profile-card">
                 <div className="profile-header">
@@ -274,39 +277,41 @@ const ProfilePage = () => {
                 </div>
             </div>
 
-            <div className="sx-3h sx-3i section-spacing-top button-group-spacing-bottom">
-                <div>
-                    <button
-                        type="button"
-                        onClick={() => setTab("my")}
-                        style={{
-                            padding: "10px 18px",
-                            fontWeight: 800,
-                            fontSize: 16,
-                            border: "none",
-                            cursor: "pointer",
-                            background: tab === "my" ? "#111827" : "transparent",
-                            color: tab === "my" ? "#fff" : "#111827",
-                        }}
-                    >
-                        작성한 레시피 ({myRecipes.length})
-                    </button>
-                    <button
-                        type="button"
-                        onClick={() => setTab("fav")}
-                        style={{
-                            padding: "10px 18px",
-                            fontWeight: 800,
-                            fontSize: 16,
-                            border: "none",
-                            borderLeft: "1px solid #e5e7eb",
-                            cursor: "pointer",
-                            background: tab === "fav" ? "#111827" : "transparent",
-                            color: tab === "fav" ? "#fff" : "#111827",
-                        }}
-                    >
-                        즐겨찾기한 레시피 ({favRecipes.length})
-                    </button>
+            <div className="profile-page-width">
+                <div className="sx-3h sx-3i section-spacing-top button-group-spacing-bottom">
+                    <div>
+                        <button
+                            type="button"
+                            onClick={() => setTab("my")}
+                            style={{
+                                padding: "10px 18px",
+                                fontWeight: 800,
+                                fontSize: 16,
+                                border: "none",
+                                cursor: "pointer",
+                                background: tab === "my" ? "#111827" : "transparent",
+                                color: tab === "my" ? "#fff" : "#111827",
+                            }}
+                        >
+                            작성한 레시피 ({myRecipes.length})
+                        </button>
+                        <button
+                            type="button"
+                            onClick={() => setTab("fav")}
+                            style={{
+                                padding: "10px 18px",
+                                fontWeight: 800,
+                                fontSize: 16,
+                                border: "none",
+                                borderLeft: "1px solid #e5e7eb",
+                                cursor: "pointer",
+                                background: tab === "fav" ? "#111827" : "transparent",
+                                color: tab === "fav" ? "#fff" : "#111827",
+                            }}
+                        >
+                            즐겨찾기한 레시피 ({favRecipes.length})
+                        </button>
+                    </div>
                 </div>
             </div>
 

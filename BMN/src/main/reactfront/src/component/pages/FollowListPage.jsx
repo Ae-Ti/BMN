@@ -147,7 +147,7 @@ const FollowListPage = () => {
     const tabLabel = tab === "followers" ? "팔로워" : "팔로잉";
 
     return (
-        <div className="sx-l follow-page">
+        <div className="page-container follow-page">
             <h1>{username}의 {tabLabel} 목록</h1>
 
             {/* 탭 */}
