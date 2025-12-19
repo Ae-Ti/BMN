@@ -148,7 +148,17 @@ const FollowListPage = () => {
 
     return (
         <div className="page-container follow-page">
-            <h1>{username}의 {tabLabel} 목록</h1>
+            <div className="follow-header">
+                <button
+                    type="button"
+                    className="follow-back"
+                    onClick={() => nav(-1)}
+                    aria-label="뒤로가기"
+                >
+                    ←
+                </button>
+                <h1>{username}의 {tabLabel} 목록</h1>
+            </div>
 
             {/* 탭 */}
             <div className="follow-tabs">

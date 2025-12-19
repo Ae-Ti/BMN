@@ -2,6 +2,7 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { API_BASE } from '../../config';
+import ConfirmApplyModal from '../blocks/ConfirmApplyModal';
 import './Ingredient.css';
 
 const apiBase = API_BASE;
@@ -74,6 +75,8 @@ const Ingredient = () => {
 
     // 모달/반영 상태
     const [confirmOpen, setConfirmOpen] = useState(false);
+    const [confirmAction, setConfirmAction] = useState('ledger'); // 'ledger' | 'meal'
+    const [confirmDate, setConfirmDate] = useState(localTodayISO());
     const [submitting, setSubmitting] = useState(false);
     const [submitMsg, setSubmitMsg] = useState('');
 
@@ -216,17 +219,22 @@ const Ingredient = () => {
     };
 
     // 모달 열기
-    const openConfirm = () => {
-        if (Object.keys(checked).length === 0) {
+    const openConfirm = (action = 'ledger') => {
+        if (action === 'ledger' && Object.keys(checked).length === 0) {
             alert('선택된 상품이 없습니다.');
             return;
         }
+        if (action === 'meal' && !recipeIdFromState) {
+            alert('레시피 ID가 없어 식단에 반영할 수 없습니다. 레시피 상세에서 다시 시도해주세요.');
+            return;
+        }
         setSubmitMsg('');
+        setConfirmAction(action);
         setConfirmOpen(true);
     };
 
     // 가계부 반영(항목별 EXPENSE 생성) - ✅ 오늘 날짜(로컬)로 고정
-    const confirmApplyToLedger = async () => {
+    const confirmApplyToLedger = async (selectedDate = confirmDate) => {
         if (submitting) return;
         setSubmitting(true);
         setSubmitMsg('');
@@ -237,9 +245,8 @@ const Ingredient = () => {
                 setSubmitting(false);
                 return;
             }
-            const dateISO = localTodayISO();
+            const dateISO = selectedDate || localTodayISO();
             const entries = Object.values(checked);
-
             for (const { price, title } of entries) {
                 await fetch(`${apiBase}/api/ledger/transactions`, {
                     method: 'POST',
@@ -273,7 +280,7 @@ const Ingredient = () => {
     };
 
     // ✅ 식단 반영 + 식단 페이지로 이동
-    const applyMealAndGo = async () => {
+    const applyMealAndGo = async (selectedDate = confirmDate) => {
         try {
             const token = localStorage.getItem('token');
             if (!token) {
@@ -291,10 +298,10 @@ const Ingredient = () => {
                     'Authorization': `Bearer ${token}`
                 },
                 body: JSON.stringify({
-                    planDate: localTodayISO(),
+                    planDate: selectedDate || localTodayISO(),
                     title: mealSlot,             // 아침/점심/저녁/간식
                     recipeId: recipeIdFromState, // ✅ 필수!
-                    note: mealNote?.trim() || '' // ✅ 기본 문구 제거 (사용자 입력만)
+                    note: mealNote?.trim() || ''
                 })
             });
             if (!res.ok) {
@@ -305,6 +312,14 @@ const Ingredient = () => {
         } catch (e) {
             alert(e.message || '식단 반영 중 오류가 발생했습니다.');
         }
+    };
+
+    // 모달에서 확인 시 액션 분기
+    const handleConfirm = () => {
+        if (confirmAction === 'meal') {
+            return applyMealAndGo(confirmDate);
+        }
+        return confirmApplyToLedger(confirmDate);
     };
 
     // 냉장고에 있는 재료 여부
@@ -369,7 +384,7 @@ const Ingredient = () => {
                     <div className="button-group-horizontal">
                         {/* 가계부 반영 */}
                         <button
-                            onClick={openConfirm}
+                            onClick={() => openConfirm('ledger')}
                             disabled={Object.keys(checked).length === 0}
                             title={Object.keys(checked).length === 0 ? '선택한 상품이 없습니다' : '선택한 항목을 가계부에 반영'}
                         >
@@ -378,7 +393,7 @@ const Ingredient = () => {
 
                         {/* ✅ 새 버튼: 식단 반영하고 바로 보기 */}
                         <button
-                            onClick={applyMealAndGo}
+                            onClick={() => openConfirm('meal')}
                             title={!recipeIdFromState ? '레시피 ID가 없어 식단에 반영할 수 없습니다' : '식단에 추가하고 이동'}
                             disabled={!recipeIdFromState}
                         >
@@ -462,7 +477,9 @@ const Ingredient = () => {
                                             <h4 className="prominent-text">사용자 등록 구매링크</h4>
                                             {userLink ? (
                                                 <div>
-                                                    <a href={userLink} target="_blank" rel="noreferrer">{userLink}</a>
+                                                    <a href={userLink} target="_blank" rel="noreferrer">
+                                                        {userLink.length > 50 ? `${userLink.slice(0, 25)}…${userLink.slice(-15)}` : userLink}
+                                                    </a>
                                                     <div className="sx-1y"  >
                                                         이 링크는 자동 가격반영이 되지 않습니다.
                                                     </div>
@@ -545,56 +562,18 @@ const Ingredient = () => {
                 </div>
             )}
 
-            {/* ✅ 확인 모달 (최종비용만 표시) */}
-            {confirmOpen && (
-                <div className="sx-26"
-                     onClick={() => !submitting && setConfirmOpen(false)}
-                >
-                    <div className="sx-27"
-                        onClick={(e) => e.stopPropagation()}
-                    >
-                        <h3 className="sx-28 sx-29 sx-2a"  >가계부에 반영할까요?</h3>
-
-                        {/* 선택 항목 목록 */}
-                        <div >
-                            <table >
-                                <thead>
-                                    <tr>
-                                        <th className="sx-22 sx-23"  >항목</th>
-                                        <th >금액</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {Object.entries(checked).map(([k, v]) => (
-                                        <tr className="sx-2b sx-23" key={k}  >
-                                            <td>{plain(v.title)}</td>
-                                            <td >{Number(v.price).toLocaleString()}원</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        </div>
-
-                        {/* 최종비용만 표시 */}
-                        <div className="sx-2c sx-2d"  >
-                            최종비용(선택합계): <strong>{finalTotal.toLocaleString()}원</strong>
-                        </div>
-
-                        <div >
-                            <button onClick={() => setConfirmOpen(false)} disabled={submitting}>취소</button>
-                            <button onClick={confirmApplyToLedger} disabled={submitting}>
-                                {submitting ? '반영 중…' : '확인'}
-                            </button>
-                        </div>
-
-                        {submitMsg && (
-                            <div style={{ marginTop: 10, fontSize: 13, color: submitMsg.includes('반영되었습니다') ? '#2e7d32' : '#b00020' }}>
-                                {submitMsg}
-                            </div>
-                        )}
-                    </div>
-                </div>
-            )}
+            <ConfirmApplyModal
+                open={confirmOpen}
+                type={confirmAction}
+                items={Object.entries(checked).map(([key, v]) => ({ key, title: plain(v.title), price: Number(v.price) || 0 }))}
+                total={finalTotal}
+                date={confirmDate}
+                onDateChange={setConfirmDate}
+                onClose={() => { if (!submitting) setConfirmOpen(false); }}
+                onConfirm={handleConfirm}
+                submitting={submitting}
+                submitMsg={submitMsg}
+            />
         </div>
     );
 };

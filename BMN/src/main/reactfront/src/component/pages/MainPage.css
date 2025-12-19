@@ -118,4 +118,75 @@
     color: #F23051;
 }
 
+.tips-card {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: 12px;
+    background: #fff;
+    border-radius: 14px;
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.08);
+    padding: 16px 18px;
+    width: min(720px, 100%);
+    cursor: pointer;
+    transition: transform 0.3s, box-shadow 0.3s;
+    margin-top: 10px;
+}
+
+.tips-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 30px rgba(0, 0, 0, 0.12);
+}
+
+.tips-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+    background: #fff4e6;
+    display: grid;
+    place-items: center;
+    font-size: 22px;
+}
+
+.tips-text {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.tips-kicker {
+    margin: 0;
+    font-size: 0.95rem;
+    color: #f08a24;
+    letter-spacing: 0.03em;
+    font-weight: 600;
+}
+
+.tips-title {
+    margin: 0;
+    font-size: 1.1rem;
+    color: #1f2933;
+    font-weight: 700;
+}
+
+.tips-card .card-arrow {
+    font-size: 1.8rem;
+    color: #f2536d;
+}
+
+@media (max-width: 768px) {
+    .tips-card {
+        grid-template-columns: auto 1fr;
+        grid-template-rows: auto auto;
+        row-gap: 8px;
+        column-gap: 12px;
+        width: 100%;
+    }
+
+    .tips-card .card-arrow {
+        grid-column: 2;
+        justify-self: flex-start;
+    }
+}
+
 

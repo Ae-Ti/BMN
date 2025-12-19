@@ -1,4 +1,5 @@
 import React, { useEffect, useMemo, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import Calendar from "react-calendar";
 import "react-calendar/dist/Calendar.css";
 import axios from "axios";
@@ -40,6 +41,7 @@ const slotIndex = (s) => {
 };
 
 export default function MealMain() {
+  const navigate = useNavigate();
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [monthList, setMonthList] = useState([]);
   const [dayMeals, setDayMeals] = useState([]);
@@ -278,7 +280,16 @@ export default function MealMain() {
 
         {/* 🍱 상세 패널 */}
         <div className="details-container">
-          <h2>{selectedDate.toLocaleDateString("ko-KR")}</h2>
+          <div className="details-header">
+            <h2>{selectedDate.toDateString()}</h2>
+            <button
+                className="add-meal-button"
+                type="button"
+                onClick={() => navigate("/recipes")}
+            >
+              식단 추가하기
+            </button>
+          </div>
           <ul className="meal-card-list">
             {dayMeals.length === 0 && (
                 <li className="empty">등록된 식단이 없습니다.</li>

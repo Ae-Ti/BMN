@@ -76,12 +76,12 @@ const Layout = () => {
                     <button className="hamburger-button" onClick={toggleSidebar}>
                         &#9776;
                     </button>
-                    <div className="logo" onClick={() => navigate("/main")} style={{ cursor: 'pointer' }}>
+                    <div className="logo" onClick={() => navigate("/")} style={{ cursor: 'pointer' }}>
                         <img src={logo} alt="My Logo" style={{ height: '30px' }} />
                     </div>
 
                     <div className="button-group">
-                        <button className="button" onClick={() => navigate("/")}>레시피</button>
+                        <button className="button" onClick={() => navigate("/RecipeMain")}>레시피</button>
                         <button className="button" onClick={() => navigate("/household-ledger")}>가계부</button>
                     </div>
 

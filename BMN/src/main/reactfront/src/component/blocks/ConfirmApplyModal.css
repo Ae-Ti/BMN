@@ -1,0 +1,123 @@
+.confirm-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+
+.confirm-modal {
+    width: min(560px, 92vw);
+    max-width: 500px;
+    background: #fff;
+    border-radius: 12px;
+    padding: 24px;
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+
+.confirm-modal__title {
+    margin: 0 0 12px;
+    font-size: 1.1rem;
+    font-weight: 700;
+}
+
+.confirm-modal__table table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 14px;
+}
+
+.confirm-modal__table th,
+.confirm-modal__table td {
+    padding: 8px 10px;
+    border-top: 1px solid #f1f1f1;
+}
+
+.confirm-modal__table th {
+    text-align: left;
+    background: #f9fafb;
+    font-weight: 700;
+}
+
+.confirm-modal__table .is-right {
+    text-align: right;
+}
+
+.confirm-modal__empty {
+    text-align: center;
+    color: #666;
+    padding: 12px;
+}
+
+.confirm-modal__date {
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.confirm-modal__date label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 14px;
+}
+
+.confirm-modal__date input[type="date"] {
+    padding: 6px 8px;
+    border: 1px solid #e5e7eb;
+    border-radius: 6px;
+}
+
+.confirm-modal__total {
+    margin-top: 6px;
+    font-size: 14px;
+    font-weight: 700;
+    text-align: right;
+}
+
+.confirm-modal__actions {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 12px;
+}
+
+.confirm-modal__actions button {
+    min-width: 110px;
+    padding: 10px 12px;
+    border: none;
+    border-radius: 8px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.confirm-modal__actions button:first-of-type {
+    background: #f3f4f6;
+    color: #111827;
+}
+
+.confirm-modal__actions button:last-of-type {
+    background: #f2536d;
+    color: #fff;
+}
+
+.confirm-modal__actions button:disabled {
+    opacity: 0.65;
+    cursor: not-allowed;
+}
+
+.confirm-modal__message {
+    margin-top: 10px;
+    font-size: 13px;
+}
+
+.confirm-modal__message.is-success {
+    color: #2e7d32;
+}
+
+.confirm-modal__message.is-error {
+    color: #b00020;
+}

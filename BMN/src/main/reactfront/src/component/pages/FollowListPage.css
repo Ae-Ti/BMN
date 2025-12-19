@@ -8,6 +8,31 @@
     box-sizing: border-box;
 }
 
+.follow-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.follow-back {
+    border: 1px solid #e5e7eb;
+    background: #fff;
+    border-radius: 999px;
+    width: 36px;
+    height: 36px;
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+    transition: background 0.2s ease, transform 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.06);
+}
+
+.follow-back:hover {
+    background: #f3f4f6;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.08);
+}
+
 .follow-tabs {
     margin-top: 8px;
     display: flex;

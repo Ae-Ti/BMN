@@ -31,7 +31,9 @@ public class WebSpaForward {
         "/main", "/meal",
         "/verify-success",
         "/verify-instructions",
-            "/settings"
+            "/settings",
+            "/RecipeMain",
+            "/guide"
 
     })
     public String forwardToIndex(HttpServletRequest request) {

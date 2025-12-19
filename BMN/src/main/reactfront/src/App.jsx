@@ -27,6 +27,7 @@ import FollowListPage from "./component/pages/FollowListPage";
 import MealMain from "./component/pages/MealMain";
 import MainPage from "./component/pages/MainPage";
 import ProfileSettings from "./component/pages/ProfileSettings";
+import UsageTips from "./component/pages/UsageTips";
 import axios from 'axios';
 
 // Initialize axios Authorization header from localStorage on app load
@@ -163,8 +164,9 @@ const App = () => {
             <Routes>
                 <Route path="/" element={<Layout />}>
                     {/* 공개 페이지 */}
-                    <Route index element={<RecipeMain />} />
-                    <Route path="main" element={<MainPage />} />
+                    <Route index element={<MainPage />} />
+                    <Route path="RecipeMain" element={<RecipeMain />} />
+                    <Route path="guide" element={<UsageTips />} />
                     <Route path="recipes" element={<RecipesList />} />
                     <Route path="user/login" element={<LogIn />} />
                     <Route path="signup" element={<SignUp />} />
