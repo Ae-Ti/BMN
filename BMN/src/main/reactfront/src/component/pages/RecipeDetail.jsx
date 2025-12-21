@@ -49,6 +49,19 @@ function authHeaders() {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function formatFavoriteCount(count) {
+    const n = Number(count) || 0;
+    if (n >= 10000) {
+        const v = (n / 10000).toFixed(n >= 100000 ? 0 : 1);
+        return `${v.replace(/\.0$/, "")}만`;
+    }
+    if (n >= 1000) {
+        const v = (n / 1000).toFixed(n >= 10000 ? 0 : 1);
+        return `${v.replace(/\.0$/, "")}천`;
+    }
+    return String(n);
+}
+
 export default function RecipeDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
@@ -282,6 +295,14 @@ export default function RecipeDetail() {
         .map((it) => ({ name: it?.name ?? "", link: it?.link ?? "" }))
         .filter((x) => x.name && x.name.trim().length > 0);
 
+    const goBack = () => {
+        if (window.history.length > 1) {
+            navigate(-1);
+        } else {
+            navigate("/recipes");
+        }
+    };
+
     const metaItems = [
         recipe.viewCount != null && `조회수 ${recipe.viewCount}`,
         cookMinutes != null && `조리시간 ${cookMinutes}분`,
@@ -291,11 +312,6 @@ export default function RecipeDetail() {
 
     return (
         <div className="recipe-detail-page">
-            <div>
-                <Link to="/recipes" className="btn-link">
-                    ← 목록으로
-                </Link>
-            </div>
 
             {/* 우하단: 담기 + 즐겨찾기 */}
             <div className="recipe-action-buttons-container">
@@ -320,12 +336,15 @@ export default function RecipeDetail() {
                     className={`favorite-btn ${isFav ? "favorited" : ""}`}
                 >
                     <span className="sx-3v sx-3w">{isFav ? "♥" : "♡"}</span>
-                    <span>{favCount ?? 0}</span>
+                    <span>{formatFavoriteCount(favCount)}</span>
                 </button>
             </div>
 
             {/* 제목 + 작성자 배지 + 수정/삭제 버튼 */}
-            <div className="sx-3x sx-3y">
+            <div className="sx-3x sx-3y detail-title-row">
+                <button type="button" className="follow-back" onClick={goBack} aria-label="뒤로 가기">
+                    ←
+                </button>
                 <h1>{recipe.subject ?? "(제목 없음)"}</h1>
 
                 {(authorName || authorUsername) &&

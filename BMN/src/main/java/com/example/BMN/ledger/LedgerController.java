@@ -51,4 +51,9 @@ public class LedgerController {
     public Map<String, Object> monthTotals(@RequestParam int year, @RequestParam int month) {
         return service.monthTotals(year, month);
     }
+
+    @GetMapping("/summary")
+    public LedgerSummaryResponse summary(@RequestParam String date, @RequestParam(defaultValue = "month") String period) {
+        return service.summary(LocalDate.parse(date, ISO), period);
+    }
 }

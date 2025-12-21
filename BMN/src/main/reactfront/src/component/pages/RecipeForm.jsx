@@ -201,9 +201,23 @@ export default function RecipeForm() {
 
     async function handleSubmit(e) {
         e.preventDefault();
+        const trimmedSubject = (subject || "").trim();
+        const usableNewSteps = newSteps.filter((s) => (s.description || "").trim() !== "" || s.file);
+        const remainingExistingCount = existingSteps.length;
+        const totalStepCount = remainingExistingCount + usableNewSteps.length;
+
+        if (!trimmedSubject) {
+            alert("제목을 입력해주세요.");
+            return;
+        }
+        if (totalStepCount < 1) {
+            alert("요리 순서를 최소 1개 이상 입력해주세요.");
+            return;
+        }
+
         try {
             const fd = new FormData();
-            fd.append("subject", String(subject ?? ""));
+            fd.append("subject", trimmedSubject);
             fd.append("description", String(description ?? ""));
             fd.append("tools", String(tools ?? ""));
             fd.append("cookingTimeMinutes", String(cookingTimeMinutes ?? ""));
@@ -215,11 +229,11 @@ export default function RecipeForm() {
             fd.append("ingredients", new Blob([JSON.stringify(ingredients ?? [])], { type: "application/json" }));
 
             // 파일 있는 새 스텝만 파일+캡션 함께
-            newSteps.forEach((s) => {
+            usableNewSteps.forEach((s) => {
                 if (s.file) {
                     fd.append("stepImages", s.file);
-                    fd.append("captions", s.description || "");
                 }
+                fd.append("captions", s.description || "");
             });
 
             // 삭제할 기존 스텝

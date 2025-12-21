@@ -1,4 +1,3 @@
-// src/main/java/com/example/BMN/ledger/LedgerService.java
 package com.example.BMN.ledger;
 
 import com.example.BMN.User.SiteUser;
@@ -8,8 +7,10 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.YearMonth;
+import java.time.temporal.TemporalAdjusters;
 import java.util.*;
 
 @Service
@@ -61,6 +62,45 @@ public class LedgerService {
     }
 
     @Transactional(readOnly = true)
+    public LedgerSummaryResponse summary(LocalDate anchorDate, String periodRaw) {
+        SiteUser me = currentUser();
+        String period = (periodRaw == null || periodRaw.isBlank()) ? "month" : periodRaw.toLowerCase();
+
+        LocalDate start;
+        LocalDate end;
+        switch (period) {
+            case "week" -> {
+                start = anchorDate.with(TemporalAdjusters.previousOrSame(DayOfWeek.MONDAY));
+                end = anchorDate.with(TemporalAdjusters.nextOrSame(DayOfWeek.SUNDAY));
+            }
+            case "year" -> {
+                start = anchorDate.withDayOfYear(1);
+                end = anchorDate.withDayOfYear(anchorDate.lengthOfYear());
+            }
+            case "month" -> {
+                start = anchorDate.withDayOfMonth(1);
+                end = anchorDate.withDayOfMonth(anchorDate.lengthOfMonth());
+            }
+            default -> throw new IllegalArgumentException("Unsupported period: " + period);
+        }
+
+        List<LedgerTransaction> list = repo.findAllByAuthorAndDateBetween(me, start, end).stream()
+                .sorted(Comparator.comparing(LedgerTransaction::getDate).thenComparing(LedgerTransaction::getId))
+                .toList();
+
+        long income = 0;
+        long expense = 0;
+        List<LedgerSummaryResponse.TransactionView> views = new ArrayList<>(list.size());
+        for (LedgerTransaction t : list) {
+            if (t.getType() == TransactionType.INCOME) income += t.getAmount();
+            else expense += t.getAmount();
+            views.add(new LedgerSummaryResponse.TransactionView(t.getId(), t.getDate().toString(), t.getType(), t.getName(), t.getAmount()));
+        }
+
+        return new LedgerSummaryResponse(period, start.toString(), end.toString(), income, expense, income - expense, views);
+    }
+
+    @Transactional(readOnly = true)
     public Map<String, Object> monthTotals(int year, int month) {
         SiteUser me = currentUser();
         YearMonth ym = YearMonth.of(year, month);
@@ -84,9 +124,9 @@ public class LedgerService {
         }
 
         List<Map<String, Object>> days = new ArrayList<>();
-        for (int d=1; d<=ym.lengthOfMonth(); d++){
+        for (int d = 1; d <= ym.lengthOfMonth(); d++) {
             var cur = ym.atDay(d);
-            var arr = agg.getOrDefault(cur, new long[]{0,0});
+            var arr = agg.getOrDefault(cur, new long[]{0, 0});
             days.add(Map.of("date", cur.toString(), "totalIncome", arr[0], "totalExpense", arr[1]));
         }
         return Map.of(

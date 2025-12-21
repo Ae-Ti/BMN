@@ -191,14 +191,16 @@ const FridgePage = () => {
     return (
         <div className="page-container">
             <div className="fridge-header">
-                <h1 >우리 집 냉장고</h1>
-                <div >
-                    <button className="fridge-rec-button"
-                        onClick={openRecommendations}
-                         >
+                <div className="fridge-header-left">
+                    <button type="button" className="follow-back" onClick={() => nav(-1)} aria-label="뒤로 가기">
+                        ←
+                    </button>
+                    <h1>우리 집 냉장고</h1>
+                </div>
+                <div className="fridge-header-actions">
+                    <button className="fridge-rec-button" onClick={openRecommendations}>
                         추천 레시피
                     </button>
-                    <button onClick={() => nav("/mypage")}>← 마이페이지로</button>
                 </div>
             </div>
 

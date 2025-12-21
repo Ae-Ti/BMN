@@ -6,6 +6,9 @@ import "./CalendarCard.css";
 import "./HouseholdLedgerMain.css";
 import axios from "axios";
 
+const INCOME_SUGGESTIONS = ["월급", "보너스", "투자수익", "용돈", "환급", "이자소득", "기타수입"];
+const EXPENSE_SUGGESTIONS = ["식비", "카페/간식", "교통비", "통신비", "주거비", "공과금", "구독료", "쇼핑", "의료비", "교육비", "여행", "기타지출"];
+
 const api = axios.create({ baseURL: "/api" });
 api.interceptors.request.use((config) => {
     const token = localStorage.getItem("token");
@@ -62,6 +65,12 @@ const HouseholdLedgerMain = () => {
     const [editType, setEditType] = useState("income");
     const [editName, setEditName] = useState("");
     const [editAmount, setEditAmount] = useState("");
+
+    const [summaryPeriod, setSummaryPeriod] = useState("week");
+    const [summaryAnchorDate, setSummaryAnchorDate] = useState(new Date());
+    const [summaryData, setSummaryData] = useState(null);
+
+    const nameSuggestions = type === "income" ? INCOME_SUGGESTIONS : EXPENSE_SUGGESTIONS;
 
     const tileTotals = useMemo(() => {
         const map = new Map();
@@ -204,6 +213,34 @@ const HouseholdLedgerMain = () => {
         setMonthData(monthRes.data);
     };
 
+    const fetchSummary = async (period, dateObj) => {
+        const { data } = await api.get("/ledger/summary", {
+            params: { period, date: toLocalISO(dateObj) },
+        });
+        setSummaryData(data);
+    };
+
+    const shiftSummaryAnchor = (delta) => {
+        setSummaryAnchorDate((prev) => {
+            const next = new Date(prev);
+            switch (summaryPeriod) {
+                case "week":
+                    next.setDate(next.getDate() + delta * 7);
+                    break;
+                case "month":
+                    next.setDate(1);
+                    next.setMonth(next.getMonth() + delta);
+                    break;
+                case "year":
+                    next.setFullYear(next.getFullYear() + delta);
+                    break;
+                default:
+                    break;
+            }
+            return next;
+        });
+    };
+
     const handleAddTransaction = async () => {
         if (!name || !amount) return;
         await api.post("/ledger/transactions", {
@@ -215,6 +252,7 @@ const HouseholdLedgerMain = () => {
         setName("");
         setAmount("");
         await refreshBoth();
+        await fetchSummary(summaryPeriod, selectedDate);
     };
 
     const startEdit = (t) => {
@@ -235,6 +273,7 @@ const HouseholdLedgerMain = () => {
         });
         setEditingId(null);
         await refreshBoth();
+        await fetchSummary(summaryPeriod, selectedDate);
     };
 
     const cancelEdit = () => {
@@ -248,6 +287,7 @@ const HouseholdLedgerMain = () => {
         if (!window.confirm("삭제할까요?")) return;
         await api.delete(`/ledger/transactions/${id}`);
         await refreshBoth();
+        await fetchSummary(summaryPeriod, selectedDate);
     };
 
     useEffect(() => {
@@ -265,8 +305,15 @@ const HouseholdLedgerMain = () => {
             await fetchDayList(selectedDate);   // ✅ 로컬 날짜로 조회
             await fetchMonthTotals(selectedDate);
         })();
+        setSummaryAnchorDate(selectedDate);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selectedDate]);
+
+    useEffect(() => {
+        if (!authed) return;
+        fetchSummary(summaryPeriod, summaryAnchorDate);
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [summaryAnchorDate, summaryPeriod, authed]);
 
     if (!authed) {
         return (
@@ -277,120 +324,184 @@ const HouseholdLedgerMain = () => {
         );
     }
 
+    const netValue = Number(summaryData?.net ?? 0);
+
     return (
         <div className="ledger-container">
             <div className="ledger-top-row">
-            {/* 왼쪽 달력 */}
-            <div className="calendar-container calendar-card" ref={calendarRef}>
-                <Calendar
-                    onClickDay={handleDateClick}
-                    value={selectedDate}
-                    locale="ko-KR"
-                    onActiveStartDateChange={({ activeStartDate }) => fetchMonthTotals(activeStartDate)}
-                    tileContent={({ date }) => {
-                    const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
-                    if (!d) return null;
-                    const income = Number(d.totalIncome ?? 0);
-                    const expense = Number(d.totalExpense ?? 0);
-                    const net = income - expense;
-                    return (
-                        <div className="calendar-tile calendar-net">
-                            {net > 0 ? (
-                                <div className="income">+{net.toLocaleString()}</div>
-                            ) : net < 0 ? (
-                                <div className="expense">-{Math.abs(net).toLocaleString()}</div>
-                            ) : (
-                                <div className="neutral">0</div>
-                            )}
-                        </div>
-                    );
-                    }}
-                />
+                {/* 왼쪽 달력 */}
+                <div className="calendar-container calendar-card" ref={calendarRef}>
+                    <Calendar
+                        onClickDay={handleDateClick}
+                        value={selectedDate}
+                        locale="ko-KR"
+                        onActiveStartDateChange={({ activeStartDate }) => fetchMonthTotals(activeStartDate)}
+                        tileContent={({ date }) => {
+                            const d = tileTotals.get(toLocalISO(date)); // ✅ 변경
+                            if (!d) return null;
+                            const income = Number(d.totalIncome ?? 0);
+                            const expense = Number(d.totalExpense ?? 0);
+                            const net = income - expense;
+                            return (
+                                <div className="calendar-tile calendar-net">
+                                    {net > 0 ? (
+                                        <div className="income">+{net.toLocaleString()}</div>
+                                    ) : net < 0 ? (
+                                        <div className="expense">-{Math.abs(net).toLocaleString()}</div>
+                                    ) : (
+                                        <div className="neutral">0</div>
+                                    )}
+                                </div>
+                            );
+                        }}
+                    />
                 </div>
 
-            {/* 오른쪽 상세내역 및 요약 */}
-            <div className="details-section">
-                {/* 상세내역 입력/목록 */}
-                <div className="details-container">
-                    <h2>{selectedDate.toDateString()}</h2>
+                {/* 오른쪽 상세내역 */}
+                <div className="details-section">
+                    <div className="details-container">
+                        <h2>{selectedDate.toDateString()}</h2>
 
-                    {/* 입력 행 */}
-                    <div className="input-group">
-                        <select value={type} onChange={(e) => setType(e.target.value)}>
-                            <option value="income">수입</option>
-                            <option value="expense">지출</option>
-                        </select>
-                        <input type="text" placeholder="항목명" value={name} onChange={(e) => setName(e.target.value)} />
-                        <input type="number" placeholder="금액" value={amount} onChange={(e) => setAmount(e.target.value)} />
-                        <button onClick={handleAddTransaction}>추가</button>
-                    </div>
+                        {/* 입력 행 */}
+                        <div className="input-group">
+                            <select value={type} onChange={(e) => setType(e.target.value)}>
+                                <option value="income">수입</option>
+                                <option value="expense">지출</option>
+                            </select>
+                            <select
+                                className="name-suggestion"
+                                value={nameSuggestions.includes(name) ? name : ""}
+                                onChange={(e) => setName(e.target.value)}
+                            >
+                                <option value="" disabled>
+                                    예시 선택
+                                </option>
+                                {nameSuggestions.map((opt) => (
+                                    <option value={opt} key={opt}>
+                                        {opt}
+                                    </option>
+                                ))}
+                            </select>
+                            <input
+                                type="text"
+                                placeholder="항목명"
+                                value={name}
+                                onChange={(e) => setName(e.target.value)}
+                            />
+                            <input type="number" placeholder="금액" value={amount} onChange={(e) => setAmount(e.target.value)} />
+                            <button onClick={handleAddTransaction}>추가</button>
+                        </div>
 
-                    {/* 목록 */}
-                    <div className="transaction-list-header">
-                        <span className="col type" aria-hidden="true"></span>
-                        <span className="col name">항목명</span>
-                        <span className="col amount">금액</span>
-                        <span className="col actions" aria-hidden="true"></span>
-                    </div>
+                        {/* 목록 */}
+                        <div className="transaction-list-header">
+                            <span className="col type" aria-hidden="true"></span>
+                            <span className="col name">항목명</span>
+                            <span className="col amount">금액</span>
+                            <span className="col actions" aria-hidden="true"></span>
+                        </div>
 
-                    <ul className="transaction-list">
-                        {dayTransactions.length === 0 && <li className="empty">내역이 없습니다</li>}
-                        {dayTransactions.map((t) => {
-                            const isEditing = editingId === t.id;
-                            if (!isEditing) {
+                        <ul className="transaction-list">
+                            {dayTransactions.length === 0 && <li className="empty">내역이 없습니다</li>}
+                            {dayTransactions.map((t) => {
+                                const isEditing = editingId === t.id;
+                                if (!isEditing) {
+                                    return (
+                                        <li key={t.id} className={t.type === "INCOME" ? "income row" : "expense row"}>
+                                            <span className="name">{t.name}</span>
+                                            <span className="amount">
+                                                {t.type === "INCOME" ? "+" : "-"}
+                                                {Number(t.amount).toLocaleString()}
+                                            </span>
+                                            <div className="actions">
+                                                <button onClick={() => startEdit(t)}>수정</button>
+                                                <button className="danger" onClick={() => deleteTx(t.id)}>삭제</button>
+                                            </div>
+                                        </li>
+                                    );
+                                }
                                 return (
-                                    <li key={t.id} className={t.type === "INCOME" ? "income row" : "expense row"}>
-                                        <span className="name">{t.name}</span>
-                                        <span className="amount">
-                        {t.type === "INCOME" ? "+" : "-"}
-                                            {Number(t.amount).toLocaleString()}
-                      </span>
+                                    <li key={t.id} className="edit row">
+                                        <select value={editType} onChange={(e) => setEditType(e.target.value)}>
+                                            <option value="income">수입</option>
+                                            <option value="expense">지출</option>
+                                        </select>
+                                        <input className="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
+                                        <input className="edit-amount" type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
                                         <div className="actions">
-                                            <button onClick={() => startEdit(t)}>수정</button>
-                                            <button className="danger" onClick={() => deleteTx(t.id)}>삭제</button>
+                                            <button onClick={saveEdit}>저장</button>
+                                            <button onClick={cancelEdit}>취소</button>
                                         </div>
                                     </li>
                                 );
-                            }
-                            return (
-                                <li key={t.id} className="edit row">
-                                    <select value={editType} onChange={(e) => setEditType(e.target.value)}>
-                                        <option value="income">수입</option>
-                                        <option value="expense">지출</option>
-                                    </select>
-                                    <input className="edit-name" value={editName} onChange={(e) => setEditName(e.target.value)} />
-                                    <input className="edit-amount" type="number" value={editAmount} onChange={(e) => setEditAmount(e.target.value)} />
-                                    <div className="actions">
-                                        <button onClick={saveEdit}>저장</button>
-                                        <button onClick={cancelEdit}>취소</button>
-                                    </div>
-                                </li>
-                            );
-                        })}
-                    </ul>
+                            })}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+
+            <div className="ledger-summary-card">
+                <div className="summary-header">
+                    <div className="summary-title">
+                        <h3>가계부 항목</h3>
+                        <span className="summary-range">
+                            {summaryData ? `${summaryData.startDate} ~ ${summaryData.endDate}` : "범위를 불러오는 중..."}
+                        </span>
+                    </div>
+                    <div className="summary-controls">
+                        <button type="button" onClick={() => shiftSummaryAnchor(-1)} aria-label="이전 기간">◀</button>
+                        <select value={summaryPeriod} onChange={(e) => setSummaryPeriod(e.target.value)}>
+                            <option value="week">주간</option>
+                            <option value="month">월간</option>
+                            <option value="year">연간</option>
+                        </select>
+                        <button type="button" onClick={() => shiftSummaryAnchor(1)} aria-label="다음 기간">▶</button>
+                    </div>
                 </div>
 
-                {/* 월별 요약은 상세 섹션 외부에 렌더링합니다 (DOM에서 분리) */}
-                </div>
-                </div>
-            {/* 월별 요약: details-section 외부에 렌더링하여 카드 높이에 영향을 주지 않음 */}
-            {monthData && (
-                <div className="summary-card">
+                <div className="summary-totals">
                     <div>
-                        <span>총 수입:</span>
-                        <span>{Number(monthData.totalIncome ?? 0).toLocaleString()}원</span>
+                        <span>수입</span>
+                        <strong className="income">+{Number(summaryData?.income ?? 0).toLocaleString()}원</strong>
                     </div>
                     <div>
-                        <span>총 지출:</span>
-                        <span>{Number(monthData.totalExpense ?? 0).toLocaleString()}원</span>
+                        <span>지출</span>
+                        <strong className="expense">-{Math.abs(Number(summaryData?.expense ?? 0)).toLocaleString()}원</strong>
                     </div>
-                    <hr />
                     <div>
-                        <span>손익:</span>
-                        <span>{Number((monthData.totalIncome ?? 0) - (monthData.totalExpense ?? 0)).toLocaleString()}원</span>
+                        <span>손익</span>
+                        <strong className={netValue >= 0 ? "income" : "expense"}>{netValue.toLocaleString()}원</strong>
                     </div>
                 </div>
-            )}
+
+                <div className="summary-list">
+                    <div className="summary-list-header">
+                        <span className="col name">항목명</span>
+                        <span className="col amount">금액</span>
+                        <span className="col date">날짜</span>
+                    </div>
+                    <ul>
+                        {summaryData?.transactions?.length ? (
+                            summaryData.transactions.map((t) => (
+                                <li key={t.id}>
+                                    <div className="name-and-type">
+                                        <span className={`type-pill ${t.type === "INCOME" ? "income" : "expense"}`}>
+                                            {t.type === "INCOME" ? "수입" : "지출"}
+                                        </span>
+                                        <span className="name">{t.name}</span>
+                                    </div>
+                                    <span className="amount">
+                                        {t.type === "INCOME" ? "+" : "-"}
+                                        {Number(t.amount).toLocaleString()}
+                                    </span>
+                                    <span className="date">{t.date}</span>
+                                </li>
+                            ))
+                        ) : (
+                            <li className="empty">표시할 항목이 없습니다</li>
+                        )}
+                    </ul>
+                </div>
+            </div>
         </div>
     );
 };
