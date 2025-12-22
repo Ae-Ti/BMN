@@ -49,6 +49,19 @@ function authHeaders() {
     return token ? { Authorization: `Bearer ${token}` } : {};
 }
 
+function formatKstDateTime(ts) {
+    if (!ts) return "";
+    const d = new Date(ts);
+    if (Number.isNaN(d.getTime())) return "";
+    const kst = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+    const yyyy = kst.getFullYear();
+    const mm = String(kst.getMonth() + 1).padStart(2, "0");
+    const dd = String(kst.getDate()).padStart(2, "0");
+    const hh = String(kst.getHours()).padStart(2, "0");
+    const mi = String(kst.getMinutes()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd} ${hh}:${mi}`;
+}
+
 function formatFavoriteCount(count) {
     const n = Number(count) || 0;
     if (n >= 10000) {
@@ -316,6 +329,7 @@ export default function RecipeDetail() {
     };
 
     const metaItems = [
+        recipe.createDate && `작성일 ${formatKstDateTime(recipe.createDate)}`,
         recipe.viewCount != null && `조회수 ${recipe.viewCount}`,
         cookMinutes != null && `조리시간 ${cookMinutes}분`,
         estPrice != null && `예상비용 ${estPrice}원`,

@@ -67,12 +67,16 @@ const formatTime = (ts) => {
     if (!ts) return "";
     const d = new Date(ts);
     if (Number.isNaN(d.getTime())) return "";
-    const now = new Date();
-    const sameDay = d.toDateString() === now.toDateString();
-    const hh = String(d.getHours()).padStart(2, "0");
-    const mm = String(d.getMinutes()).padStart(2, "0");
+
+    // Display in KST regardless of client/system timezone
+    const kst = new Date(d.toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+    const nowKst = new Date(new Date().toLocaleString("en-US", { timeZone: "Asia/Seoul" }));
+
+    const sameDay = kst.toDateString() === nowKst.toDateString();
+    const hh = String(kst.getHours()).padStart(2, "0");
+    const mm = String(kst.getMinutes()).padStart(2, "0");
     if (sameDay) return `${hh}:${mm}`;
-    return `${d.getMonth() + 1}/${d.getDate()} ${hh}:${mm}`;
+    return `${kst.getMonth() + 1}/${kst.getDate()} ${hh}:${mm}`;
 };
 
 const ChatPage = () => {

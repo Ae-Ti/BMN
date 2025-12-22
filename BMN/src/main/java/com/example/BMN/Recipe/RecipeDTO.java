@@ -23,6 +23,7 @@ public class RecipeDTO {
     private String tools;
     private Integer cookingTimeMinutes;
     private Integer estimatedPrice;
+    private java.time.LocalDateTime createDate;
 
     // 작성자 표시용
     private Long authorId;
@@ -58,6 +59,7 @@ public class RecipeDTO {
         this.tools = r.getTools();
         this.cookingTimeMinutes = r.getCookingTimeMinutes();
         this.estimatedPrice = r.getEstimatedPrice();
+        this.createDate = r.getCreateDate();
 
         // 작성자
         SiteUser a = r.getAuthor();
