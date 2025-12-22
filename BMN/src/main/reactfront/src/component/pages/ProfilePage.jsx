@@ -87,6 +87,9 @@ const ProfilePage = () => {
         followingCount: 0,
         followerCount: 0,
         followedByMe: false,
+        followsMe: false,
+        mutualFollow: false,
+        privateAccount: false,
     });
     const [loading, setLoading] = useState(false);
     const [myRecipes, setMyRecipes] = useState([]);
@@ -108,6 +111,9 @@ const ProfilePage = () => {
                 followingCount: data?.followingCount ?? 0,
                 followerCount: data?.followerCount ?? 0,
                 followedByMe: !!data?.followedByMe,
+                followsMe: !!data?.followsMe,
+                mutualFollow: !!data?.mutualFollow,
+                privateAccount: !!data?.privateAccount,
             });
         } catch {
             setProfile({
@@ -118,6 +124,9 @@ const ProfilePage = () => {
                 followingCount: 0,
                 followerCount: 0,
                 followedByMe: false,
+                followsMe: false,
+                mutualFollow: false,
+                privateAccount: false,
             });
         }
     }, [username]);
@@ -142,9 +151,13 @@ const ProfilePage = () => {
                     followerCount: Math.max(0, (p.followerCount ?? 1) - 1),
                 }));
             } else {
-                await axios.post(`/user/profile/${encodeURIComponent(username)}/follow`, null, {
+                const res = await axios.post(`/user/profile/${encodeURIComponent(username)}/follow`, null, {
                     headers: authHeaders(),
                 });
+                if (res?.status === 202) {
+                    alert(res.data?.message || "팔로우 요청을 전송했습니다.");
+                    return;
+                }
                 setProfile((p) => ({
                     ...p,
                     followedByMe: true,
@@ -190,6 +203,9 @@ const ProfilePage = () => {
     }, [profile]);
 
     const goFollowList = () => nav(`/profile/${encodeURIComponent(username)}/followers`);
+
+    const mutualFollow = profile.mutualFollow || (profile.followedByMe && profile.followsMe);
+    const isPrivateLocked = profile.privateAccount && !isMyProfile && !mutualFollow;
 
     const Card = ({ r, overrideAuthor }) => {
         const ratingRounded = round1(r?.averageRating);
@@ -243,6 +259,11 @@ const ProfilePage = () => {
                         <div className="profile-nickname">
                             {profile.nickname || profile.username}
                         </div>
+                        {profile.privateAccount && !profile.followedByMe && !isMyProfile && (
+                            <div style={{ color: "#b45309", fontWeight: 700, marginTop: "4px" }}>
+                                비공개 계정
+                            </div>
+                        )}
                         <div className="profile-details">
                             <div><b>아이디</b>: {profile.username || "-"}</div>
                             {profile.email && <div><b>이메일</b>: {profile.email}</div>}
@@ -264,17 +285,24 @@ const ProfilePage = () => {
                             className="green-btn"
                             disabled={!myName}
                         >
-                            {profile.followedByMe ? "언팔로우" : "팔로우"}
+                            {profile.followedByMe ? "언팔로우" : (profile.privateAccount ? "팔로우 요청" : "팔로우")}
                         </button>
                     )}
-                    <button
-                        onClick={goFollowList}
-                        className="green-btn-outline"
-                    >
-                        팔로워/팔로잉 확인
-                    </button>
+                    {!isPrivateLocked && (
+                        <button
+                            onClick={goFollowList}
+                            className="green-btn-outline"
+                        >
+                            팔로워/팔로잉 확인
+                        </button>
+                    )}
                     </div>
                 </div>
+                {isPrivateLocked && (
+                    <div style={{ marginTop: "10px", color: "#6b7280", fontWeight: 600 }}>
+                        비공개 계정입니다. 맞팔로우한 사용자만 팔로워/팔로잉 목록을 볼 수 있어요.
+                    </div>
+                )}
             </div>
 
             <div className="profile-page-width">

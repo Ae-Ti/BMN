@@ -35,6 +35,14 @@ public interface UserRepository extends JpaRepository<SiteUser, Long> {
     @Query("select f from SiteUser u join u.follow f where u.userName = :userName")
     Page<SiteUser> findFollowing(@Param("userName") String userName, Pageable pageable);
 
+        @Query("""
+                        select f from SiteUser u
+                        join u.follow f
+                        where u.userName = :userName
+                            and (:keyword is null or :keyword = '' or lower(f.userName) like lower(concat('%', :keyword, '%')) or lower(f.nickname) like lower(concat('%', :keyword, '%')))
+                        """)
+        Page<SiteUser> searchFollowing(@Param("userName") String userName, @Param("keyword") String keyword, Pageable pageable);
+
     // 팔로워 목록: username 사용자를 팔로우하는 사람들
     @Query("select f from SiteUser u join u.follower f where u.userName = :userName")
     Page<SiteUser> findFollowers(@Param("userName") String userName, Pageable pageable);

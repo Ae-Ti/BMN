@@ -29,6 +29,9 @@ dependencies {
 	compileOnly 'org.projectlombok:lombok'
 	runtimeOnly 'org.mariadb.jdbc:mariadb-java-client'
 	annotationProcessor 'org.projectlombok:lombok'
+	// ensure Lombok is available on annotation processor path
+	testCompileOnly 'org.projectlombok:lombok'
+	testAnnotationProcessor 'org.projectlombok:lombok'
 	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 	testRuntimeOnly 'com.h2database:h2'
 	runtimeOnly('com.h2database:h2')
@@ -50,6 +53,11 @@ dependencies {
 	// Mail support for email verification
 	implementation 'org.springframework.boot:spring-boot-starter-mail'
 	implementation "org.springframework.boot:spring-boot-starter-webflux"
+}
+
+// explicitly set annotation processor path so Lombok generates getters/setters
+tasks.withType(JavaCompile).configureEach {
+	options.annotationProcessorPath = configurations.annotationProcessor
 }
 
 tasks.named('test') {

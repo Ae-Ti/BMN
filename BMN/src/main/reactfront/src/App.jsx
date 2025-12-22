@@ -28,6 +28,8 @@ import MealMain from "./component/pages/MealMain";
 import MainPage from "./component/pages/MainPage";
 import ProfileSettings from "./component/pages/ProfileSettings";
 import UsageTips from "./component/pages/UsageTips";
+import ChatPage from "./component/pages/ChatPage";
+import NotificationsPage from "./component/pages/NotificationsPage";
 import axios from 'axios';
 
 // Initialize axios Authorization header from localStorage on app load
@@ -259,6 +261,22 @@ const App = () => {
                         element={
                             <ProtectedRoute>
                                 <FollowListPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="chat"
+                        element={
+                            <ProtectedRoute>
+                                <ChatPage />
+                            </ProtectedRoute>
+                        }
+                    />
+                    <Route
+                        path="notifications"
+                        element={
+                            <ProtectedRoute>
+                                <NotificationsPage />
                             </ProtectedRoute>
                         }
                     />

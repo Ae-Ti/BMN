@@ -164,7 +164,7 @@ public class ProfileController {
     public ResponseEntity<List<RecipeDTO>> myFavorites() {
         try {
             SiteUser me = currentUser();
-            List<RecipeDTO> list = favoriteRepository.findByUserOrderByIdDesc(me)
+                List<RecipeDTO> list = favoriteRepository.findWithRecipeByUserOrderByIdDesc(me)
                     .stream()
                     .map(Favorite::getRecipe)
                     .map(RecipeDTO::new)
@@ -181,6 +181,7 @@ public class ProfileController {
         public String nickname;
         public String introduction;
         public Boolean emailPublic;
+        public Boolean privateAccount;
     }
 
     /** ✅ 내 프로필 수정 (닉네임, 소개글, 이메일 공개 여부) */
@@ -198,6 +199,9 @@ public class ProfileController {
             if (req.emailPublic != null) {
                 me.setEmailPublic(req.emailPublic);
             }
+            if (req.privateAccount != null) {
+                me.setPrivateAccount(req.privateAccount);
+            }
 
             SiteUser saved = userRepository.save(me);
             log.info("Profile updated for user id={} userName={}", saved.getId(), saved.getUserName());
@@ -206,7 +210,8 @@ public class ProfileController {
                 "message", "프로필이 수정되었습니다.",
                 "nickname", saved.getNickname() != null ? saved.getNickname() : "",
                 "introduction", saved.getIntroduction() != null ? saved.getIntroduction() : "",
-                "emailPublic", saved.getEmailPublic() != null ? saved.getEmailPublic() : false
+                "emailPublic", saved.getEmailPublic() != null ? saved.getEmailPublic() : false,
+                "privateAccount", saved.getPrivateAccount() != null ? saved.getPrivateAccount() : false
             ));
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(401).build();
@@ -433,7 +438,19 @@ public class ProfileController {
         dto.setEmailVerified(target.getEmailVerified());
         dto.setFollowingCount(userService.countFollowing(username));
         dto.setFollowerCount(userService.countFollowers(username));
-        dto.setFollowedByMe(userService.isFollowing(username));
+        boolean followedByMe = false;
+        boolean followsMe = false;
+        if (me != null) {
+            followedByMe = userService.isFollowing(username);
+            try {
+                followsMe = userService.isFollowing(username, me);
+            } catch (Exception ignored) {
+                followsMe = false;
+            }
+        }
+        dto.setFollowedByMe(followedByMe);
+        dto.setFollowsMe(followsMe);
+        dto.setMutualFollow(followedByMe && followsMe);
 
         return ResponseEntity.ok(dto);
     }
@@ -442,9 +459,14 @@ public class ProfileController {
 
     /** ✅ 팔로우 */
     @PostMapping("/{username}/follow")
-    public ResponseEntity<Void> follow(@PathVariable String username) {
+    public ResponseEntity<?> follow(@PathVariable String username) {
         try {
-            userService.follow(username);
+            UserService.FollowActionResult result = userService.follow(username);
+            if (result == UserService.FollowActionResult.REQUESTED) {
+                return ResponseEntity.status(202).body(java.util.Map.of(
+                        "message", "팔로우 요청을 보냈습니다. 상대방의 승인을 기다려주세요.")
+                );
+            }
             return ResponseEntity.noContent().build();
         } catch (AccessDeniedException e) {
             return ResponseEntity.status(401).build();
@@ -464,6 +486,41 @@ public class ProfileController {
         }
     }
 
+    /* ======================= 팔로우 요청 알림 ======================= */
+
+    @GetMapping("/me/follow-requests")
+    public ResponseEntity<?> pendingFollowRequests() {
+        try {
+            return ResponseEntity.ok(userService.pendingRequestsForMe());
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).build();
+        }
+    }
+
+    @PostMapping("/me/follow-requests/{requester}/approve")
+    public ResponseEntity<?> approveFollowRequest(@PathVariable String requester) {
+        try {
+            userService.approveRequest(requester);
+            return ResponseEntity.ok(java.util.Map.of("message", "팔로우 요청을 승인했습니다."));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).build();
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(java.util.Map.of("message", e.getReason()));
+        }
+    }
+
+    @PostMapping("/me/follow-requests/{requester}/reject")
+    public ResponseEntity<?> rejectFollowRequest(@PathVariable String requester) {
+        try {
+            userService.rejectRequest(requester);
+            return ResponseEntity.ok(java.util.Map.of("message", "팔로우 요청을 거절했습니다."));
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).build();
+        } catch (org.springframework.web.server.ResponseStatusException e) {
+            return ResponseEntity.status(e.getStatusCode()).body(java.util.Map.of("message", e.getReason()));
+        }
+    }
+
     /* ======================= 팔로잉/팔로워 목록 ======================= */
 
     /** ✅ 팔로잉 목록 */
@@ -471,9 +528,32 @@ public class ProfileController {
     public ResponseEntity<PageEnvelope<PublicUserDTO>> following(
             @PathVariable String username,
             @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false, name = "q") String keyword
     ) {
-        Page<PublicUserDTO> p = userService.findFollowing(username, PageRequest.of(page, size));
+        SiteUser target = findByUsername(username);
+        String viewer = currentUsernameOrNull();
+        if (!canViewFollowData(target, viewer)) {
+            return ResponseEntity.status(403).body(PageEnvelope.of(Page.empty()));
+        }
+        Page<PublicUserDTO> p = userService.findFollowing(username, keyword, PageRequest.of(page, size));
+        return ResponseEntity.ok(PageEnvelope.of(p));
+    }
+
+    /** ✅ 내 팔로잉 목록 (프론트가 /me/following을 호출하는 경우 지원) */
+    @GetMapping("/me/following")
+    public ResponseEntity<PageEnvelope<PublicUserDTO>> myFollowing(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "20") int size,
+            @RequestParam(required = false, name = "q") String keyword
+    ) {
+        SiteUser me;
+        try {
+            me = currentUser();
+        } catch (AccessDeniedException e) {
+            return ResponseEntity.status(401).build();
+        }
+        Page<PublicUserDTO> p = userService.findFollowing(me.getUserName(), keyword, PageRequest.of(page, size));
         return ResponseEntity.ok(PageEnvelope.of(p));
     }
 
@@ -484,6 +564,11 @@ public class ProfileController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size
     ) {
+        SiteUser target = findByUsername(username);
+        String viewer = currentUsernameOrNull();
+        if (!canViewFollowData(target, viewer)) {
+            return ResponseEntity.status(403).body(PageEnvelope.of(Page.empty()));
+        }
         Page<PublicUserDTO> p = userService.findFollowers(username, PageRequest.of(page, size));
         return ResponseEntity.ok(PageEnvelope.of(p));
     }
@@ -505,7 +590,7 @@ public class ProfileController {
     @GetMapping("/{username}/favorites")
     public ResponseEntity<List<RecipeDTO>> userFavorites(@PathVariable String username) {
         SiteUser target = findByUsername(username);
-        List<RecipeDTO> list = favoriteRepository.findByUserOrderByIdDesc(target)
+        List<RecipeDTO> list = favoriteRepository.findWithRecipeByUserOrderByIdDesc(target)
                 .stream()
                 .map(Favorite::getRecipe)
                 .map(RecipeDTO::new)
@@ -531,6 +616,25 @@ public class ProfileController {
 
     private String usernameOf(String s) {
         return (s == null || s.isBlank()) ? "" : s;
+    }
+
+    private boolean canViewFollowData(SiteUser target, String viewerName) {
+        // 공개 계정은 누구나 조회 가능
+        if (!Boolean.TRUE.equals(target.getPrivateAccount())) {
+            return true;
+        }
+        // 본인 조회 허용
+        if (viewerName != null && viewerName.equals(target.getUserName())) {
+            return true;
+        }
+        if (viewerName == null) {
+            return false;
+        }
+        var viewerOpt = userRepository.findByUserName(viewerName);
+        if (viewerOpt.isEmpty()) {
+            return false;
+        }
+        return userService.isMutual(target, viewerOpt.get());
     }
 
     /* ======================= 프로필 보완 ======================= */

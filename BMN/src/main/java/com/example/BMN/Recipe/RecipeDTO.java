@@ -3,9 +3,9 @@ package com.example.BMN.Recipe;
 
 import com.example.BMN.User.SiteUser;
 import lombok.Data;
+import org.hibernate.Hibernate;
 
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -61,7 +61,7 @@ public class RecipeDTO {
 
         // 작성자
         SiteUser a = r.getAuthor();
-        if (a != null) {
+        if (a != null && Hibernate.isInitialized(a)) {
             this.authorId = a.getId();
             this.authorUsername = a.getUserName();
             // 닉네임이 있으면 닉네임, 없으면 userName 사용
@@ -94,13 +94,15 @@ public class RecipeDTO {
         }
 
         // 재료 rows
-        this.ingredientRows = (r.getIngredientRows() == null) ? List.of()
-                : r.getIngredientRows().stream()
-                .map(IngredientRowDTO::new)
-                .collect(Collectors.toList());
+        this.ingredientRows = (r.getIngredientRows() == null || !Hibernate.isInitialized(r.getIngredientRows()))
+            ? List.of()
+            : r.getIngredientRows().stream()
+            .map(IngredientRowDTO::new)
+            .collect(Collectors.toList());
 
         // 스텝 이미지
-        this.stepImages = (r.getStepImages() == null) ? List.of()
+        this.stepImages = (r.getStepImages() == null || !Hibernate.isInitialized(r.getStepImages()))
+                ? List.of()
                 : r.getStepImages().stream()
                 .sorted((s1, s2) -> {
                     Integer aIdx = s1.getStepIndex();

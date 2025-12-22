@@ -17,6 +17,8 @@ const Sidebar = ({ isOpen, onClose }) => {
                     <button className="nav-button" onClick={() => handleNavigate("/mypage")}>마이페이지</button>
                     <button className="nav-button" onClick={() => handleNavigate("/fridge")}>냉장고 관리</button>
                     <button className="nav-button" onClick={() => handleNavigate("/meal")}>식단 관리</button>
+                    <div className="nav-divider" aria-hidden="true"></div>
+                    <button className="nav-button" onClick={() => handleNavigate("/chat")}>채팅</button>
                 </nav>
             </div>
             {isOpen && <div className="sidebar-backdrop" onClick={onClose}></div>}

@@ -162,9 +162,21 @@ export default function RecipeDetail() {
     const cookMinutes = recipe?.cookingTimeMinutes ?? null;
     const estPrice = recipe?.estimatedPrice ?? null;
 
-    const authorName =
-        recipe?.authorDisplayName ?? recipe?.authorUsername ?? null;
-    const authorUsername = recipe?.authorUsername ?? null;
+    const authorUsername =
+        recipe?.authorUsername ??
+        recipe?.author?.username ??
+        recipe?.author?.userName ??
+        null;
+    const authorDisplayName =
+        recipe?.authorDisplayName ??
+        recipe?.author?.nickname ??
+        authorUsername ??
+        null;
+    const authorId =
+        recipe?.authorId ??
+        recipe?.author?.id ??
+        recipe?.author?.userId ??
+        null;
 
     const thumbSrc =
         recipe?.thumbnailUrl ||
@@ -200,12 +212,12 @@ export default function RecipeDetail() {
             return true;
         if (
             currentUserIdFromToken &&
-            recipe.authorId &&
-            String(currentUserIdFromToken) === String(recipe.authorId)
+            authorId &&
+            String(currentUserIdFromToken) === String(authorId)
         )
             return true;
         return false;
-    }, [recipe, currentUsername, currentUserIdFromToken]);
+    }, [recipe, currentUsername, currentUserIdFromToken, authorId, authorUsername]);
 
     // ✅ 단계 슬라이더 상태/핸들러 (반드시 return 위에 위치)
     const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -275,15 +287,15 @@ export default function RecipeDetail() {
     if (!recipe) return null;
 
     // 작성자 배지/링크: 본인이면 외부 마이페이지 URL, 타인이면 SPA 프로필
-    const authorInitials = (authorName || authorUsername || "U")
+    const authorInitials = (authorDisplayName || authorUsername || "U")
         .trim()
         .slice(0, 2)
         .toUpperCase();
     const isOwnAuthor =
         !!(currentUsername && authorUsername && currentUsername === authorUsername) ||
         !!(currentUserIdFromToken &&
-            recipe.authorId &&
-            String(currentUserIdFromToken) === String(recipe.authorId));
+            authorId &&
+            String(currentUserIdFromToken) === String(authorId));
     const authorTo = isOwnAuthor
         ? MY_PAGE_URL
         : authorUsername
@@ -347,7 +359,7 @@ export default function RecipeDetail() {
                 </button>
                 <h1>{recipe.subject ?? "(제목 없음)"}</h1>
 
-                {(authorName || authorUsername) &&
+                {(authorDisplayName || authorUsername) &&
                     (isOwnAuthor ? (
                         <a
                             className="sx-3z"
@@ -358,7 +370,7 @@ export default function RecipeDetail() {
                                 {authorInitials}
                             </span>
                             <span>
-                                {authorName || authorUsername}
+                                {authorDisplayName || authorUsername}
                             </span>
                             <span className="sx-42">(내 프로필)</span>
                         </a>
@@ -372,7 +384,7 @@ export default function RecipeDetail() {
                                 {authorInitials}
                             </span>
                             <span>
-                                {authorName || authorUsername}
+                                {authorDisplayName || authorUsername}
                             </span>
                         </Link>
                     ) : (
@@ -381,7 +393,7 @@ export default function RecipeDetail() {
                             <span className="sx-40 sx-41" aria-hidden>
                                 {authorInitials}
                             </span>
-                            <span>{authorName}</span>
+                            <span>{authorDisplayName || authorUsername || "탈퇴한 사용자"}</span>
                         </span>
                     ))}
                 {canEditOrDelete && (

@@ -6,6 +6,10 @@ import Sidebar from './Sidebar'; // Import Sidebar
 import logo from '../assets/Salty_logo.png';
 import Footer from './Footer'; // Import Footer
 import './Layout.css'; // Import Layout.css
+import axios from "axios";
+import { API_BASE } from "../config";
+
+axios.defaults.baseURL = API_BASE;
 
 const TOKEN_KEY = "token";
 // Clock skew allowance: 5 minutes in milliseconds
@@ -41,6 +45,8 @@ const Layout = () => {
     const location = useLocation();
     const [searchText, setSearchText] = useState("");
     const [isSidebarOpen, setSidebarOpen] = useState(false); // State for sidebar
+    const [unreadNotifications, setUnreadNotifications] = useState(false);
+    const [notificationSignature, setNotificationSignature] = useState("");
 
     // Keep header search input in sync with URL q when on /recipes
     useEffect(() => {
@@ -64,6 +70,57 @@ const Layout = () => {
         window.addEventListener("auth-changed", onAuthChanged);
         return () => window.removeEventListener("auth-changed", onAuthChanged);
     }, []);
+
+    const authHeaders = useCallback(() => {
+        const t = localStorage.getItem(TOKEN_KEY);
+        return t ? { Authorization: `Bearer ${t}` } : {};
+    }, []);
+
+    const signatureFromList = useCallback((list) => {
+        const ids = Array.isArray(list)
+            ? list.map((i) => i.userName || i.username || "").filter(Boolean).sort()
+            : [];
+        return ids.join("|");
+    }, []);
+
+    const fetchNotificationPreview = useCallback(async () => {
+        if (!authed) return;
+        try {
+            const { data } = await axios.get("/user/profile/me/follow-requests", { headers: authHeaders() });
+            const list = Array.isArray(data) ? data : [];
+            const sig = signatureFromList(list);
+            const seen = localStorage.getItem("notificationsSignatureSeen") || "";
+            setNotificationSignature(sig);
+            setUnreadNotifications(sig !== "" && sig !== seen);
+        } catch {
+            // ignore; badge remains unchanged
+        }
+    }, [authed, authHeaders, signatureFromList]);
+
+    useEffect(() => {
+        fetchNotificationPreview();
+    }, [fetchNotificationPreview]);
+
+    useEffect(() => {
+        if (location.pathname.startsWith("/notifications")) {
+            if (notificationSignature) {
+                localStorage.setItem("notificationsSignatureSeen", notificationSignature);
+            }
+            setUnreadNotifications(false);
+        }
+    }, [location.pathname, notificationSignature]);
+
+    useEffect(() => {
+        const handleSeen = (evt) => {
+            const sig = (evt?.detail && typeof evt.detail === "string") ? evt.detail : notificationSignature;
+            if (sig) {
+                localStorage.setItem("notificationsSignatureSeen", sig);
+            }
+            setUnreadNotifications(false);
+        };
+        window.addEventListener("notifications-read", handleSeen);
+        return () => window.removeEventListener("notifications-read", handleSeen);
+    }, [notificationSignature]);
 
     const handleLoggedOut = useCallback(() => setAuthed(false), []);
     const toggleSidebar = () => setSidebarOpen(!isSidebarOpen);
@@ -89,6 +146,23 @@ const Layout = () => {
                 </div>
 
                 <div className="auth-group">
+                    {authed && (
+                        <button
+                            type="button"
+                            className="notif-button"
+                            onClick={() => {
+                                if (notificationSignature) {
+                                    localStorage.setItem("notificationsSignatureSeen", notificationSignature);
+                                }
+                                setUnreadNotifications(false);
+                                navigate("/notifications");
+                            }}
+                            aria-label="알림 페이지로 이동"
+                        >
+                            <span aria-hidden>🔔</span>
+                            {unreadNotifications && <span className="notif-dot" aria-hidden />}
+                        </button>
+                    )}
                     <form className="header-search sx-1"
                         onSubmit={(e) => {
                             e.preventDefault();
@@ -119,7 +193,9 @@ const Layout = () => {
                             </button>
                         </>
                     ) : (
-                        <LogoutButton onLoggedOut={handleLoggedOut} />
+                        <>
+                            <LogoutButton onLoggedOut={handleLoggedOut} />
+                        </>
                     )}
                 </div>
             </header>

@@ -236,8 +236,9 @@ public class RecipeService {
     }
 
     public Recipe getRecipe(Long id) {
-        return this.recipeRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("recipe not found"));
+        return this.recipeRepository.findWithAuthorById(id)
+            .orElseGet(() -> this.recipeRepository.findById(id)
+                .orElseThrow(() -> new DataNotFoundException("recipe not found")));
     }
 
     public List<Recipe> findAll() {
@@ -374,7 +375,7 @@ public class RecipeService {
                 Sort.Order.desc("id")
         ));
 
-        Page<Recipe> basePage = recipeRepository.findAll(pageable);
+        Page<Recipe> basePage = recipeRepository.findAllBy(pageable);
         List<Recipe> baseList = basePage.getContent();
         if (baseList.isEmpty()) {
             return basePage; // 그대로 반환

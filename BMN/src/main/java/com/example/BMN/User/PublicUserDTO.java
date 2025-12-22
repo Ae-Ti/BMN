@@ -25,6 +25,9 @@ public class PublicUserDTO {
     private Long followingCount;    // 팔로잉 수
     private Long followerCount;     // 팔로워 수
     private Boolean followedByMe;   // 현재 로그인한 사용자가 이 유저를 팔로우 중인지 여부
+    private Boolean followsMe;      // 대상 사용자가 현재 로그인한 사용자를 팔로우 중인지 여부
+    private Boolean mutualFollow;   // 맞팔 상태 여부
+    private Boolean privateAccount; // 계정 비공개 여부
     private Boolean profileComplete; // 프로필 완성 여부
 
     /** 기본 변환 메서드: SiteUser → PublicUserDTO (본인 조회용 - 이메일 항상 포함) */
@@ -37,6 +40,7 @@ public class PublicUserDTO {
         dto.setEmail(u.getEmail());
         dto.setIntroduction(u.getIntroduction());
         dto.setEmailPublic(u.getEmailPublic() != null ? u.getEmailPublic() : false);
+        dto.setPrivateAccount(u.getPrivateAccount() != null ? u.getPrivateAccount() : false);
         dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
 
         // 기본 팔로우 정보는 null로 초기화 (컨트롤러/서비스에서 설정)
@@ -56,6 +60,7 @@ public class PublicUserDTO {
         dto.setNickname(u.getNickname());
         dto.setIntroduction(u.getIntroduction());
         dto.setEmailPublic(u.getEmailPublic() != null ? u.getEmailPublic() : false);
+        dto.setPrivateAccount(u.getPrivateAccount() != null ? u.getPrivateAccount() : false);
         dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
         
         // 이메일 공개 설정에 따라 이메일 포함
@@ -82,6 +87,7 @@ public class PublicUserDTO {
         dto.setEmail(null);
         dto.setIntroduction(u.getIntroduction());
         dto.setEmailPublic(false);
+        dto.setPrivateAccount(u.getPrivateAccount() != null ? u.getPrivateAccount() : false);
         dto.setProfileComplete(u.getProfileComplete() != null ? u.getProfileComplete() : true);
 
         dto.setFollowingCount(null);

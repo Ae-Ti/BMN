@@ -204,7 +204,7 @@ public class RecipeController {
     public ResponseEntity<List<RecipeDTO>> favoritesByUser(@PathVariable String username) {
         SiteUser user = userRepository.findByUserName(username)
                 .orElseThrow(() -> new IllegalArgumentException("User not found: " + username));
-        var list = favoriteRepository.findByUserOrderByIdDesc(user).stream()
+        var list = favoriteRepository.findWithRecipeByUserOrderByIdDesc(user).stream()
                 .map(Favorite::getRecipe)
                 .map(RecipeDTO::new)
                 .toList();

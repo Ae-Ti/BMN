@@ -22,6 +22,7 @@ public class UserService {
 
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
+    private final FollowRequestRepository followRequestRepository;
 
     /** 성별을 영문(male/female)으로 정규화 */
     private String normalizeSex(String sex) {
@@ -123,7 +124,7 @@ public class UserService {
 
     /* ========================= 로그인 사용자 헬퍼 ========================= */
 
-    private SiteUser currentUserOrThrow() {
+    public SiteUser currentUserOrThrow() {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         if (auth == null || auth.getName() == null || "anonymousUser".equals(auth.getName())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "로그인이 필요합니다.");
@@ -134,9 +135,23 @@ public class UserService {
 
     /* ========================= 팔로우 기능 ========================= */
 
-    /** me가 target을 팔로우(중복 허용 안 함) */
+    public enum FollowActionResult { FOLLOWED, REQUESTED }
+
+    private boolean follows(SiteUser from, SiteUser to) {
+        return userRepository.existsFollowing(from.getId(), to.getId());
+    }
+
+    /** 임의 사용자 기준 팔로우 여부 */
+    @Transactional(readOnly = true)
+    public boolean isFollowing(String fromUsername, String targetUsername) {
+        SiteUser from = getUser(fromUsername);
+        SiteUser target = getUser(targetUsername);
+        return follows(from, target);
+    }
+
+    /** me가 target을 팔로우하거나 비공개 계정이면 요청 생성 */
     @Transactional
-    public void follow(String targetUsername) {
+    public FollowActionResult follow(String targetUsername) {
         SiteUser me = currentUserOrThrow();
         if (me.getUserName().equals(targetUsername)) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "자기 자신은 팔로우할 수 없습니다.");
@@ -145,39 +160,99 @@ public class UserService {
 
         Set<SiteUser> following = me.getFollow();
         if (following.contains(target)) {
-            // 이미 팔로우 중이면 무시(에러 대신 no-op)
-            return;
+            return FollowActionResult.FOLLOWED;
         }
+
+        // 비공개 계정이면 팔로우 요청을 생성
+        if (Boolean.TRUE.equals(target.getPrivateAccount())) {
+            var existing = followRequestRepository.findByRequesterAndTargetAndStatus(me, target, FollowRequest.Status.PENDING);
+            if (existing.isPresent()) {
+                return FollowActionResult.REQUESTED;
+            }
+            FollowRequest fr = new FollowRequest();
+            fr.setRequester(me);
+            fr.setTarget(target);
+            fr.setStatus(FollowRequest.Status.PENDING);
+            followRequestRepository.save(fr);
+            return FollowActionResult.REQUESTED;
+        }
+
         following.add(target);
-        // owning side는 me.follow 이므로 me만 저장해도 조인테이블 반영됨
         userRepository.save(me);
+        return FollowActionResult.FOLLOWED;
     }
 
-    /** me가 target을 언팔로우(없는 관계면 no-op) */
+    /** me가 target을 언팔로우(요청까지 제거) */
     @Transactional
     public void unfollow(String targetUsername) {
         SiteUser me = currentUserOrThrow();
         if (me.getUserName().equals(targetUsername)) {
-            // 자기 자신 언팔로우는 의미 없음. no-op
             return;
         }
         SiteUser target = getUser(targetUsername);
 
         Set<SiteUser> following = me.getFollow();
-        if (!following.contains(target)) {
-            // 팔로우하지 않았다면 no-op
-            return;
+        if (following.contains(target)) {
+            following.remove(target);
+            userRepository.save(me);
         }
-        following.remove(target);
-        userRepository.save(me);
+
+        // 대기 중이던 요청도 함께 정리
+        followRequestRepository.deleteByRequesterAndTargetAndStatus(me, target, FollowRequest.Status.PENDING);
     }
 
-    /** me가 target을 팔로우 중인지 여부 */
+    /** me가 target을 팔로우 중인지 여부 (로그인 사용자 기준) */
     @Transactional(readOnly = true)
     public boolean isFollowing(String targetUsername) {
         SiteUser me = currentUserOrThrow();
         SiteUser target = getUser(targetUsername);
-        return userRepository.existsFollowing(me.getId(), target.getId());
+        return follows(me, target);
+    }
+
+    @Transactional(readOnly = true)
+    public boolean isMutual(SiteUser a, SiteUser b) {
+        return follows(a, b) && follows(b, a);
+    }
+
+    /* ========================= 팔로우 요청 처리 ========================= */
+
+    @Transactional(readOnly = true)
+    public List<PublicUserDTO> pendingRequestsForMe() {
+        SiteUser me = currentUserOrThrow();
+        return followRequestRepository.findByTargetAndStatusOrderByCreatedAtDesc(me, FollowRequest.Status.PENDING)
+                .stream()
+                .map(FollowRequest::getRequester)
+                .map(PublicUserDTO::forPublicView)
+                .toList();
+    }
+
+    @Transactional
+    public void approveRequest(String requesterUsername) {
+        SiteUser me = currentUserOrThrow();
+        SiteUser requester = getUser(requesterUsername);
+        FollowRequest fr = followRequestRepository
+                .findByRequesterAndTargetAndStatus(requester, me, FollowRequest.Status.PENDING)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."));
+
+        fr.setStatus(FollowRequest.Status.APPROVED);
+        fr.setDecidedAt(java.time.LocalDateTime.now());
+        followRequestRepository.save(fr);
+
+        // 팔로우 관계 생성
+        requester.getFollow().add(me);
+        userRepository.save(requester);
+    }
+
+    @Transactional
+    public void rejectRequest(String requesterUsername) {
+        SiteUser me = currentUserOrThrow();
+        SiteUser requester = getUser(requesterUsername);
+        FollowRequest fr = followRequestRepository
+                .findByRequesterAndTargetAndStatus(requester, me, FollowRequest.Status.PENDING)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."));
+        fr.setStatus(FollowRequest.Status.REJECTED);
+        fr.setDecidedAt(java.time.LocalDateTime.now());
+        followRequestRepository.save(fr);
     }
 
     /* ========================= 팔로워/팔로잉 카운트 ========================= */
@@ -199,7 +274,16 @@ public class UserService {
     /** username 사용자가 팔로우하는 대상들(팔로잉) */
     @Transactional(readOnly = true)
     public Page<PublicUserDTO> findFollowing(String username, Pageable pageable) {
-        Page<SiteUser> page = userRepository.findFollowing(username, pageable);
+        return findFollowing(username, null, pageable);
+    }
+
+    public Page<PublicUserDTO> findFollowing(String username, String keyword, Pageable pageable) {
+        Page<SiteUser> page;
+        if (keyword == null || keyword.isBlank()) {
+            page = userRepository.findFollowing(username, pageable);
+        } else {
+            page = userRepository.searchFollowing(username, keyword, pageable);
+        }
         return page.map(PublicUserDTO::fromEntity);
     }
 

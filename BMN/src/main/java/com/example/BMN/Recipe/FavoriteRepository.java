@@ -21,7 +21,8 @@ public interface FavoriteRepository extends JpaRepository<Favorite, Long> {
 
     Page<Favorite> findByUser(SiteUser user, Pageable pageable);
 
-    List<Favorite> findByUserOrderByIdDesc(SiteUser user);
+    @Query("select f from Favorite f join fetch f.recipe r left join fetch r.author where f.user = :user order by f.id desc")
+    List<Favorite> findWithRecipeByUserOrderByIdDesc(@Param("user") SiteUser user);
 
     // ✅ 레시피 ID 목록에 대한 즐겨찾기 개수를 일괄 조회
     @Query("select f.recipe.id, count(f) from Favorite f where f.recipe.id in :ids group by f.recipe.id")

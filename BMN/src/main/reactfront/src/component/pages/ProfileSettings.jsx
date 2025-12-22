@@ -24,11 +24,13 @@ const ProfileSettings = () => {
         email: "",
         introduction: "",
         emailPublic: false,
+        privateAccount: false,
     });
     const [formData, setFormData] = useState({
         nickname: "",
         introduction: "",
         emailPublic: false,
+        privateAccount: false,
     });
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
     const [deleteConfirmText, setDeleteConfirmText] = useState("");
@@ -52,11 +54,13 @@ const ProfileSettings = () => {
                     email: data?.email ?? "",
                     introduction: data?.introduction ?? "",
                     emailPublic: data?.emailPublic ?? false,
+                    privateAccount: data?.privateAccount ?? false,
                 });
                 setFormData({
                     nickname: data?.nickname ?? "",
                     introduction: data?.introduction ?? "",
                     emailPublic: data?.emailPublic ?? false,
+                    privateAccount: data?.privateAccount ?? false,
                 });
             } catch (err) {
                 console.error("Failed to load profile:", err);
@@ -247,6 +251,22 @@ const ProfileSettings = () => {
                             </label>
                             <small className="form-hint" style={{ marginTop: "4px" }}>
                                 체크하면 다른 사용자가 내 프로필에서 이메일을 볼 수 있습니다.
+                            </small>
+                        </div>
+
+                        <div className="form-group">
+                            <label style={{ display: "flex", alignItems: "center", gap: "10px", cursor: "pointer" }}>
+                                <input
+                                    type="checkbox"
+                                    name="privateAccount"
+                                    checked={formData.privateAccount}
+                                    onChange={handleChange}
+                                    style={{ width: "18px", height: "18px", cursor: "pointer" }}
+                                />
+                                <span>계정 비공개</span>
+                            </label>
+                            <small className="form-hint" style={{ marginTop: "4px" }}>
+                                비공개로 설정하면 팔로우 승인 후에만 팔로우/채팅/팔로워·팔로잉 열람이 가능합니다.
                             </small>
                         </div>
 

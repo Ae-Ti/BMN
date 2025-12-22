@@ -48,6 +48,7 @@ const FollowListPage = () => {
     const [tab, setTab] = useState("followers");     // "followers" | "following"
     const [list, setList] = useState([]);
     const [loading, setLoading] = useState(false);
+    const [errorMessage, setErrorMessage] = useState("");
 
     /* 목록 가져오기 (백엔드 응답을 즉시 정규화) */
     const fetchList = useCallback(async (which) => {
@@ -68,7 +69,10 @@ const FollowListPage = () => {
                 // 서버가 followedByMe를 내려줄 수도 있고 아닐 수도 있음 -> 기본 false
                 followedByMe: !!dto.followedByMe,
             }));
-        } catch {
+        } catch (err) {
+            if (err?.response?.status === 403) {
+                setErrorMessage("맞팔로우한 사용자만 볼 수 있는 비공개 계정입니다.");
+            }
             return [];
         }
     }, [username]);
@@ -96,6 +100,7 @@ const FollowListPage = () => {
     useEffect(() => {
         (async () => {
             setLoading(true);
+            setErrorMessage("");
             const normalized = await fetchList(tab);
             // 팔로우 버튼은 "로그인 사용자 기준"이므로 로그인한 나 기준으로 보정
             const withState = await enrichFollowState(normalized);
@@ -179,7 +184,8 @@ const FollowListPage = () => {
             </div>
 
             {loading && <p className="sx-m sx-n"  >불러오는 중...</p>}
-            {!loading && list.length === 0 && <p >표시할 항목이 없습니다.</p>}
+            {!loading && errorMessage && <p style={{ color: "#b91c1c", fontWeight: 700 }}>{errorMessage}</p>}
+            {!loading && !errorMessage && list.length === 0 && <p>표시할 항목이 없습니다.</p>}
 
             {!loading && list.length > 0 && (
                 <div className="follow-grid">

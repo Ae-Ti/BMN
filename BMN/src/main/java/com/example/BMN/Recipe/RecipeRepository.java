@@ -5,6 +5,7 @@ import com.example.BMN.User.SiteUser;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.*;
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
@@ -16,7 +17,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     List<Recipe> findBySubjectLike(String subject);
     Recipe findBySubjectAndDescription(String subject, String description);
 
-    Page<Recipe> findAll(Pageable pageable);
+    @EntityGraph(attributePaths = {"author"})
+    Page<Recipe> findAllBy(Pageable pageable);
+
+    @EntityGraph(attributePaths = {"author"})
+    java.util.Optional<Recipe> findWithAuthorById(Long id);
+
+    @EntityGraph(attributePaths = {"author"})
     List<Recipe> findAllByAuthorOrderByIdDesc(SiteUser author);
     List<Recipe> findByIdIn(List<Long> ids);
 
@@ -25,10 +32,13 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     Page<Recipe> findAllByOrderByViewCountDesc(Pageable pageable);                   // 조회수순
     Page<Recipe> findAllByOrderByFavoriteCountDesc(Pageable pageable);               // 즐겨찾기순
     Page<Recipe> findAllByOrderByAverageRatingDescRatingCountDesc(Pageable pageable);// 평점순(평점→참여수)
+
+    @EntityGraph(attributePaths = {"author"})
     Page<Recipe> findByAuthor(SiteUser author, Pageable pageable);
 
     /* ------------------ 검색 (간단한 텍스트 검색) ------------------ */
-    @Query(value = "SELECT DISTINCT r FROM Recipe r LEFT JOIN r.ingredientRows ir " +
+    @EntityGraph(attributePaths = {"author"})
+    @Query(value = "SELECT DISTINCT r FROM Recipe r LEFT JOIN FETCH r.author LEFT JOIN r.ingredientRows ir " +
         "WHERE LOWER(r.subject) LIKE %:q% OR r.description LIKE %:q% OR LOWER(ir.name) LIKE %:q%",
         countQuery = "SELECT COUNT(DISTINCT r) FROM Recipe r LEFT JOIN r.ingredientRows ir " +
             "WHERE LOWER(r.subject) LIKE %:q% OR r.description LIKE %:q% OR LOWER(ir.name) LIKE %:q%")
