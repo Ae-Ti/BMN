@@ -23,6 +23,9 @@ public interface RecipeRepository extends JpaRepository<Recipe, Long> {
     @EntityGraph(attributePaths = {"author"})
     java.util.Optional<Recipe> findWithAuthorById(Long id);
 
+    @EntityGraph(attributePaths = {"author", "stepImages"})
+    java.util.Optional<Recipe> findWithAuthorAndStepsById(Long id);
+
     @EntityGraph(attributePaths = {"author"})
     List<Recipe> findAllByAuthorOrderByIdDesc(SiteUser author);
     List<Recipe> findByIdIn(List<Long> ids);

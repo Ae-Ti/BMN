@@ -8,31 +8,38 @@ import "./RecipeForm.css";
 
 axios.defaults.baseURL = API_BASE;
 
-// ✅ 이미지 리사이징 헬퍼
+// ✅ 이미지 리사이징 헬퍼 (작은 이미지는 그대로, 원본 포맷 유지)
 async function resizeImage(file, options) {
     const { maxWidth, maxHeight, quality } = options;
     return new Promise((resolve, reject) => {
         const img = document.createElement("img");
         img.src = URL.createObjectURL(file);
         img.onload = () => {
-            const canvas = document.createElement("canvas");
-            let { width, height } = img;
-
-            if (width > height) {
-                if (width > maxWidth) {
-                    height = Math.round((height * maxWidth) / width);
-                    width = maxWidth;
-                }
-            } else {
-                if (height > maxHeight) {
-                    width = Math.round((width * maxHeight) / height);
-                    height = maxHeight;
-                }
+            const { naturalWidth, naturalHeight } = img;
+            // 원본이 제한보다 작으면 그대로 반환해 화질 손실 방지
+            if (naturalWidth <= maxWidth && naturalHeight <= maxHeight) {
+                resolve(file);
+                return;
             }
+
+            let width = naturalWidth;
+            let height = naturalHeight;
+            if (width > height && width > maxWidth) {
+                height = Math.round((height * maxWidth) / width);
+                width = maxWidth;
+            } else if (height >= width && height > maxHeight) {
+                width = Math.round((width * maxHeight) / height);
+                height = maxHeight;
+            }
+
+            const canvas = document.createElement("canvas");
             canvas.width = width;
             canvas.height = height;
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
+
+            const targetType = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
+            const qualityOption = targetType === "image/jpeg" ? quality : undefined;
 
             canvas.toBlob(
                 (blob) => {
@@ -40,10 +47,10 @@ async function resizeImage(file, options) {
                         reject(new Error("Canvas is empty"));
                         return;
                     }
-                    resolve(new File([blob], file.name, { type: "image/jpeg", lastModified: Date.now() }));
+                    resolve(new File([blob], file.name, { type: targetType, lastModified: Date.now() }));
                 },
-                "image/jpeg",
-                quality
+                targetType,
+                qualityOption
             );
         };
         img.onerror = (err) => reject(err);
@@ -107,7 +114,7 @@ export default function RecipeForm() {
         }
         if (f) {
             try {
-                const resizedFile = await resizeImage(f, { maxWidth: 500, maxHeight: 500, quality: 0.8 });
+                const resizedFile = await resizeImage(f, { maxWidth: 1600, maxHeight: 1600, quality: 0.92 });
                 setThumbnail(resizedFile);
                 setThumbnailPreview(URL.createObjectURL(resizedFile));
             } catch (error) {
@@ -142,7 +149,7 @@ export default function RecipeForm() {
 
             if (file) {
                 try {
-                    resizedFile = await resizeImage(file, { maxWidth: 500, maxHeight: 500, quality: 0.8 });
+                    resizedFile = await resizeImage(file, { maxWidth: 1600, maxHeight: 1600, quality: 0.92 });
                     previewUrl = URL.createObjectURL(resizedFile);
                 } catch (error) {
                     console.error(`Step ${idx} resize failed:`, error);

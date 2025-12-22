@@ -236,9 +236,10 @@ public class RecipeService {
     }
 
     public Recipe getRecipe(Long id) {
-        return this.recipeRepository.findWithAuthorById(id)
-            .orElseGet(() -> this.recipeRepository.findById(id)
-                .orElseThrow(() -> new DataNotFoundException("recipe not found")));
+        return this.recipeRepository.findWithAuthorAndStepsById(id)
+            .orElseGet(() -> this.recipeRepository.findWithAuthorById(id)
+                .orElseGet(() -> this.recipeRepository.findById(id)
+                    .orElseThrow(() -> new DataNotFoundException("recipe not found"))));
     }
 
     public List<Recipe> findAll() {
