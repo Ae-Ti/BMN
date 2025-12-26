@@ -273,7 +273,7 @@ const App = () => {
                         }
                     />
                     <Route
-                        path="notifications"
+                        path="notification-list"
                         element={
                             <ProtectedRoute>
                                 <NotificationsPage />

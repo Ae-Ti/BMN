@@ -10,6 +10,7 @@ import jakarta.transaction.Transactional;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.RequiredArgsConstructor;
+import org.hibernate.Hibernate;
 import org.springframework.data.domain.*;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -73,6 +74,8 @@ public class RecipeService {
             MultipartFile thumbnail,
             List<MultipartFile> stepImages,
             List<String> captions,
+            List<String> stepTypes,
+            List<String> stepVideoUrls,
             SiteUser authorFromController
     ) throws IOException {
         Recipe recipe = new Recipe();
@@ -95,14 +98,42 @@ public class RecipeService {
         // 재료 rows
         replaceIngredients(recipe, ingredients);
 
-        // 스텝
-        if (stepImages != null) {
+        // 스텝(이미지/영상) 저장
+        if (stepTypes != null && !stepTypes.isEmpty()) {
+            int idx = 1;
+            int imageCursor = 0;
+            for (int i = 0; i < stepTypes.size(); i++) {
+                String type = Optional.ofNullable(stepTypes.get(i)).orElse("image").toLowerCase(Locale.ROOT).trim();
+                String cap = (captions != null && captions.size() > i) ? captions.get(i) : null;
+                if ("video".equals(type)) {
+                    String url = (stepVideoUrls != null && stepVideoUrls.size() > i) ? stepVideoUrls.get(i) : null;
+                    if (url == null || url.isBlank()) continue;
+                    RecipeStepImage step = new RecipeStepImage();
+                    step.setStepIndex(idx++);
+                    step.setCaption(cap);
+                    step.setVideoUrl(url.trim());
+                    step.setImage(null);
+                    recipe.addStepImage(step);
+                } else {
+                    MultipartFile f = (stepImages != null && imageCursor < stepImages.size()) ? stepImages.get(imageCursor++) : null;
+                    if (f == null || f.isEmpty()) continue;
+                    RecipeStepImage step = new RecipeStepImage();
+                    step.setStepIndex(idx++);
+                    step.setImage(f.getBytes());
+                    step.setVideoUrl(null);
+                    step.setCaption(cap);
+                    recipe.addStepImage(step);
+                }
+            }
+        } else if (stepImages != null) {
+            int idx = 1;
             for (int i = 0; i < stepImages.size(); i++) {
                 MultipartFile f = stepImages.get(i);
                 if (f == null || f.isEmpty()) continue;
                 RecipeStepImage step = new RecipeStepImage();
-                step.setStepIndex(i + 1);
+                step.setStepIndex(idx++);
                 step.setImage(f.getBytes());
+                step.setVideoUrl(null);
                 String cap = (captions != null && captions.size() > i) ? captions.get(i) : null;
                 step.setCaption(cap);
                 recipe.addStepImage(step);
@@ -131,6 +162,8 @@ public class RecipeService {
             MultipartFile thumbnail,
             List<MultipartFile> newStepImages,
             List<String> captionsForNewSteps,
+            List<String> stepTypes,
+            List<String> stepVideoUrls,
             List<Long> removeStepIds
     ) throws IOException {
         Recipe recipe = getRecipe(recipeId);
@@ -167,13 +200,40 @@ public class RecipeService {
         }
 
         int nextIndex = recipe.getStepImages() == null ? 1 : recipe.getStepImages().size() + 1;
-        if (newStepImages != null) {
+        if (stepTypes != null && !stepTypes.isEmpty()) {
+            int imageCursor = 0;
+            for (int i = 0; i < stepTypes.size(); i++) {
+                String type = Optional.ofNullable(stepTypes.get(i)).orElse("image").toLowerCase(Locale.ROOT).trim();
+                String cap = (captionsForNewSteps != null && captionsForNewSteps.size() > i)
+                        ? captionsForNewSteps.get(i) : null;
+                if ("video".equals(type)) {
+                    String url = (stepVideoUrls != null && stepVideoUrls.size() > i) ? stepVideoUrls.get(i) : null;
+                    if (url == null || url.isBlank()) continue;
+                    RecipeStepImage step = new RecipeStepImage();
+                    step.setStepIndex(nextIndex++);
+                    step.setCaption(cap);
+                    step.setVideoUrl(url.trim());
+                    step.setImage(null);
+                    recipe.addStepImage(step);
+                } else {
+                    MultipartFile f = (newStepImages != null && imageCursor < newStepImages.size()) ? newStepImages.get(imageCursor++) : null;
+                    if (f == null || f.isEmpty()) continue;
+                    RecipeStepImage step = new RecipeStepImage();
+                    step.setStepIndex(nextIndex++);
+                    step.setImage(f.getBytes());
+                    step.setVideoUrl(null);
+                    step.setCaption(cap);
+                    recipe.addStepImage(step);
+                }
+            }
+        } else if (newStepImages != null) {
             for (int i = 0; i < newStepImages.size(); i++) {
                 MultipartFile f = newStepImages.get(i);
                 if (f == null || f.isEmpty()) continue;
                 RecipeStepImage step = new RecipeStepImage();
                 step.setStepIndex(nextIndex++);
                 step.setImage(f.getBytes());
+                step.setVideoUrl(null);
                 String cap = (captionsForNewSteps != null && captionsForNewSteps.size() > i)
                         ? captionsForNewSteps.get(i) : null;
                 step.setCaption(cap);
@@ -235,11 +295,21 @@ public class RecipeService {
         return this.recipeRepository.findAll(pageable);
     }
 
+    @Transactional
     public Recipe getRecipe(Long id) {
-        return this.recipeRepository.findWithAuthorAndStepsById(id)
+        Recipe recipe = this.recipeRepository.findWithAuthorAndStepsById(id)
             .orElseGet(() -> this.recipeRepository.findWithAuthorById(id)
                 .orElseGet(() -> this.recipeRepository.findById(id)
                     .orElseThrow(() -> new DataNotFoundException("recipe not found"))));
+        initializeCollections(recipe); // ensure ingredientRows/stepImages are loaded
+        return recipe;
+    }
+
+    // Explicit initializer to avoid lazy loading issues in DTO mapping
+    private void initializeCollections(Recipe recipe) {
+        if (recipe == null) return;
+        try { Hibernate.initialize(recipe.getIngredientRows()); } catch (Exception ignored) {}
+        try { Hibernate.initialize(recipe.getStepImages()); } catch (Exception ignored) {}
     }
 
     public List<Recipe> findAll() {

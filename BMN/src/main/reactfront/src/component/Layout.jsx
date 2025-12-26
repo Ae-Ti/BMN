@@ -76,17 +76,15 @@ const Layout = () => {
         return t ? { Authorization: `Bearer ${t}` } : {};
     }, []);
 
+    // 알림이 1개라도 있으면 badge
     const signatureFromList = useCallback((list) => {
-        const ids = Array.isArray(list)
-            ? list.map((i) => i.userName || i.username || "").filter(Boolean).sort()
-            : [];
-        return ids.join("|");
+        return Array.isArray(list) && list.length > 0 ? "has" : "";
     }, []);
 
     const fetchNotificationPreview = useCallback(async () => {
         if (!authed) return;
         try {
-            const { data } = await axios.get("/user/profile/me/follow-requests", { headers: authHeaders() });
+            const { data } = await axios.get("/notifications", { headers: authHeaders() });
             const list = Array.isArray(data) ? data : [];
             const sig = signatureFromList(list);
             const seen = localStorage.getItem("notificationsSignatureSeen") || "";
@@ -99,6 +97,17 @@ const Layout = () => {
 
     useEffect(() => {
         fetchNotificationPreview();
+    }, [fetchNotificationPreview]);
+
+    // 창 복귀 시 알림 상태를 다시 조회해 배지 반영
+    useEffect(() => {
+        const onVisibility = () => {
+            if (document.visibilityState === "visible") {
+                fetchNotificationPreview();
+            }
+        };
+        document.addEventListener("visibilitychange", onVisibility);
+        return () => document.removeEventListener("visibilitychange", onVisibility);
     }, [fetchNotificationPreview]);
 
     useEffect(() => {
@@ -155,7 +164,7 @@ const Layout = () => {
                                     localStorage.setItem("notificationsSignatureSeen", notificationSignature);
                                 }
                                 setUnreadNotifications(false);
-                                navigate("/notifications");
+                                navigate("/notification-list");
                             }}
                             aria-label="알림 페이지로 이동"
                         >

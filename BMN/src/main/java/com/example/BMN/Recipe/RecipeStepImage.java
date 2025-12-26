@@ -24,6 +24,10 @@ public class RecipeStepImage {
     @Column(columnDefinition = "LONGBLOB")
     private byte[] image;
 
+    // 선택: 이미지 대신 유튜브 링크를 저장할 수 있다.
+    @Column(length = 500)
+    private String videoUrl;
+
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "recipe_id", nullable = false, foreignKey = @ForeignKey(name = "fk_step_recipe"))
     private Recipe recipe;

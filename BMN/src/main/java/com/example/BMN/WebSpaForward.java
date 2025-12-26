@@ -33,8 +33,7 @@ public class WebSpaForward {
         "/verify-instructions",
             "/settings",
             "/RecipeMain",
-            "/guide", "/chat", "/notifications"
-
+            "/guide", "/chat", "/notification-list"
     })
     public String forwardToIndex(HttpServletRequest request) {
         String queryString = request.getQueryString();

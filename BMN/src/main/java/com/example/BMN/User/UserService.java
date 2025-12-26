@@ -1,5 +1,7 @@
+
 package com.example.BMN.User;
 
+import com.example.BMN.Notification.NotificationService;
 import com.example.BMN.Recipe.Recipe;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
@@ -11,7 +13,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
-
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -19,23 +20,22 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Service
 public class UserService {
-
+        /**
+         * Normalize the sex string to 'M', 'F', or null if invalid.
+         */
+        private String normalizeSex(String sex) {
+            if (sex == null) return null;
+            sex = sex.trim().toUpperCase();
+            if (sex.equals("M") || sex.equals("F")) return sex;
+            return null;
+        }
     private final UserRepository userRepository;
     private final PasswordEncoder passwordEncoder;
     private final FollowRequestRepository followRequestRepository;
+    private final NotificationService notificationService;
 
-    /** 성별을 영문(male/female)으로 정규화 */
-    private String normalizeSex(String sex) {
-        if (sex == null || sex.isBlank()) return null;
-        String s = sex.trim().toLowerCase();
-        if (s.equals("남") || s.equals("남성") || s.equals("male") || s.equals("m")) {
-            return "male";
-        } else if (s.equals("여") || s.equals("여성") || s.equals("female") || s.equals("f")) {
-            return "female";
-        } else if (s.equals("other") || s.equals("기타")) {
-            return "other";
-        }
-        return sex; // 알 수 없는 값은 그대로 저장
+    public SiteUser getById(Long id) {
+        return userRepository.findById(id).orElseThrow(() -> new IllegalArgumentException("사용자를 찾을 수 없습니다. id=" + id));
     }
 
     /* ========================= 가입/조회 ========================= */
@@ -55,8 +55,8 @@ public class UserService {
         user.setEmail(email);
         user.setPassword(passwordEncoder.encode(password)); // 비밀번호 해시 저장
         user.setIntroduction(introduction);
-    user.setNickname(nickname);
-    user.setDateOfBirth(dateOfBirth);
+        user.setNickname(nickname);
+        user.setDateOfBirth(dateOfBirth);
         user.setSex(normalizeSex(sex));
         // newly created users require email verification
         user.setEmailVerified(false);
@@ -174,6 +174,15 @@ public class UserService {
             fr.setTarget(target);
             fr.setStatus(FollowRequest.Status.PENDING);
             followRequestRepository.save(fr);
+            org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserService.class);
+            System.out.println("[DEBUG] UserService.follow: targetId=" + (target != null ? target.getId() : "null") + ", targetUserName=" + (target != null ? target.getUserName() : "null") + ", meId=" + (me != null ? me.getId() : "null") + ", meUserName=" + (me != null ? me.getUserName() : "null") + ", frId=" + fr.getId() + ", frStatus=" + fr.getStatus());
+            System.out.println("[DEBUG] UserService.follow: calling notificationService.notify for targetId=" + target.getId() + ", targetUserName=" + target.getUserName());
+            log.info("[UserService] Calling notificationService.notify for targetId={}, targetUserName={}", target.getId(), target.getUserName());
+            try {
+                notificationService.notify(target, "FOLLOW_REQUEST", me.getNickname() + "님이 팔로우를 요청했습니다.", me.getId());
+            } catch (Exception e) {
+                log.error("[UserService] Error calling notificationService.notify: {}", e.getMessage(), e);
+            }
             return FollowActionResult.REQUESTED;
         }
 
@@ -217,12 +226,11 @@ public class UserService {
     /* ========================= 팔로우 요청 처리 ========================= */
 
     @Transactional(readOnly = true)
-    public List<PublicUserDTO> pendingRequestsForMe() {
+    public List<FollowRequestDTO> pendingRequestsForMe() {
         SiteUser me = currentUserOrThrow();
         return followRequestRepository.findByTargetAndStatusOrderByCreatedAtDesc(me, FollowRequest.Status.PENDING)
                 .stream()
-                .map(FollowRequest::getRequester)
-                .map(PublicUserDTO::forPublicView)
+                .map(FollowRequestDTO::fromEntity)
                 .toList();
     }
 
@@ -231,8 +239,8 @@ public class UserService {
         SiteUser me = currentUserOrThrow();
         SiteUser requester = getUser(requesterUsername);
         FollowRequest fr = followRequestRepository
-                .findByRequesterAndTargetAndStatus(requester, me, FollowRequest.Status.PENDING)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."));
+            .findByRequesterAndTargetAndStatus(requester, me, FollowRequest.Status.PENDING)
+            .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "요청을 찾을 수 없습니다."));
 
         fr.setStatus(FollowRequest.Status.APPROVED);
         fr.setDecidedAt(java.time.LocalDateTime.now());
@@ -241,6 +249,9 @@ public class UserService {
         // 팔로우 관계 생성
         requester.getFollow().add(me);
         userRepository.save(requester);
+
+        // 팔로우 승인 알림 생성 (followRequestId 포함)
+        notificationService.notify(requester, "FOLLOW_APPROVED", me.getNickname() + "님이 팔로우 요청을 승인했습니다.", me.getId());
     }
 
     @Transactional

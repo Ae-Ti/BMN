@@ -44,6 +44,26 @@ function normalizeLink(link) {
     if (!link) return "";
     return /^https?:\/\//i.test(link) ? link : `http://${link}`;
 }
+function toYoutubeEmbed(url) {
+    if (!url) return null;
+    try {
+        const u = new URL(url);
+        const host = u.hostname.toLowerCase();
+        let vid = null;
+        if (host.includes("youtube.com")) {
+            vid = u.searchParams.get("v");
+            if (!vid && u.pathname.startsWith("/embed/")) {
+                vid = u.pathname.replace("/embed/", "");
+            }
+        } else if (host === "youtu.be") {
+            vid = u.pathname.replace("/", "");
+        }
+        if (!vid) return null;
+        return `https://www.youtube.com/embed/${vid}`;
+    } catch {
+        return null;
+    }
+}
 function authHeaders() {
     const token = localStorage.getItem("token");
     return token ? { Authorization: `Bearer ${token}` } : {};
@@ -540,6 +560,9 @@ export default function RecipeDetail() {
                             const src =
                                 s?.imageUrl ||
                                 (s?.imageBase64 ? `data:image/jpeg;base64,${s.imageBase64}` : undefined);
+                            const videoUrl = s?.videoUrl;
+                            const embedUrl = videoUrl ? toYoutubeEmbed(videoUrl) : null;
+                            const type = s?.type || (videoUrl ? "video" : "image");
                             const caption = s?.description ?? s?.caption ?? "";
                             return (
                                 <li
@@ -551,14 +574,30 @@ export default function RecipeDetail() {
                                         Step {order}
                                     </div>
                                     {caption && <div className="sx-4g" style={{ marginBottom: '8px' }}>{caption}</div>}
-                                    {src && (
-                                        <img
-                                            className="sx-4h"
-                                            src={src}
-                                            alt={`step-${order}`}
-                                            loading="lazy"
-                                            onError={onImgError}
-                                        />
+                                    {type === "video" ? (
+                                        embedUrl ? (
+                                            <div className="sx-4h" style={{ position: "relative", paddingTop: "56.25%" }}>
+                                                <iframe
+                                                    src={embedUrl}
+                                                    title={`step-${order}-video`}
+                                                    style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", border: 0 }}
+                                                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                                                    allowFullScreen
+                                                ></iframe>
+                                            </div>
+                                        ) : videoUrl ? (
+                                            <a href={videoUrl} target="_blank" rel="noreferrer">{videoUrl}</a>
+                                        ) : null
+                                    ) : (
+                                        src && (
+                                            <img
+                                                className="sx-4h"
+                                                src={src}
+                                                alt={`step-${order}`}
+                                                loading="lazy"
+                                                onError={onImgError}
+                                            />
+                                        )
                                     )}
                                 </li>
                             );

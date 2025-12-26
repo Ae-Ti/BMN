@@ -26,6 +26,7 @@ public class SiteUser {
     @Column
     private String nickname;
 
+
     @Column(columnDefinition = "TEXT")
     private String introduction;
 

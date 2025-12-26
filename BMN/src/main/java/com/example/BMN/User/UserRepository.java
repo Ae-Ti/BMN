@@ -50,4 +50,14 @@ public interface UserRepository extends JpaRepository<SiteUser, Long> {
     /* ====== 팔로잉 여부 확인 ====== */
     @Query("select (count(f) > 0) from SiteUser u join u.follow f where u.id = :meId and f.id = :targetId")
     boolean existsFollowing(@Param("meId") Long meId, @Param("targetId") Long targetId);
+
+    /* ====== ID로 사용자 조회 (팔로우/팔로워 포함) ====== */
+        @Query("SELECT u FROM SiteUser u " +
+            "LEFT JOIN FETCH u.follow " +
+            "LEFT JOIN FETCH u.follower " +
+            "LEFT JOIN FETCH u.like " +
+            "LEFT JOIN FETCH u.favorite " +
+            "LEFT JOIN FETCH u.post " +
+            "WHERE u.id = :id")
+        Optional<SiteUser> findByIdWithFollowAndFollower(@Param("id") Long id);
 }

@@ -63,16 +63,6 @@
     gap: 12px;
 }
 
-.notifications-avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background: #111827;
-    color: #fff;
-    display: grid;
-    place-items: center;
-    font-weight: 800;
-}
 
 .notifications-name {
     font-weight: 700;

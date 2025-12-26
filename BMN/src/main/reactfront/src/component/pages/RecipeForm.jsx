@@ -77,8 +77,10 @@ export default function RecipeForm() {
     const [existingSteps, setExistingSteps] = useState([]);
     const [removeStepIds, setRemoveStepIds] = useState([]);
 
-    // 새 스텝: { file, description, previewUrl }
-    const [newSteps, setNewSteps] = useState([{ file: null, description: "", previewUrl: null }]);
+    // 새 스텝: { type: "image"|"video", file, description, previewUrl, videoUrl }
+    const [newSteps, setNewSteps] = useState([
+        { type: "image", file: null, description: "", previewUrl: null, videoUrl: "" },
+    ]);
 
     const serverThumbUrl = useMemo(() => (isEdit ? thumbnailPreview || null : null), [isEdit, thumbnailPreview]);
 
@@ -140,8 +142,22 @@ export default function RecipeForm() {
         setIngredients(copy);
     };
 
-    const addNewStep = () => setNewSteps([...newSteps, { file: null, description: "", previewUrl: null }]);
+    const addNewStep = () => setNewSteps([...newSteps, { type: "image", file: null, description: "", previewUrl: null, videoUrl: "" }]);
     const updateNewStep = async (idx, field, value) => {
+        if (field === "type") {
+            setNewSteps(prev => prev.map((step, i) => {
+                if (i !== idx) return step;
+                if (value === "video") {
+                    if (step.previewUrl && step.previewUrl.startsWith("blob:")) {
+                        try { URL.revokeObjectURL(step.previewUrl); } catch {}
+                    }
+                    return { ...step, type: "video", file: null, previewUrl: null, videoUrl: step.videoUrl || "" };
+                }
+                return { ...step, type: "image", videoUrl: "" };
+            }));
+            return;
+        }
+
         if (field === "file") {
             const file = value || null;
             let resizedFile = null;
@@ -209,7 +225,12 @@ export default function RecipeForm() {
     async function handleSubmit(e) {
         e.preventDefault();
         const trimmedSubject = (subject || "").trim();
-        const usableNewSteps = newSteps.filter((s) => (s.description || "").trim() !== "" || s.file);
+        const usableNewSteps = newSteps.filter((s) => {
+            const type = (s.type || "image").toLowerCase();
+            const hasImage = type === "image" && !!s.file;
+            const hasVideo = type === "video" && (s.videoUrl || "").trim() !== "";
+            return hasImage || hasVideo;
+        });
         const remainingExistingCount = existingSteps.length;
         const totalStepCount = remainingExistingCount + usableNewSteps.length;
 
@@ -235,12 +256,19 @@ export default function RecipeForm() {
             // 재료 JSON
             fd.append("ingredients", new Blob([JSON.stringify(ingredients ?? [])], { type: "application/json" }));
 
-            // 파일 있는 새 스텝만 파일+캡션 함께
+            // 새 스텝: 타입/캡션/미디어
             usableNewSteps.forEach((s) => {
-                if (s.file) {
-                    fd.append("stepImages", s.file);
-                }
+                const type = (s.type || "image").toLowerCase();
+                fd.append("stepTypes", type);
                 fd.append("captions", s.description || "");
+                if (type === "video") {
+                    fd.append("stepVideoUrls", s.videoUrl || "");
+                } else {
+                    fd.append("stepVideoUrls", ""); // 자리 맞춤
+                    if (s.file) {
+                        fd.append("stepImages", s.file);
+                    }
+                }
             });
 
             // 삭제할 기존 스텝
@@ -340,7 +368,7 @@ export default function RecipeForm() {
 
 
                 {/* 새 스텝 */}
-                <div className="sx-46 sx-4n"  >
+                    <div className="sx-46 sx-4n"  >
                     <h3>요리 순서</h3>
                     {newSteps.map((s, idx) => (
                         <div key={idx} className="recipe-step-item">
@@ -352,44 +380,69 @@ export default function RecipeForm() {
                                     value={s.description}
                                     onChange={(e) => updateNewStep(idx, "description", e.target.value)}
                                 />
+                                <select
+                                    value={s.type}
+                                    onChange={(e) => updateNewStep(idx, "type", e.target.value)}
+                                    className="recipe-ingredient-input"
+                                    style={{ maxWidth: "120px" }}
+                                >
+                                    <option value="image">사진</option>
+                                    <option value="video">영상</option>
+                                </select>
                                 <button type="button" onClick={() => removeNewStep(idx)} className="recipe-delete-button">삭제</button>
                             </div>
                             <div className="recipe-step-image-upload">
-                                <input
-                                    type="file"
-                                    accept="image/*"
-                                    onChange={(e) => updateNewStep(idx, "file", e.target.files?.[0] || null)}
-                                />
-                                {s.previewUrl && (
-                                    <div className="sx-32">
-                                        <img className="sx-4o"
-                                            src={s.previewUrl}
-                                            alt={`new-step-${idx}`}
+                                {s.type === "image" ? (
+                                    <>
+                                        <input
+                                            type="file"
+                                            accept="image/*"
+                                            onChange={(e) => updateNewStep(idx, "file", e.target.files?.[0] || null)}
                                         />
-                                    </div>
+                                        {s.previewUrl && (
+                                            <div className="sx-32">
+                                                <img className="sx-4o"
+                                                    src={s.previewUrl}
+                                                    alt={`new-step-${idx}`}
+                                                />
+                                            </div>
+                                        )}
+                                    </>
+                                ) : (
+                                    <input
+                                        type="url"
+                                        placeholder="영상 링크를 입력해주세요"
+                                        value={s.videoUrl || ""}
+                                        onChange={(e) => updateNewStep(idx, "videoUrl", e.target.value)}
+                                        className="sx-4p recipe-ingredient-input"
+                                    />
                                 )}
                             </div>
                         </div>
                     ))}
-                    <button type="button" onClick={addNewStep} className="recipe-add-button">단계 추가</button>
+                    <button type="button" onClick={addNewStep} className="recipe-add-button">요리 순서 추가하기</button>
                 </div>
 
                 {/* 기존 스텝 */}
                 {isEdit && existingSteps.length > 0 && (
-                    <div className="sx-46 sx-4l"  >
+                    <div className="sx-46 sx-4l" style={{ display: "flex", flexDirection: "column", gap: "12px", alignItems: "flex-start" }}  >
                         <h3>기존 단계</h3>
                         {existingSteps.map((s) => (
                             <div key={s.id} >
                                 <div>
                                     <strong>Step {s.stepOrder ?? s.stepIndex}</strong> {s.description ?? s.caption}
                                 </div>
-                                {s.imageUrl && (
+                                {s.videoUrl ? (
+                                    <div style={{ margin: "8px 0" }}>
+                                        <a href={s.videoUrl} target="_blank" rel="noreferrer">{s.videoUrl}</a>
+                                    </div>
+                                ) : s.imageUrl ? (
                                     <img className="sx-4m"
                                         src={s.imageUrl}
                                         alt="step"
                                          onError={onImgError}
                                     />
-                                )}
+                                ) : null}
                                 <button type="button" onClick={() => handleRemoveExistingStep(s.id)} className="recipe-delete-button">삭제</button>
                             </div>
                         ))}

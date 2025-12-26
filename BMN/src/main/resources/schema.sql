@@ -26,6 +26,9 @@ ALTER TABLE site_user DROP CONSTRAINT IF EXISTS UK_NICKNAME;
 DROP INDEX IF EXISTS IDX_SITE_USER_NICKNAME;
 DROP INDEX IF EXISTS IDX_NICKNAME;
 
+-- Allow recipe steps to store video links instead of images
+ALTER TABLE recipe_step_image ADD COLUMN IF NOT EXISTS video_url VARCHAR(500);
+
 -- Create pending_email_change table if not exists (for email change verification)
 CREATE TABLE IF NOT EXISTS pending_email_change (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,

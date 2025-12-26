@@ -143,6 +143,8 @@ public class RecipeDTO {
         private Integer stepOrder;   // 프론트 호환: 엔티티 stepIndex → stepOrder로 노출
         private String description;  // 프론트 호환: 엔티티 caption → description로 노출
         private String imageUrl;
+        private String videoUrl;
+        private String type; // image | video
 
         public StepImageDTO(RecipeStepImage s) {
             this.id = s.getId();
@@ -150,7 +152,13 @@ public class RecipeDTO {
             this.description = s.getCaption();
             if (s.getImage() != null && s.getImage().length > 0) {
                 this.imageUrl = "/recipe/steps/" + s.getId() + "/image";
+                this.type = "image";
+            } else if (s.getVideoUrl() != null && !s.getVideoUrl().isBlank()) {
+                this.videoUrl = s.getVideoUrl();
+                this.type = "video";
             }
+            // fallback if neither set
+            if (this.type == null) this.type = "image";
         }
     }
 }

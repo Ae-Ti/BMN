@@ -205,7 +205,7 @@ const ProfilePage = () => {
     const goFollowList = () => nav(`/profile/${encodeURIComponent(username)}/followers`);
 
     const mutualFollow = profile.mutualFollow || (profile.followedByMe && profile.followsMe);
-    const isPrivateLocked = profile.privateAccount && !isMyProfile && !mutualFollow;
+    const isPrivateLocked = profile.privateAccount && !isMyProfile && !profile.followedByMe;
 
     const Card = ({ r, overrideAuthor }) => {
         const ratingRounded = round1(r?.averageRating);
@@ -261,7 +261,7 @@ const ProfilePage = () => {
                         </div>
                         {profile.privateAccount && !profile.followedByMe && !isMyProfile && (
                             <div style={{ color: "#b45309", fontWeight: 700, marginTop: "4px" }}>
-                                비공개 계정
+                                비공개 계정 · 팔로우 승인 필요
                             </div>
                         )}
                         <div className="profile-details">
@@ -300,7 +300,7 @@ const ProfilePage = () => {
                 </div>
                 {isPrivateLocked && (
                     <div style={{ marginTop: "10px", color: "#6b7280", fontWeight: 600 }}>
-                        비공개 계정입니다. 맞팔로우한 사용자만 팔로워/팔로잉 목록을 볼 수 있어요.
+                        비공개 계정입니다. 팔로우 승인을 받은 사용자만 팔로워/팔로잉 목록을 볼 수 있어요.
                     </div>
                 )}
             </div>

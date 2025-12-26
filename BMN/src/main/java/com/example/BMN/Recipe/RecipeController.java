@@ -61,7 +61,9 @@ public class RecipeController {
             @RequestPart("ingredients") List<RecipeIngredientDTO> ingredients,
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages,
-            @RequestParam(value = "captions", required = false) List<String> captions
+            @RequestParam(value = "captions", required = false) List<String> captions,
+            @RequestParam(value = "stepTypes", required = false) List<String> stepTypes,
+            @RequestParam(value = "stepVideoUrls", required = false) List<String> stepVideoUrls
     ) throws Exception {
 
         if (captions == null) captions = List.of();
@@ -82,6 +84,8 @@ public class RecipeController {
                 thumbnail,
                 stepImages,
                 captions,
+                stepTypes,
+                stepVideoUrls,
                 null
         );
         return ResponseEntity.ok(id);
@@ -98,6 +102,8 @@ public class RecipeController {
             @RequestPart(value = "thumbnail", required = false) MultipartFile thumbnail,
             @RequestPart(value = "stepImages", required = false) List<MultipartFile> stepImages,
             @RequestParam(value = "captions", required = false) List<String> captions,
+            @RequestParam(value = "stepTypes", required = false) List<String> stepTypes,
+            @RequestParam(value = "stepVideoUrls", required = false) List<String> stepVideoUrls,
             @RequestParam(value = "removeStepIds", required = false) List<Long> removeStepIds
     ) throws Exception {
 
@@ -120,6 +126,8 @@ public class RecipeController {
                 thumbnail,
                 stepImages,
                 captions,
+                stepTypes,
+                stepVideoUrls,
                 removeStepIds
         );
         return ResponseEntity.ok(updatedId);

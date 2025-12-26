@@ -634,7 +634,16 @@ public class ProfileController {
         if (viewerOpt.isEmpty()) {
             return false;
         }
-        return userService.isMutual(target, viewerOpt.get());
+        // 비공개 계정: 팔로우 승인된 사용자(= viewer가 target을 팔로우 중) 또는 상호 팔로우면 허용
+        String viewerUserName = viewerOpt.get().getUserName();
+        boolean viewerFollowsTarget = userService.isFollowing(viewerUserName, target.getUserName());
+        boolean targetFollowsViewer = false;
+        try {
+            targetFollowsViewer = userService.isFollowing(target.getUserName(), viewerUserName);
+        } catch (Exception ignored) {
+            // ignore and use viewerFollowsTarget result
+        }
+        return viewerFollowsTarget || targetFollowsViewer;
     }
 
     /* ======================= 프로필 보완 ======================= */

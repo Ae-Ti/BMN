@@ -71,7 +71,7 @@ const FollowListPage = () => {
             }));
         } catch (err) {
             if (err?.response?.status === 403) {
-                setErrorMessage("맞팔로우한 사용자만 볼 수 있는 비공개 계정입니다.");
+                setErrorMessage("비공개 계정입니다. 팔로우 승인된 사용자만 볼 수 있어요.");
             }
             return [];
         }

@@ -406,7 +406,6 @@ const Ingredient = () => {
             {noIngredients ? (
                 <div className="sx-1r"  >
                     <h2>표시할 재료 정보가 없습니다.</h2>
-                    <p>레시피 상세 페이지에서 '담기'를 눌러주세요.</p>
                 </div>
             ) : (
                 <div className="ingredient-bottom-box">

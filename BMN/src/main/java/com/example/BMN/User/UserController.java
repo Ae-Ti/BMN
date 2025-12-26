@@ -20,6 +20,16 @@ import java.util.UUID;
 @RequestMapping("/user")
 public class UserController {
 
+    /**
+     * userId로 프로필 정보 조회 (알림 등에서 사용)
+     */
+    @GetMapping("/profile/id/{id}")
+    public ResponseEntity<?> getUserById(@PathVariable Long id) {
+        SiteUser user = userRepository.findByIdWithFollowAndFollower(id)
+                .orElseThrow(() -> new org.springframework.web.server.ResponseStatusException(org.springframework.http.HttpStatus.NOT_FOUND, "사용자를 찾을 수 없습니다."));
+        return ResponseEntity.ok(new UserDTO(user));
+    }
+
     // Logger for this controller
     private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(UserController.class);
 
