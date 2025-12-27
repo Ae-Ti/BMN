@@ -16,12 +16,7 @@ async function resizeImage(file, options) {
         img.src = URL.createObjectURL(file);
         img.onload = () => {
             const { naturalWidth, naturalHeight } = img;
-            // 원본이 제한보다 작으면 그대로 반환해 화질 손실 방지
-            if (naturalWidth <= maxWidth && naturalHeight <= maxHeight) {
-                resolve(file);
-                return;
-            }
-
+            // 원본이 제한보다 작으면 그대로 반환해 화질 손실 방지 (단, jpeg 변환은 항상 적용)
             let width = naturalWidth;
             let height = naturalHeight;
             if (width > height && width > maxWidth) {
@@ -38,8 +33,9 @@ async function resizeImage(file, options) {
             const ctx = canvas.getContext("2d");
             ctx.drawImage(img, 0, 0, width, height);
 
-            const targetType = file.type && file.type.startsWith("image/") ? file.type : "image/jpeg";
-            const qualityOption = targetType === "image/jpeg" ? quality : undefined;
+            // 항상 JPEG로 변환 (압축률 적용)
+            const targetType = "image/jpeg";
+            const qualityOption = quality ?? 0.85;
 
             canvas.toBlob(
                 (blob) => {
@@ -47,7 +43,9 @@ async function resizeImage(file, options) {
                         reject(new Error("Canvas is empty"));
                         return;
                     }
-                    resolve(new File([blob], file.name, { type: targetType, lastModified: Date.now() }));
+                    // 파일명 확장자도 jpeg로 변경
+                    const newName = file.name.replace(/\.[^.]+$/, "") + ".jpg";
+                    resolve(new File([blob], newName, { type: targetType, lastModified: Date.now() }));
                 },
                 targetType,
                 qualityOption
